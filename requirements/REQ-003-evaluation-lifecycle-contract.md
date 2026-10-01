@@ -1,6 +1,6 @@
 # REQ-003 — Evaluation Lifecycle Contract
 
-**Status:** READY
+**Status:** PR_READY
 
 **Owner:** Next implementation/specification session
 
@@ -161,3 +161,54 @@ The orchestrator will review the PR against this exact requirement and may requi
 ## Non-goal
 
 Do not move from specification into feature implementation merely because the lifecycle specification is complete.
+
+## Session Completion Record
+
+### Status
+
+PR_READY
+
+### Branch
+
+`spec/req-003-evaluation-lifecycle`
+
+### PR
+
+Pending creation against `main`.
+
+### Documents Changed
+
+- `docs/specs/SPEC-003-evaluation-lifecycle.md` — created the implementation-neutral evaluation lifecycle contract, including lifecycle states/transitions, completion semantics, partial-failure behavior, evidence/capability/check distinctions, provenance, retry/re-run semantics, and future implementation acceptance criteria.
+- `docs/specs/README.md` — indexed SPEC-003.
+- `requirements/REQ-003-evaluation-lifecycle-contract.md` — records this session completion and PR details.
+
+### Decisions Made
+
+- An evaluation is the governed domain unit connecting one accepted canonical hotel target to its analysis/report and interactive preview outcomes.
+- `ACCEPTED` and `RUNNING` are active lifecycle states; `COMPLETED`, `INCOMPLETE`, `UNRESOLVED`, and `FAILED` are terminal evaluation outcomes.
+- `COMPLETED` requires both the owner-facing analysis/report and an interactive Antena-hosted hotel preview; neither outcome substitutes for the other.
+- Partial evidence, check, or capability failure does not automatically fail an evaluation. A completed evaluation may retain unavailable checks when the limitations are surfaced and the completion contract remains truthful.
+- Evaluation-level failure is distinct from capability-level, check-level, and evidence-level failure.
+- Unresolved or materially mismatched hotel identity must never silently proceed against a different property.
+- Retries/re-runs are conceptually separate attempts associated with the same target; they must preserve prior provenance and outcomes rather than silently overwrite them.
+- A material change to hotel identity or canonical website target constitutes a new evaluation request rather than an invisible retry.
+- No separate architecture decision record was created because this specification establishes product/domain semantics without selecting implementation technology or infrastructure.
+
+### Open Questions
+
+No material open question remains within the bounded REQ-003 scope. Detailed acquisition behavior, analysis rules, preview content/runtime, persistence, orchestration infrastructure, and technology choices remain future work as explicitly scoped.
+
+### Validation Performed
+
+- Inspected the repository and confirmed `main` is the default branch.
+- Located and read the current `READY` requirement under `requirements/`.
+- Read the referenced project context, SPEC-001, SPEC-002, specifications index, architecture concerns, requirements workflow, and the requirement itself.
+- The requirement references `docs/context/PROJECT_CONTEXT.md`, while the repository contains the same project context at lowercase `docs/context/project-context.md`; the existing repository file was treated as the intended referenced context without changing repository structure.
+- Created only documentation/specification changes; no application feature code was added.
+- Confirmed the specification explicitly covers lifecycle states/transitions, completion, incomplete/unresolved/failed semantics, partial evidence/capability/check failures, report/preview relationship, provenance, public-access/security constraints, retry/re-run semantics, repeatability, and testable future implementation criteria.
+- Indexed SPEC-003 in `docs/specs/README.md`.
+- No automated application tests were applicable because this session is documentation/specification-only.
+
+### Orchestrator Review History
+
+No orchestrator review has been performed yet. This PR is awaiting orchestrator review.
