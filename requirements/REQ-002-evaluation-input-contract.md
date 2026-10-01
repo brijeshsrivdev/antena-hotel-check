@@ -162,9 +162,9 @@ PR_READY
 
 ### Documents Changed
 
-- `docs/specs/SPEC-002-evaluation-input.md` — created the implementation-neutral evaluation input contract.
+- `docs/specs/SPEC-002-evaluation-input.md` — created the implementation-neutral evaluation input contract; revised in Round 1 to clarify invalid-input semantics.
 - `docs/specs/README.md` — indexed SPEC-002.
-- `requirements/REQ-002-evaluation-input-contract.md` — recorded this session completion state and PR metadata.
+- `requirements/REQ-002-evaluation-input-contract.md` — records session completion and orchestrator review response.
 
 ### Decisions Made
 
@@ -172,6 +172,8 @@ PR_READY
 - When all three fields are supplied, the website URL is the canonical evaluation target and hotel name/city remain supplemental identity context.
 - Partial hotel identity combined with a website URL is rejected; the combined mode requires a complete name + city pair.
 - Validation distinguishes syntactically valid input from later hotel resolution.
+- Invalid-input categories correspond to rejected conditions. `MISSING_HOTEL_NAME` and `MISSING_CITY` apply to incomplete identity attempts; `MISSING_WEBSITE_URL` is not a product-level error because website URL is optional for identity-mode input.
+- Added `NO_USABLE_INPUT` for the case where neither a complete identity pair nor a usable website URL is available.
 - Ambiguous, unresolved, and material hotel/website mismatch outcomes must never silently select or substitute an unrelated property.
 - No separate decision record was created because these choices are part of the REQ-002 product contract and do not select implementation architecture or technology.
 
@@ -181,16 +183,23 @@ No material open question remains within the bounded REQ-002 scope. Discovery/re
 
 ### Validation Performed
 
-- Read the complete READY requirement and all referenced repository context on `main` before making changes.
-- Reviewed `SPEC-001`, specification index, architecture concerns, decision guidance, and development lifecycle.
-- Created the specification without application feature code, crawling, discovery, analysis, scoring, AI generation, or preview implementation.
-- Checked that the specification contains explicit supported modes, validation cases, precedence, canonical representation, ambiguity/mismatch behavior, error categories, boundaries, and future implementation acceptance tests.
+- Reviewed the existing PR #2 specification and applied only the Round 1 invalid-input semantics correction.
+- Confirmed the accepted modes remain: hotel name + city; website URL; or all three fields.
+- Confirmed hotel name only, city only, partial identity + URL, no usable input, malformed URL, and unsupported URL forms remain rejected.
+- Confirmed the specification no longer treats missing website URL as a general validation error.
+- Updated future implementation acceptance criteria to cover URL-optional identity input and valid URL-only input.
 - No automated application tests were applicable because this session changes documentation/specification only.
 
 ## Orchestrator Review History
 
 ### Review Round 1
 
-_Status: PENDING_
+**Status:** ADDRESSED — awaiting next orchestrator review.
 
-_The orchestrator will review the PR against this requirement and record findings here._
+**Finding:** P2 — Clarify invalid-input error semantics. `MISSING_WEBSITE_URL` was inconsistent with the accepted input modes, and `MISSING_HOTEL_NAME` / `MISSING_CITY` required explicit scoping to incomplete identity attempts.
+
+**Session 2 response:** Revised `SPEC-002` v1.1 so error categories correspond to rejected conditions. Removed `MISSING_WEBSITE_URL` from the product-level invalid-input categories, scoped `MISSING_HOTEL_NAME` and `MISSING_CITY` to identity attempts, retained `INCOMPLETE_HOTEL_IDENTITY` for incomplete identity input, added `NO_USABLE_INPUT` for the no-mode case, and updated the future implementation acceptance criteria accordingly. No application code or scope expansion was introduced.
+
+**PR update:** Fix pushed to PR #2 on `spec/req-002-evaluation-input-contract`.
+
+**Next action:** Await orchestrator review.
