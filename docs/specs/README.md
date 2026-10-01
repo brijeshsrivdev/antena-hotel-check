@@ -7,6 +7,7 @@ This directory contains product specifications that implementation sessions must
 - [SPEC-001 — Hotel Check Product Specification](./SPEC-001-hotel-check.md)
 - [SPEC-002 — Evaluation Input Contract](./SPEC-002-evaluation-input.md)
 - [SPEC-003 — Evaluation Lifecycle](./SPEC-003-evaluation-lifecycle.md)
+- [SPEC-004 — Public Evidence Acquisition Contract](./SPEC-004-public-evidence-acquisition.md)
 
 ## Rule
 
