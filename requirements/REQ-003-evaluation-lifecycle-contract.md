@@ -20,7 +20,7 @@ This requirement exists to establish the durable contract for an evaluation as a
 
 The session MUST read:
 
-- `docs/context/PROJECT_CONTEXT.md`
+- `docs/context/project-context.md`
 - `docs/specs/SPEC-001-hotel-check.md`
 - `docs/specs/SPEC-002-evaluation-input.md`
 - `docs/specs/README.md`
@@ -180,7 +180,7 @@ PR_READY
 
 - `docs/specs/SPEC-003-evaluation-lifecycle.md` — created the implementation-neutral evaluation lifecycle contract, including lifecycle states/transitions, completion semantics, partial-failure behavior, evidence/capability/check distinctions, provenance, retry/re-run semantics, and future implementation acceptance criteria.
 - `docs/specs/README.md` — indexed SPEC-003.
-- `requirements/REQ-003-evaluation-lifecycle-contract.md` — records this session completion and PR details.
+- `requirements/REQ-003-evaluation-lifecycle-contract.md` — records this session completion, PR details, and Round 1 review response.
 
 ### Decisions Made
 
@@ -202,14 +202,20 @@ No material open question remains within the bounded REQ-003 scope. Detailed acq
 
 - Inspected the repository and confirmed `main` is the default branch.
 - Located and read the current `READY` requirement under `requirements/`.
-- Read the referenced project context, SPEC-001, SPEC-002, specifications index, architecture concerns, requirements workflow, and the requirement itself.
-- The requirement references `docs/context/PROJECT_CONTEXT.md`, while the repository contains the same project context at lowercase `docs/context/project-context.md`; the existing repository file was treated as the intended referenced context without changing repository structure.
+- Read the referenced project context at `docs/context/project-context.md`, SPEC-001, SPEC-002, specifications index, architecture concerns, requirements workflow, and the requirement itself.
+- The requirement now references the repository's actual lowercase context path: `docs/context/project-context.md`; no duplicate context file was created.
 - Created only documentation/specification changes; no application feature code was added.
 - Confirmed the specification explicitly covers lifecycle states/transitions, completion, incomplete/unresolved/failed semantics, partial evidence/capability/check failures, report/preview relationship, provenance, public-access/security constraints, retry/re-run semantics, repeatability, and testable future implementation criteria.
 - Indexed SPEC-003 in `docs/specs/README.md`.
-- Compared `spec/req-003-evaluation-lifecycle` against `main`: 3 commits ahead, 0 behind, with documentation-only changes in the specification, specification index, and requirement completion record.
+- Compared `spec/req-003-evaluation-lifecycle` against `main`: documentation-only changes in the specification, specification index, and requirement completion record.
 - No automated application tests were applicable because this session is documentation/specification-only.
 
 ### Orchestrator Review History
 
-No orchestrator review has been performed yet. This PR is awaiting orchestrator review.
+#### Round 1
+
+**Finding:** P1 — repository-context path mismatch. The requirement referenced `docs/context/PROJECT_CONTEXT.md`, while the repository contains `docs/context/project-context.md`.
+
+**Response:** Fixed the requirement's repository-context reference to the actual lowercase path `docs/context/project-context.md`. Updated the validation record to state that this exact file was read. No duplicate context file was created and no product scope was changed.
+
+**Status:** Addressed; awaiting next orchestrator review.
