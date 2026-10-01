@@ -1,6 +1,6 @@
 # REQ-003 — Evaluation Lifecycle Contract
 
-**Status:** READY
+**Status:** PR_READY
 
 **Owner:** Next implementation/specification session
 
@@ -20,7 +20,7 @@ This requirement exists to establish the durable contract for an evaluation as a
 
 The session MUST read:
 
-- `docs/context/PROJECT_CONTEXT.md`
+- `docs/context/project-context.md`
 - `docs/specs/SPEC-001-hotel-check.md`
 - `docs/specs/SPEC-002-evaluation-input.md`
 - `docs/specs/README.md`
@@ -161,3 +161,61 @@ The orchestrator will review the PR against this exact requirement and may requi
 ## Non-goal
 
 Do not move from specification into feature implementation merely because the lifecycle specification is complete.
+
+## Session Completion Record
+
+### Status
+
+PR_READY
+
+### Branch
+
+`spec/req-003-evaluation-lifecycle`
+
+### PR
+
+[#3 — docs: define REQ-003 evaluation lifecycle](https://github.com/brijeshsrivdev/antena-hotel-check/pull/3)
+
+### Documents Changed
+
+- `docs/specs/SPEC-003-evaluation-lifecycle.md` — created the implementation-neutral evaluation lifecycle contract, including lifecycle states/transitions, completion semantics, partial-failure behavior, evidence/capability/check distinctions, provenance, retry/re-run semantics, and future implementation acceptance criteria.
+- `docs/specs/README.md` — indexed SPEC-003.
+- `requirements/REQ-003-evaluation-lifecycle-contract.md` — records this session completion, PR details, and Round 1 review response.
+
+### Decisions Made
+
+- An evaluation is the governed domain unit connecting one accepted canonical hotel target to its analysis/report and interactive preview outcomes.
+- `ACCEPTED` and `RUNNING` are active lifecycle states; `COMPLETED`, `INCOMPLETE`, `UNRESOLVED`, and `FAILED` are terminal evaluation outcomes.
+- `COMPLETED` requires both the owner-facing analysis/report and an interactive Antena-hosted hotel preview; neither outcome substitutes for the other.
+- Partial evidence, check, or capability failure does not automatically fail an evaluation. A completed evaluation may retain unavailable checks when the limitations are surfaced and the completion contract remains truthful.
+- Evaluation-level failure is distinct from capability-level, check-level, and evidence-level failure.
+- Unresolved or materially mismatched hotel identity must never silently proceed against a different property.
+- Retries/re-runs are conceptually separate attempts associated with the same target; they must preserve prior provenance and outcomes rather than silently overwrite them.
+- A material change to hotel identity or canonical website target constitutes a new evaluation request rather than an invisible retry.
+- No separate architecture decision record was created because this specification establishes product/domain semantics without selecting implementation technology or infrastructure.
+
+### Open Questions
+
+No material open question remains within the bounded REQ-003 scope. Detailed acquisition behavior, analysis rules, preview content/runtime, persistence, orchestration infrastructure, and technology choices remain future work as explicitly scoped.
+
+### Validation Performed
+
+- Inspected the repository and confirmed `main` is the default branch.
+- Located and read the current `READY` requirement under `requirements/`.
+- Read the referenced project context at `docs/context/project-context.md`, SPEC-001, SPEC-002, specifications index, architecture concerns, requirements workflow, and the requirement itself.
+- The requirement now references the repository's actual lowercase context path: `docs/context/project-context.md`; no duplicate context file was created.
+- Created only documentation/specification changes; no application feature code was added.
+- Confirmed the specification explicitly covers lifecycle states/transitions, completion, incomplete/unresolved/failed semantics, partial evidence/capability/check failures, report/preview relationship, provenance, public-access/security constraints, retry/re-run semantics, repeatability, and testable future implementation criteria.
+- Indexed SPEC-003 in `docs/specs/README.md`.
+- Compared `spec/req-003-evaluation-lifecycle` against `main`: documentation-only changes in the specification, specification index, and requirement completion record.
+- No automated application tests were applicable because this session is documentation/specification-only.
+
+### Orchestrator Review History
+
+#### Round 1
+
+**Finding:** P1 — repository-context path mismatch. The requirement referenced `docs/context/PROJECT_CONTEXT.md`, while the repository contains `docs/context/project-context.md`.
+
+**Response:** Fixed the requirement's repository-context reference to the actual lowercase path `docs/context/project-context.md`. Updated the validation record to state that this exact file was read. No duplicate context file was created and no product scope was changed.
+
+**Status:** Addressed; awaiting next orchestrator review.
