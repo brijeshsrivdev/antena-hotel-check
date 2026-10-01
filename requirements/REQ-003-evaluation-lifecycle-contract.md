@@ -174,7 +174,7 @@ PR_READY
 
 ### PR
 
-Pending creation against `main`.
+[#3 — docs: define REQ-003 evaluation lifecycle](https://github.com/brijeshsrivdev/antena-hotel-check/pull/3)
 
 ### Documents Changed
 
@@ -207,6 +207,7 @@ No material open question remains within the bounded REQ-003 scope. Detailed acq
 - Created only documentation/specification changes; no application feature code was added.
 - Confirmed the specification explicitly covers lifecycle states/transitions, completion, incomplete/unresolved/failed semantics, partial evidence/capability/check failures, report/preview relationship, provenance, public-access/security constraints, retry/re-run semantics, repeatability, and testable future implementation criteria.
 - Indexed SPEC-003 in `docs/specs/README.md`.
+- Compared `spec/req-003-evaluation-lifecycle` against `main`: 3 commits ahead, 0 behind, with documentation-only changes in the specification, specification index, and requirement completion record.
 - No automated application tests were applicable because this session is documentation/specification-only.
 
 ### Orchestrator Review History
