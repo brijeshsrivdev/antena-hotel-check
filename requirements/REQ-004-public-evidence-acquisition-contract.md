@@ -1,6 +1,6 @@
 # REQ-004 — Public Evidence Acquisition Contract
 
-**Status:** READY
+**Status:** PR_READY
 
 **Owner:** Next implementation/specification session
 
@@ -213,3 +213,56 @@ The orchestrator will review the PR against this exact requirement and may requi
 ## Non-Goal
 
 Do not move from specification into crawler or acquisition implementation merely because this specification is complete.
+
+## Session Completion Record
+
+### Status
+
+PR_READY
+
+### Branch
+
+`spec/req-004-public-evidence-acquisition`
+
+### PR
+
+Pending creation on this branch; this section will be completed with the PR number and link before the session stops.
+
+### Documents Changed
+
+- `docs/specs/SPEC-004-public-evidence-acquisition.md` — created the implementation-neutral public evidence acquisition contract, including hospitality-focused scope, first-party acquisition, controlled discovery, HTTP-first/browser-rendered escalation, third-party source boundaries, provenance, access/failure semantics, freshness, URL duplication/canonical handling, security boundaries, minimization, lifecycle integration, and future implementation acceptance criteria.
+- `docs/specs/README.md` — indexed SPEC-004.
+- `requirements/REQ-004-public-evidence-acquisition-contract.md` — records this session completion and will record the PR details.
+
+### Decisions Made
+
+- Public evidence is limited to information ordinarily observable from public sources without authentication, authorization, circumvention, or evasion of technical restrictions.
+- First-party hotel website acquisition is the primary source, with discovery bounded to guest-journey-relevant pages rather than exhaustive domain crawling.
+- Ordinary HTTP acquisition is the default when sufficient; browser-rendered observation is a justified fallback for relevant public pages only, under the same access and security boundaries.
+- Access restrictions are terminal acquisition boundaries, not triggers for increasingly aggressive retries or bypass techniques.
+- Third-party public evidence may be observed when relevant, but its source relationship must remain explicit and it must not silently become first-party hotel fact.
+- Retained evidence must preserve source URL, source relationship, acquisition timestamp, method/category, availability status, and observation-versus-derivation semantics.
+- Acquisition failure/unavailability must never be interpreted as evidence that a hotel feature is absent.
+- Acquisition must be bounded by evaluation scope, request/concurrency/resource controls, redirects, traversal, and minimization principles; exact numeric limits remain future architecture/implementation decisions.
+- Externally supplied URLs are an untrusted network boundary; future implementation must prevent private/internal network access, redirect abuse, request amplification, unbounded traversal, and unsafe content execution.
+- No separate architecture decision record was created because the work establishes product/domain constraints without selecting implementation technology or infrastructure.
+
+### Open Questions
+
+No material open question remains within the bounded REQ-004 scope. Exact crawl/request limits, robots precedence details, URL canonicalization mechanics, browser technology, network isolation mechanism, retention policy, and implementation architecture remain intentionally deferred to later requirements/decision records.
+
+### Validation Performed
+
+- Inspected the repository and confirmed `main` is the default branch.
+- Located and read the current `READY` requirement under `requirements/` and read it completely before making changes.
+- Read the referenced `docs/context/project-context.md`, SPEC-001, SPEC-002, SPEC-003, specifications index, architecture concerns, decisions README, requirements workflow, and the requirement itself.
+- Confirmed `docs/decisions/` currently contains only its README and no additional decision records requiring review.
+- Created only documentation/specification changes; no application, crawler, browser, infrastructure, or acquisition implementation was added.
+- Confirmed SPEC-004 addresses all thirteen requirement acceptance criteria, including controlled hotel-site boundaries, hospitality priorities, explicit non-bypass behavior, partial/unavailable evidence, provenance/time semantics, HTTP-first/browser escalation, crawl/request minimization, URL/redirect security, lifecycle integration, and future testability.
+- Indexed SPEC-004 in `docs/specs/README.md`.
+- No automated application tests were applicable because this session is documentation/specification-only.
+- Branch was created from `main` as `spec/req-004-public-evidence-acquisition` and all changes are confined to the required documentation scope.
+
+### Orchestrator Review History
+
+<!-- Orchestrator review rounds are appended below without deleting prior history. -->
