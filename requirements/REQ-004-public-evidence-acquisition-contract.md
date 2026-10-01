@@ -226,13 +226,13 @@ PR_READY
 
 ### PR
 
-Pending creation on this branch; this section will be completed with the PR number and link before the session stops.
+[#4 — docs: define REQ-004 public evidence acquisition contract](https://github.com/brijeshsrivdev/antena-hotel-check/pull/4)
 
 ### Documents Changed
 
 - `docs/specs/SPEC-004-public-evidence-acquisition.md` — created the implementation-neutral public evidence acquisition contract, including hospitality-focused scope, first-party acquisition, controlled discovery, HTTP-first/browser-rendered escalation, third-party source boundaries, provenance, access/failure semantics, freshness, URL duplication/canonical handling, security boundaries, minimization, lifecycle integration, and future implementation acceptance criteria.
 - `docs/specs/README.md` — indexed SPEC-004.
-- `requirements/REQ-004-public-evidence-acquisition-contract.md` — records this session completion and will record the PR details.
+- `requirements/REQ-004-public-evidence-acquisition-contract.md` — records this session completion, branch, PR details, decisions, validation, and review-history placeholder.
 
 ### Decisions Made
 
@@ -260,6 +260,7 @@ No material open question remains within the bounded REQ-004 scope. Exact crawl/
 - Created only documentation/specification changes; no application, crawler, browser, infrastructure, or acquisition implementation was added.
 - Confirmed SPEC-004 addresses all thirteen requirement acceptance criteria, including controlled hotel-site boundaries, hospitality priorities, explicit non-bypass behavior, partial/unavailable evidence, provenance/time semantics, HTTP-first/browser escalation, crawl/request minimization, URL/redirect security, lifecycle integration, and future testability.
 - Indexed SPEC-004 in `docs/specs/README.md`.
+- Compared `spec/req-004-public-evidence-acquisition` against `main`: documentation-only changes in the specification, specification index, and requirement completion record.
 - No automated application tests were applicable because this session is documentation/specification-only.
 - Branch was created from `main` as `spec/req-004-public-evidence-acquisition` and all changes are confined to the required documentation scope.
 
