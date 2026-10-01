@@ -158,7 +158,7 @@ PR_READY
 
 ### PR
 
-_To be recorded after PR creation._
+[#2 — docs: define REQ-002 evaluation input contract](https://github.com/brijeshsrivdev/antena-hotel-check/pull/2)
 
 ### Documents Changed
 
