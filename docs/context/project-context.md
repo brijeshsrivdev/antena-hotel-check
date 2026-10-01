@@ -10,9 +10,12 @@ Antena Hotel Check is a hospitality-specific digital experience analyzer for hot
 The eventual owner-facing flow is:
 1. Enter hotel name + city, or enter hotel website URL.
 2. Analyze publicly accessible digital presence and guest-facing journey.
-3. Produce a useful hospitality-specific analysis/report.
-4. Produce an interactive Antena-hosted preview such as `<hotel-slug>.antenapro.com`.
-5. Allow the owner to explore the preview as an actual guest would.
+3. Produce a completed evaluation consisting of an analysis result/report **and an interactive Antena-hosted hotel preview**.
+4. Allow the owner to explore the preview as an actual guest would.
+
+Intended product flow:
+
+**Hotel input → analysis → analysis result + interactive hotel preview → owner explores preview**
 
 Central question:
 
@@ -37,14 +40,14 @@ Potential dimensions include website health, SEO fundamentals, performance, mobi
 Assess whether a guest can discover the hotel, understand it, find and understand rooms, find important amenities/information, find contact options, find booking functionality, and navigate the booking journey where technically possible.
 
 ### Interactive Hotel Preview
-The eventual preview is a real interactive web experience, not a screenshot, PDF, or static mockup. Candidate flows include homepage, rooms, room details, amenities, dining where applicable, location, contact, and booking where supportable.
+The completed evaluation includes a real interactive Antena-hosted web experience, not a screenshot, PDF, or static mockup. Candidate flows include homepage, rooms, room details, amenities, dining where applicable, location, contact, and booking where supportable.
 
-Preview content must distinguish publicly discovered, normalized/inferred, and demonstration/generated information. Invented information must never silently appear as verified hotel facts.
+The preview must clearly distinguish verified/publicly discovered information from inferred, generated, or demonstration information. Non-verified information must be clearly labeled and/or have inspectable provenance so it cannot silently appear as a verified hotel fact. Detailed UI, schema, and interaction decisions belong to later specifications.
 
 ## Current state
 
 - **IMPLEMENTED:** repository/specification foundation only.
-- **SPECIFIED:** overall product intent and major capability boundaries.
+- **SPECIFIED:** overall product intent, completed-evaluation outcome, provenance/truthfulness requirement, and major capability boundaries.
 - **PLANNED:** capability implementations described by SPEC-001.
 - **PROPOSED:** technology choices and detailed architecture until explicit decision records exist.
 - **DEFERRED:** all feature implementation beyond the foundation.
@@ -52,7 +55,7 @@ Preview content must distinguish publicly discovered, normalized/inferred, and d
 
 ## Session-1 non-goals
 
-No crawling/scraping, analysis engine, scoring algorithm, AI generation, preview rendering, custom-domain provisioning, booking/OTA integration, tenant persistence, authentication, or final technology-stack decision is made here.
+No crawling/scraping, analysis engine, scoring algorithm, AI generation, preview rendering/runtime, custom-domain provisioning, booking/OTA integration, tenant persistence, authentication, or final technology-stack decision is made here.
 
 ## Durable-state rule
 
