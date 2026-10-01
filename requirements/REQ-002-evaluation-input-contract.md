@@ -1,6 +1,6 @@
 # REQ-002 — Evaluation Input Contract
 
-**Status:** READY
+**Status:** PR_READY
 
 **Owner:** Implementation Session 2
 
@@ -150,31 +150,42 @@ The resulting specification must:
 
 ### Status
 
-_To be completed by the implementation session._
+PR_READY
 
 ### Branch
 
-_To be completed._
+`spec/req-002-evaluation-input-contract`
 
 ### PR
 
-_To be completed._
+_To be recorded after PR creation._
 
 ### Documents Changed
 
-_To be completed._
+- `docs/specs/SPEC-002-evaluation-input.md` — created the implementation-neutral evaluation input contract.
+- `docs/specs/README.md` — indexed SPEC-002.
+- `requirements/REQ-002-evaluation-input-contract.md` — recorded this session completion state and PR metadata.
 
 ### Decisions Made
 
-_To be completed._
+- Accepted input modes are hotel name + city, website URL, or all three fields.
+- When all three fields are supplied, the website URL is the canonical evaluation target and hotel name/city remain supplemental identity context.
+- Partial hotel identity combined with a website URL is rejected; the combined mode requires a complete name + city pair.
+- Validation distinguishes syntactically valid input from later hotel resolution.
+- Ambiguous, unresolved, and material hotel/website mismatch outcomes must never silently select or substitute an unrelated property.
+- No separate decision record was created because these choices are part of the REQ-002 product contract and do not select implementation architecture or technology.
 
 ### Open Questions
 
-_To be completed._
+No material open question remains within the bounded REQ-002 scope. Discovery/resolution algorithms, evidence thresholds, security/network policy, and implementation architecture remain future work as explicitly scoped.
 
 ### Validation Performed
 
-_To be completed._
+- Read the complete READY requirement and all referenced repository context on `main` before making changes.
+- Reviewed `SPEC-001`, specification index, architecture concerns, decision guidance, and development lifecycle.
+- Created the specification without application feature code, crawling, discovery, analysis, scoring, AI generation, or preview implementation.
+- Checked that the specification contains explicit supported modes, validation cases, precedence, canonical representation, ambiguity/mismatch behavior, error categories, boundaries, and future implementation acceptance tests.
+- No automated application tests were applicable because this session changes documentation/specification only.
 
 ## Orchestrator Review History
 
