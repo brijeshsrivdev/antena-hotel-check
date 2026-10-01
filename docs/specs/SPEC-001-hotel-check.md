@@ -1,7 +1,7 @@
 # SPEC-001 — Hotel Check Product Specification
 
 **Status:** SPECIFIED  
-**Version:** 1.0  
+**Version:** 1.1  
 **Implementation:** Not started
 
 ## Purpose
@@ -11,6 +11,19 @@ Define the first coherent product contract without prematurely selecting impleme
 ## Problem
 
 Hotel owners need to understand whether their public digital presence supports a real guest journey from discovery through booking. A technical audit alone does not answer this hospitality question.
+
+## Product outcome
+
+A **completed hotel evaluation** produces two owner-facing outcomes together:
+
+1. an analysis result/report; and
+2. an interactive Antena-hosted hotel preview that the owner can explore as a guest.
+
+The intended product flow is:
+
+**Hotel input → analysis → analysis result + interactive hotel preview → owner explores preview**
+
+The preview is therefore a core outcome of an evaluation, not a separate marketing artifact or a later optional product concept. The detailed preview generation, content model, runtime, and hosting behavior remain future specifications and are not implemented by SPEC-001.
 
 ## Inputs
 
@@ -73,7 +86,9 @@ A universal scoring model is intentionally not defined yet.
 
 ## Interactive preview
 
-The eventual preview must be an interactive Antena-hosted experience, for example `<hotel-slug>.antenapro.com`, rather than a screenshot, PDF, or static mockup.
+The completed evaluation must provide an interactive Antena-hosted hotel preview, for example `<hotel-slug>.antenapro.com`, that the owner can actually explore as a guest.
+
+The preview must be an interactive web experience rather than a screenshot, PDF, or static mockup.
 
 Candidate pages/flows:
 - homepage;
@@ -85,11 +100,17 @@ Candidate pages/flows:
 - contact;
 - booking journey where supportable.
 
-The actual minimum set is a later preview specification.
+The actual minimum set, preview content model, rendering/runtime behavior, hosting lifecycle, and detailed interaction requirements are future specifications.
 
-## Truthfulness and provenance
+## Preview truthfulness and inspectable provenance
 
-The report and preview must not represent generated content as verified hotel facts. The product model needs source/provenance, transformation state, verification status, and limitations. Missing evidence should remain unknown or be clearly marked as demonstration content.
+The interactive preview must not silently present inferred, generated, normalized-from-uncertain evidence, or demonstration information as verified hotel facts.
+
+At product level, preview information must have a **clear, user-visible distinction between verified/publicly discovered information and information that is inferred, generated, or demonstration-only**. Where a guest-facing element contains non-verified information, the preview must provide clear labeling and/or an inspectable provenance mechanism sufficient to understand its status.
+
+The product must preserve the provenance/verification state needed to support this behavior. Exact UI treatment, schemas, labels, confidence semantics, and inspection interaction are intentionally deferred to later preview/provenance specifications.
+
+Where evidence is missing, the system should prefer an explicit unknown/missing state or clearly marked demonstration content over silent invention.
 
 ## Public-access boundary
 
