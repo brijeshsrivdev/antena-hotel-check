@@ -2,9 +2,10 @@
 
 This directory contains product specifications that implementation sessions must follow.
 
-## Current specification
+## Current specifications
 
 - [SPEC-001 — Hotel Check Product Specification](./SPEC-001-hotel-check.md)
+- [SPEC-002 — Evaluation Input Contract](./SPEC-002-evaluation-input.md)
 
 ## Rule
 
