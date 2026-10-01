@@ -1,7 +1,7 @@
 # SPEC-002 — Evaluation Input Contract
 
 **Status:** SPECIFIED  
-**Version:** 1.0  
+**Version:** 1.1  
 **Requirement:** REQ-002  
 **Implementation:** Not started
 
@@ -114,13 +114,15 @@ The following rules are explicit:
 | hotel name + city only | Accept as hotel-identity target |
 | website URL only | Accept as website target |
 | hotel name + city + website URL | Accept; website URL is canonical target; name/city retained as identity context |
-| hotel name only, no URL | Reject as incomplete identity input |
-| city only, no URL | Reject as incomplete identity input |
-| hotel name + incomplete/missing city + URL | Reject as an invalid combined request; require either a complete identity pair or URL-only input |
-| city + incomplete/missing hotel name + URL | Reject as an invalid combined request; require either a complete identity pair or URL-only input |
-| blank values with no usable mode | Reject |
+| hotel name only, no URL | Reject as incomplete identity input; `MISSING_CITY` / `INCOMPLETE_HOTEL_IDENTITY` |
+| city only, no URL | Reject as incomplete identity input; `MISSING_HOTEL_NAME` / `INCOMPLETE_HOTEL_IDENTITY` |
+| hotel name + incomplete/missing city + URL | Reject as an invalid combined request; `MISSING_CITY` / `INVALID_INPUT_COMBINATION` |
+| city + incomplete/missing hotel name + URL | Reject as an invalid combined request; `MISSING_HOTEL_NAME` / `INVALID_INPUT_COMBINATION` |
+| blank values with no usable mode | Reject; `BLANK_VALUE` or `NO_USABLE_INPUT` as applicable |
 
 A complete identity pair plus a valid URL is therefore the only accepted multi-mode combination. This prevents accidental partial identity data from being interpreted as authoritative hotel identity while still making the precedence rule deterministic.
+
+Importantly, **absence of `websiteUrl` is not itself an error**: hotel name + city is a complete accepted mode. Likewise, absence of `hotelName` and `city` is not an error when a valid website URL is supplied. `MISSING_WEBSITE_URL` is therefore not a product-level invalid-input category in this contract.
 
 ## Validation outcome
 
@@ -138,14 +140,16 @@ The request does not satisfy the input contract. The response should identify th
 
 The product-level invalid-input categories are:
 
-- `MISSING_HOTEL_NAME`
-- `MISSING_CITY`
-- `MISSING_WEBSITE_URL`
-- `INCOMPLETE_HOTEL_IDENTITY`
-- `INVALID_INPUT_COMBINATION`
-- `BLANK_VALUE`
-- `MALFORMED_WEBSITE_URL`
-- `UNSUPPORTED_WEBSITE_URL_FORM`
+- `MISSING_HOTEL_NAME` — the user attempted an identity-based request, but no usable hotel name was supplied; this does not apply to a valid URL-only request.
+- `MISSING_CITY` — the user attempted an identity-based request, but no usable city was supplied; this does not apply to a valid URL-only request.
+- `INCOMPLETE_HOTEL_IDENTITY` — hotel name and city were intended as the identity input but the pair is incomplete; this does not apply to URL-only input.
+- `INVALID_INPUT_COMBINATION` — supplied fields form a combination that is not one of the supported modes, such as partial hotel identity together with a URL.
+- `BLANK_VALUE` — a supplied required value is blank/whitespace-only and prevents a supported mode from being formed.
+- `NO_USABLE_INPUT` — no supported input mode can be formed because there is no usable hotel identity pair and no usable website URL.
+- `MALFORMED_WEBSITE_URL` — a supplied website value cannot be parsed as a valid URL.
+- `UNSUPPORTED_WEBSITE_URL_FORM` — a supplied URL uses an unsupported form, such as a relative, protocol-relative, non-HTTP(S), or credential-bearing URL.
+
+These categories describe **rejected conditions**, not missing fields in the abstract. In particular, `MISSING_WEBSITE_URL` is intentionally absent because a website URL is optional when hotel name + city is supplied.
 
 The exact transport/API representation of these categories is implementation-specific and is not defined here.
 
@@ -251,9 +255,9 @@ A future implementation of this contract is conformant only if automated tests d
 
 1. hotel name + city is accepted when both are non-blank;
 2. website URL is accepted when it is an absolute HTTP(S) URL with a valid host;
-3. hotel name without city and without URL is rejected;
-4. city without hotel name and without URL is rejected;
-5. whitespace-only values are rejected as blank;
+3. hotel name without city and without URL is rejected with an identity-incomplete category such as `MISSING_CITY` / `INCOMPLETE_HOTEL_IDENTITY`;
+4. city without hotel name and without URL is rejected with an identity-incomplete category such as `MISSING_HOTEL_NAME` / `INCOMPLETE_HOTEL_IDENTITY`;
+5. whitespace-only values are rejected as blank when they prevent a supported input mode from being formed;
 6. leading/trailing whitespace is normalized;
 7. repeated text whitespace is normalized for canonical comparison/use while original values remain available;
 8. text casing differences do not cause otherwise equivalent hotel/city values to be rejected;
@@ -261,10 +265,13 @@ A future implementation of this contract is conformant only if automated tests d
 10. a complete hotel name + city + valid website URL is accepted with the website URL as the canonical evaluation target and the identity retained as supplemental context;
 11. partial hotel identity combined with a website URL is rejected rather than silently interpreting the partial identity;
 12. the canonical representation distinguishes original user input, normalized input, and evaluation target;
-13. ambiguous hotel-name/city resolution does not silently select a property;
-14. a material hotel/website mismatch does not silently proceed as a verified match;
-15. an unresolved valid target is represented as unresolved rather than converted into an invalid-input error;
-16. validation does not perform crawling, analysis, scoring, AI generation, or preview generation.
+13. absence of `websiteUrl` does not reject a valid hotel name + city request;
+14. absence of `hotelName` and `city` does not reject a valid website-only request;
+15. ambiguous hotel-name/city resolution does not silently select a property;
+16. a material hotel/website mismatch does not silently proceed as a verified match;
+17. an unresolved valid target is represented as unresolved rather than converted into an invalid-input error;
+18. no supported input mode is available when there is no usable identity pair and no usable website URL, and the request is rejected with `NO_USABLE_INPUT` (or a more specific applicable invalid-input category);
+19. validation does not perform crawling, analysis, scoring, AI generation, or preview generation.
 
 ## Relationship to SPEC-001
 
