@@ -30,13 +30,12 @@ public final class Evaluation {
         return evaluation;
     }
 
-    static Evaluation rehydrate(UUID evaluationId, CanonicalEvaluationRequest request,
-                                List<EvaluationAttempt> attempts, Clock clock) {
+    public static Evaluation rehydrate(UUID evaluationId, CanonicalEvaluationRequest request,
+                                       List<EvaluationAttempt> attempts, Clock clock) {
         Objects.requireNonNull(attempts, "attempts must not be null");
         if (attempts.isEmpty()) {
             throw new IllegalArgumentException("evaluation must contain at least one attempt");
         }
-
         Evaluation evaluation = new Evaluation(evaluationId, request, clock);
         int expectedAttemptNumber = 1;
         for (EvaluationAttempt attempt : attempts) {
