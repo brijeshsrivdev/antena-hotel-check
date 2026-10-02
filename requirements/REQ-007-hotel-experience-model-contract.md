@@ -1,6 +1,6 @@
 # REQ-007 — Hotel Experience Model Contract
 
-**Status:** READY  
+**Status:** PR_READY  
 **Owner:** Next implementation/specification session  
 **Type:** Specification
 
@@ -297,7 +297,49 @@ Do not mark the requirement `APPROVED`; only the orchestrator can do that.
 
 ## Session Completion Record
 
-Not started.
+### Session
+
+Session 6 — Hotel Experience Model specification
+
+### Branch
+
+`spec/hotel-experience-model`
+
+### PR
+
+PR #7 — https://github.com/brijeshsrivdev/antena-hotel-check/pull/7
+
+### Files changed
+
+- `docs/specs/SPEC-007-hotel-experience-model.md`
+- `docs/specs/README.md`
+- `requirements/REQ-007-hotel-experience-model-contract.md`
+
+### Summary of work
+
+Created the implementation-neutral Hotel Experience Model contract. The specification defines hospitality domains, fact/field semantics, evidence/provenance traceability, optionality and applicability, missing/unavailable/failed/insufficient information, explicit negative-fact rules, conflict preservation and representative-value qualification, freshness, presentation-safety semantics, evaluation-attempt integrity, and shared consumption by report and interactive-preview paths. No implementation technology or architecture was selected.
+
+### Validation performed
+
+- Read the complete READY requirement and all referenced repository context/specifications available under the requirement.
+- Reviewed the specification against `SPEC-001` through `SPEC-006` for provenance, evidence, lifecycle, hospitality-analysis, truthfulness, and scope consistency.
+- Reviewed the architecture/decision documents to confirm no technology or architectural decision was introduced.
+- Confirmed the deliverable is documentation-only and remains within REQ-007 scope.
+- Confirmed the specification index includes SPEC-007.
+- No automated code tests were applicable because this session changes documentation only.
+- Confirmed PR #7 targets `main`, is open, and is not merged.
+
+### Open questions
+
+No blocking open questions were discovered. Numeric freshness thresholds, source-priority rules, concrete persistence/API representation, preview disclosure mechanics, and implementation technology remain intentionally deferred to later bounded specifications/architecture decisions.
+
+### PR details
+
+- **Branch:** `spec/hotel-experience-model`
+- **PR:** #7
+- **PR URL:** https://github.com/brijeshsrivdev/antena-hotel-check/pull/7
+- **Base:** `main`
+- **State:** Open; not merged
 
 ## Orchestrator Review History
 
