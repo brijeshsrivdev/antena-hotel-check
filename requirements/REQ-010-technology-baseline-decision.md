@@ -1,6 +1,6 @@
 # REQ-010 — Technology Baseline Decision
 
-**Status:** READY  
+**Status:** PR_READY  
 **Owner:** Next implementation/specification session  
 **Type:** Architecture / Decision  
 **Branch:** `spec/technology-baseline-decision`
@@ -132,35 +132,75 @@ The completed decision MUST:
 
 ### Completion status
 
-Not started.
+PR_READY — implementation complete and PR created; awaiting orchestrator review.
 
 ### Session
 
-Not started.
+Next implementation/specification session executing REQ-010 only.
 
 ### Branch
 
-Not started.
+`spec/technology-baseline-decision` — created from current `main` at commit `f4bff449b303b3a7176d1e438d598736c6c32a73`.
 
 ### Pull request
 
-Not started.
+- PR: #10
+- URL: https://github.com/brijeshsrivdev/antena-hotel-check/pull/10
+- Base: `main`
+- State: Open
+- Merged: No
 
 ### Files changed
 
-Not started.
+- `docs/decisions/ADR-001-technology-baseline.md`
+- `docs/decisions/README.md`
+- `requirements/REQ-010-technology-baseline-decision.md`
 
 ### Summary of work
 
-Not started.
+Created ADR-001 and recorded the minimum technology baseline required to begin implementation while preserving the approved architecture seams and product contracts.
+
+Selected baseline:
+
+- Backend: Java 21 LTS + Spring Boot 3.x.
+- Owner-facing application/preview: TypeScript + Next.js.
+- Primary persistence: PostgreSQL.
+- Execution model: hybrid — synchronous intake/acceptance with asynchronous long-running evaluation work.
+- Public evidence: HTTP-first with justified browser-rendered escalation; Playwright is the initial browser-automation baseline, subject to the existing public-access and non-bypass contract.
+- Testing/tooling: Maven, JUnit 5, Mockito, Testcontainers/PostgreSQL, TypeScript checks, repository-native lint/format checks, and targeted Playwright browser acceptance tests.
+- Local development: separable backend/frontend/test/documentation boundaries with reproducible local PostgreSQL, preferably containerized.
+
+The ADR also documents meaningful alternatives, trade-offs, replaceability/migration implications, and technology decisions explicitly deferred to later ADRs. No application features, schemas, APIs, crawler implementation, preview renderer, deployment, or production infrastructure were implemented.
 
 ### Validation performed
 
-Not started.
+- Inspected the repository and confirmed `main` was the current source branch before creating the required branch.
+- Read the complete READY requirement and all referenced context/specification/architecture/decision documents available in the repository.
+- Confirmed the referenced `docs/decisions/` directory contained only the decisions README before creating ADR-001; no materially equivalent ADR existed.
+- Reviewed ADR-001 against every REQ-010 acceptance criterion.
+- Verified the ADR preserves the approved hospitality-first product flow, evidence/provenance semantics, partial-failure/retry semantics, interactive-preview outcome, and public-web non-bypass boundary.
+- Verified the changes are documentation/decision changes only.
+- Verified the PR targets `main` and remains open/unmerged.
+
+No application test suite was run because REQ-010 explicitly limits the work to documentation/architecture/decision changes.
 
 ### Open questions
 
-Not started.
+The following remain intentionally deferred and are recorded in ADR-001 for later bounded decisions:
+
+- exact framework/dependency versions within the selected baseline;
+- exact HTTP client/parsing libraries;
+- exact Playwright browser/version and browser isolation;
+- queue/workflow/job technology and worker topology;
+- production cloud, CDN, DNS, hostname/custom-domain, and deployment topology;
+- object/static asset storage;
+- authentication, authorization, tenancy, and production access control;
+- exact report and preview rendering/serving deployment model;
+- AI provider/model and model-assisted analysis strategy;
+- retention periods and numeric operational limits;
+- production observability and abuse/rate-limit infrastructure.
+
+These are not blockers for REQ-010 and should be resolved only by later requirements/ADRs when implementation constraints justify them.
 
 ## Orchestrator Review History
 
