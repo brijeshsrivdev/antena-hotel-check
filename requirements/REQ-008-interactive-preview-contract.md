@@ -1,6 +1,6 @@
 # REQ-008 — Interactive Hotel Preview Contract
 
-**Status:** READY  
+**Status:** PR_READY  
 **Owner:** Next implementation/specification session  
 **Type:** Specification  
 **Branch:** `spec/interactive-preview-contract`
@@ -145,7 +145,52 @@ The resulting SPEC-008 MUST:
 
 ## Session Completion Record
 
-Not started.
+### Completion status
+
+**PR_READY** — implementation/specification session completed within the bounded REQ-008 scope. No application code or technology decision was introduced.
+
+### Branch
+
+`spec/interactive-preview-contract`
+
+Created from the current `main` at commit `a9ea1a175e3da5b23d12491f21509639311f8a0a`.
+
+### Pull request
+
+- **PR:** #8
+- **URL:** https://github.com/brijeshsrivdev/antena-hotel-check/pull/8
+- **Base:** `main`
+- **State:** Open
+- **Merged:** No
+
+### Files changed
+
+1. `docs/specs/SPEC-008-interactive-preview.md` — created the implementation-neutral interactive hotel preview contract.
+2. `docs/specs/README.md` — added SPEC-008 to the specification index.
+3. `requirements/REQ-008-interactive-preview-contract.md` — updated this completion record.
+
+### Validation performed
+
+- Inspected the repository and current `main` before execution.
+- Located and read the current `READY` requirement: REQ-008.
+- Read the complete referenced project context, specifications SPEC-001 through SPEC-007, architecture guidance, decisions guidance, and requirements workflow guidance.
+- Cross-checked SPEC-008 against SPEC-001 through SPEC-007 for lifecycle, provenance, evidence, hospitality-analysis, and Hotel Experience Model consistency.
+- Verified that SPEC-008 defines preview identity per evaluation attempt/run, stable preview URL semantics without selecting routing technology, minimum and optional guest surfaces, navigation semantics, provenance/disclosure rules, missing/unavailable/failed/stale/conflicting handling, booking handoff boundaries, readiness vs technical renderability, partial/failure semantics, and security boundaries.
+- Reviewed the PR diff and confirmed the initial PR changes contain documentation/specification changes only.
+- Confirmed the PR targets `main` and remains unmerged.
+
+No application test suite was run because this requirement explicitly permits documentation/specification changes only and introduces no executable code.
+
+### Open questions
+
+- Exact preview identifier format, URL/hostname/routing mechanism, persistence and retention policy remain intentionally open for later architecture/implementation decisions.
+- Exact criteria for when a `PARTIAL` preview is sufficient for evaluation completion remain intentionally open; future implementation/product validation must establish them without weakening the minimum preview contract.
+- Exact disclosure labels and visual interaction patterns remain intentionally open because visual design is out of scope.
+- Exact external-destination allowlisting, redirect policy, and security enforcement mechanisms remain implementation/architecture decisions.
+
+### Session boundary
+
+Only REQ-008 was executed. No other requirement was started or implemented.
 
 ## Orchestrator Review History
 
