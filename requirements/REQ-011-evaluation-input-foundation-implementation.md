@@ -1,6 +1,6 @@
 # REQ-011 — Evaluation Input Foundation Implementation
 
-**Status:** READY  
+**Status:** PR_READY  
 **Owner:** Next implementation session  
 **Type:** Implementation  
 **Branch:** `feature/evaluation-input-foundation`
@@ -118,7 +118,47 @@ The implementation is complete only when:
 
 ### Completion status
 
-READY — awaiting execution.
+PR_READY — implementation committed and PR created; awaiting orchestrator review.
+
+### Exact branch
+
+`feature/evaluation-input-foundation`
+
+### PR
+
+- **PR:** #11
+- **URL:** https://github.com/brijeshsrivdev/antena-hotel-check/pull/11
+- **Base:** `main`
+- **Merged:** No
+
+### Files changed
+
+- `backend/README.md`
+- `backend/pom.xml`
+- `backend/src/main/java/com/antenapro/hotelcheck/HotelCheckApplication.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/input/CanonicalEvaluationRequest.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/input/EvaluationTargetType.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/input/HotelEvaluationInput.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/input/HotelEvaluationInputValidator.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/input/InputErrorCode.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/input/InputValidationError.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/input/ValidationResult.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/input/HotelEvaluationInputValidatorTest.java`
+
+### Validation performed
+
+- Java 21 domain compilation completed locally with `javac --release 21` for the input-domain classes.
+- Local smoke validation covered identity input, combined website + identity input, URL normalization/fragment removal, and credential-bearing URL rejection.
+- The implementation contains a JUnit 5 test suite covering accepted identity/website/combined inputs, original-vs-normalized values, whitespace/Unicode normalization, incomplete identity, blank/no-usable input, malformed URLs, unsupported URL forms, credential-bearing URLs, fragment removal, path/query preservation, optional website/identity modes, and the no-network validation boundary.
+- `mvn test` was **not executable in the current environment because Maven is not installed**. The Maven project and JUnit 5 suite are included for CI/local execution.
+- No network access is performed by the input validator.
+- No crawler, analyzer, scoring, AI, preview, persistence, authentication, or production infrastructure was introduced.
+
+### Open questions
+
+- The exact Spring Boot 3.x minor/patch version is an implementation choice within ADR-001's accepted baseline; `3.5.6` is currently specified in `backend/pom.xml` and can be revised by orchestrator review if repository/CI constraints require another 3.x release.
+- Maven/CI execution should be confirmed by the orchestrator/CI environment because Maven was unavailable in this session environment.
+- No public API endpoint was added; the validator remains a domain boundary as required by REQ-011 and can be exposed by a later application/API requirement.
 
 ### Orchestrator Review History
 
