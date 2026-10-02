@@ -9,6 +9,7 @@ This directory contains product specifications that implementation sessions must
 - [SPEC-003 — Evaluation Lifecycle](./SPEC-003-evaluation-lifecycle.md)
 - [SPEC-004 — Public Evidence Acquisition Contract](./SPEC-004-public-evidence-acquisition.md)
 - [SPEC-005 — Evidence Model Contract](./SPEC-005-evidence-model.md)
+- [SPEC-006 — Hospitality Analysis Contract](./SPEC-006-hospitality-analysis.md)
 
 ## Rule
 
