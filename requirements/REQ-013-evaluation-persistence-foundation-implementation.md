@@ -1,7 +1,7 @@
 # REQ-013 — Evaluation Persistence Foundation Implementation
 
-**Status:** READY  
-**Owner:** Next implementation session  
+**Status:** PR_READY  
+**Owner:** Implementation session completed; awaiting orchestrator review  
 **Type:** Implementation  
 **Branch:** `feature/evaluation-persistence-foundation`
 
@@ -148,7 +148,7 @@ The implementation session MUST:
 
 ### Completion status
 
-READY — awaiting execution.
+PR_READY — implementation committed; PR creation is the final session step.
 
 ### Exact branch
 
@@ -156,22 +156,44 @@ READY — awaiting execution.
 
 ### PR
 
-- **PR:** Not created yet
-- **URL:** Not created yet
+- **PR:** Pending creation after completion-record commit
+- **URL:** Pending creation after completion-record commit
 - **Base:** `main`
 - **Merged:** No
 
 ### Files changed
 
-To be completed by implementation session.
+- `backend/README.md`
+- `backend/pom.xml`
+- `backend/src/main/java/com/antenapro/hotelcheck/evaluation/Evaluation.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/evaluation/EvaluationAttempt.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/evaluation/EvaluationRepository.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/persistence/jpa/EvaluationJpaEntity.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/persistence/jpa/EvaluationAttemptJpaEntity.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/persistence/jpa/CapabilityOutcomeJpaEntity.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/persistence/jpa/SpringDataEvaluationRepository.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/persistence/jpa/JpaEvaluationRepository.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/persistence/jpa/JpaEvaluationRepositoryTest.java`
+- `requirements/REQ-013-evaluation-persistence-foundation-implementation.md`
 
 ### Validation performed
 
-To be completed by implementation session.
+- Inspected the current `main` repository state and confirmed REQ-013 was the current `READY` requirement before creating the exact required branch.
+- Created `feature/evaluation-persistence-foundation` directly from current `main` (`ef2b73ba79690941dc2c6bcb0638b7a6a4698184`).
+- Read the required repository context, product specifications, evaluation architecture, technology decision, and REQ-011/REQ-012 implementation requirements before implementation.
+- Compared `feature/evaluation-persistence-foundation` against `main` and confirmed the change set is limited to the evaluation persistence foundation, domain rehydration seam, backend documentation/build dependencies, persistence adapter/entities, and persistence tests.
+- Added PostgreSQL/JPA persistence with a repository boundary separate from the lifecycle domain.
+- Added reconstruction validation for attempt ordering, active/terminal state consistency, terminal outcomes, owner-facing completion outcomes, and canonical request preservation.
+- Added Testcontainers PostgreSQL integration tests covering accepted, running, all terminal states, terminal metadata, canonical request, capability outcomes, owner-facing outcomes, and retry history preservation.
+- `mvn test` could not be executed because Maven is not installed in the session environment (`mvn: command not found`).
+- Container-backed tests could not be executed because Docker is not installed in the session environment (`docker: command not found`). The Testcontainers suite is included for CI/review execution.
+- No REST/GraphQL API, authentication, acquisition, browser automation, analysis, AI, preview generation, queue/workflow, deployment, or booking integration was introduced.
 
 ### Open questions
 
-To be completed by implementation session.
+- Full Maven/Testcontainers execution remains to be performed by an environment with Maven and Docker/CI support.
+- The persistence schema intentionally uses Hibernate/JPA schema generation for this foundation slice; explicit production migration tooling and retention policy remain future bounded decisions.
+- No other material open question was identified within REQ-013 scope.
 
 ## Orchestrator Review History
 
