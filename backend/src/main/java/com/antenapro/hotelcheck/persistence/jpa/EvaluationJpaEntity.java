@@ -6,6 +6,8 @@ import com.antenapro.hotelcheck.input.CanonicalEvaluationRequest;
 import com.antenapro.hotelcheck.input.EvaluationTargetType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
@@ -21,13 +23,13 @@ import java.util.UUID;
 public class EvaluationJpaEntity {
     @Id
     private UUID id;
-
     private String hotelNameOriginal;
     private String cityOriginal;
     private String websiteUrlOriginal;
     private String hotelName;
     private String city;
     private String websiteUrl;
+    @Enumerated(EnumType.STRING)
     private EvaluationTargetType targetType;
     private String targetHotelName;
     private String targetCity;
@@ -56,10 +58,10 @@ public class EvaluationJpaEntity {
         entity.targetHotelName = request.evaluationTarget().hotelName();
         entity.targetCity = request.evaluationTarget().city();
         entity.targetWebsiteUrl = request.evaluationTarget().websiteUrl();
-        entity.identityHotelName = request.evaluationTarget().identityContext() == null
-                ? null : request.evaluationTarget().identityContext().hotelName();
-        entity.identityCity = request.evaluationTarget().identityContext() == null
-                ? null : request.evaluationTarget().identityContext().city();
+        if (request.evaluationTarget().identityContext() != null) {
+            entity.identityHotelName = request.evaluationTarget().identityContext().hotelName();
+            entity.identityCity = request.evaluationTarget().identityContext().city();
+        }
         for (EvaluationAttempt attempt : evaluation.attempts()) {
             entity.attempts.add(EvaluationAttemptJpaEntity.fromDomain(entity, attempt));
         }
@@ -67,12 +69,15 @@ public class EvaluationJpaEntity {
     }
 
     public Evaluation toDomain() {
+        CanonicalEvaluationRequest.IdentityContext identityContext =
+                identityHotelName == null && identityCity == null
+                        ? null
+                        : new CanonicalEvaluationRequest.IdentityContext(identityHotelName, identityCity);
         CanonicalEvaluationRequest request = new CanonicalEvaluationRequest(
                 new CanonicalEvaluationRequest.RequestInput(hotelNameOriginal, cityOriginal, websiteUrlOriginal),
                 new CanonicalEvaluationRequest.NormalizedInput(hotelName, city, websiteUrl),
                 new CanonicalEvaluationRequest.EvaluationTarget(
-                        targetType, targetHotelName, targetCity, targetWebsiteUrl,
-                        new CanonicalEvaluationRequest.IdentityContext(identityHotelName, identityCity)
+                        targetType, targetHotelName, targetCity, targetWebsiteUrl, identityContext
                 )
         );
         List<EvaluationAttempt> domainAttempts = attempts.stream()
