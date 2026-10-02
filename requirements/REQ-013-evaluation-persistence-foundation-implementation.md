@@ -148,7 +148,7 @@ The implementation session MUST:
 
 ### Completion status
 
-PR_READY — implementation committed; PR creation is the final session step.
+PR_READY — implementation committed and PR created; awaiting orchestrator review.
 
 ### Exact branch
 
@@ -156,8 +156,8 @@ PR_READY — implementation committed; PR creation is the final session step.
 
 ### PR
 
-- **PR:** Pending creation after completion-record commit
-- **URL:** Pending creation after completion-record commit
+- **PR:** #13
+- **URL:** https://github.com/brijeshsrivdev/antena-hotel-check/pull/13
 - **Base:** `main`
 - **Merged:** No
 
