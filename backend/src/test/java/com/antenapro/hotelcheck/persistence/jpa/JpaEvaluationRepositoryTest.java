@@ -83,6 +83,12 @@ class JpaEvaluationRepositoryTest {
         assertThat(reloaded.currentAttempt().terminalOutcome()).isNotNull();
         assertThat(reloaded.currentAttempt().terminalOutcome().state()).isEqualTo(expectedState);
         assertThat(reloaded.currentAttempt().terminalOutcome().reason()).isNotBlank();
+        if (expectedState == EvaluationLifecycleState.COMPLETED) {
+            assertThat(reloaded.currentAttempt().ownerFacingOutcome()).isEqualTo(new OwnerFacingOutcome(true, true));
+        }
+        if (expectedState == EvaluationLifecycleState.INCOMPLETE) {
+            assertThat(reloaded.currentAttempt().ownerFacingOutcome()).isEqualTo(new OwnerFacingOutcome(true, false));
+        }
     }
 
     @Test
