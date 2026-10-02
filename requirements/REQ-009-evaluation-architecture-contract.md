@@ -1,6 +1,6 @@
 # REQ-009 — Evaluation Architecture Contract
 
-**Status:** READY  
+**Status:** PR_READY  
 **Owner:** Next implementation/specification session  
 **Type:** Architecture / Specification  
 **Branch:** `spec/evaluation-architecture-contract`
@@ -141,7 +141,56 @@ The resulting architecture contract MUST:
 
 ### Completion status
 
-Not started.
+**PR_READY** — REQ-009 executed to completion within the bounded documentation/architecture scope. No application code or technology selection was introduced.
+
+### Session
+
+Session — Evaluation Architecture Contract (REQ-009)
+
+### Branch
+
+`spec/evaluation-architecture-contract`
+
+### Pull request
+
+- **PR:** #9
+- **PR URL:** https://github.com/brijeshsrivdev/antena-hotel-check/pull/9
+- **Base:** `main`
+- **State:** Open
+- **Merged:** No
+
+### Files changed
+
+- `docs/architecture/EVALUATION-ARCHITECTURE.md` — created the implementation-neutral architecture contract covering conceptual components, boundaries, data/control flow, evaluation and attempt/run ownership, synchronous/asynchronous execution seams, failure/partial/retry/idempotency semantics, security/trust boundaries, data ownership, observability/auditability, state ownership, extension seams, acceptance criteria, edge cases, and technology-decision boundaries.
+- `docs/architecture/README.md` — created the architecture index and linked the new evaluation architecture contract alongside the existing architecture concerns document.
+- `requirements/REQ-009-evaluation-architecture-contract.md` — updated this same requirement with the session completion record and final PR details.
+
+### Summary of work
+
+Mapped SPEC-001 through SPEC-008 into a coherent architecture boundary without selecting implementation technology. Defined Intake, Evaluation Orchestrator, Target Resolution, Public Evidence Acquisition, Evidence Model/Normalization, Hospitality Analysis, Hotel Experience Model, Report Assembly, Interactive Preview Production, and Preview Serving responsibilities. Preserved the product invariants around hospitality focus, evidence provenance, truthful preview content, partial failure, attempt/run traceability, and separate report/preview outcomes.
+
+Defined a conceptual request-path versus potentially asynchronous execution split without selecting queue/workflow infrastructure. Defined evaluation-level versus capability/check failure, retry/re-run, and semantic idempotency boundaries. Defined untrusted-input/security boundaries for user URLs, public acquisition, external content processing, owner-facing output, external navigation, and evaluation/preview isolation. Added observability/audit requirements and explicit extension seams for later technology decisions.
+
+No ADR was created because REQ-009 can be satisfied without closing a material technology or infrastructure choice.
+
+### Validation performed
+
+- Inspected repository metadata and confirmed `main` is the default branch.
+- Located the current `READY` requirement under `requirements/` and read REQ-009 completely before execution.
+- Read the complete required project context, SPEC-001 through SPEC-008, relevant architecture guidance, decisions guidance, and requirements workflow guidance.
+- Confirmed the required context path is the repository's actual `docs/context/project-context.md`.
+- Confirmed `docs/architecture/` contained only `architecture-concerns.md`; no existing architecture README was present, so the required index was created.
+- Confirmed `docs/decisions/README.md` contains no substantive decision record requiring additional architectural resolution.
+- Cross-checked the architecture contract against SPEC-001 through SPEC-008 for lifecycle, evidence/provenance, hospitality analysis, Hotel Experience Model, preview, security, truthfulness, and scope consistency.
+- Confirmed the work is documentation/architecture-only and introduces no application implementation.
+- Confirmed the exact branch `spec/evaluation-architecture-contract` was created from the current `main` commit `ece1886718366a4f0354a9943b99b4c2c017b059`.
+- Confirmed all changes are on the required branch and are limited to the three required documentation files.
+- Confirmed PR #9 targets `main`, is open, and is not merged.
+- No automated application tests were applicable because this requirement explicitly limits work to documentation/architecture.
+
+### Open questions
+
+No blocking open questions remain within REQ-009. The following are intentionally deferred to later bounded architecture/decision work: concrete application frameworks/languages; database and persistence model; queue/workflow mechanism; browser/HTTP technology; cloud/hosting topology; preview renderer and routing/DNS; authentication/authorization implementation; storage/retention details; concrete AI/provider choices; exact API/database schemas; and operational numeric limits.
 
 ## Orchestrator Review History
 
