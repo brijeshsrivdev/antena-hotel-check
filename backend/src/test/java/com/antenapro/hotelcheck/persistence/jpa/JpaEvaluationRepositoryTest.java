@@ -4,15 +4,16 @@ import com.antenapro.hotelcheck.evaluation.CapabilityOutcome;
 import com.antenapro.hotelcheck.evaluation.CapabilityOutcomeStatus;
 import com.antenapro.hotelcheck.evaluation.Evaluation;
 import com.antenapro.hotelcheck.evaluation.EvaluationLifecycleState;
+import com.antenapro.hotelcheck.evaluation.EvaluationRepository;
 import com.antenapro.hotelcheck.evaluation.OwnerFacingOutcome;
 import com.antenapro.hotelcheck.evaluation.TerminalOutcome;
-import com.antenapro.hotelcheck.evaluation.EvaluationRepository;
 import com.antenapro.hotelcheck.input.CanonicalEvaluationRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Import;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -29,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Import(JpaEvaluationRepository.class)
 class JpaEvaluationRepositoryTest {
     @Container
+    @ServiceConnection
     static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:16-alpine");
 
     @Autowired
@@ -38,7 +40,6 @@ class JpaEvaluationRepositoryTest {
     void savesAndReloadsAcceptedEvaluationAndCanonicalRequest() {
         Evaluation evaluation = Evaluation.create(request());
         Evaluation saved = repository.save(evaluation);
-
         Evaluation reloaded = repository.findById(saved.evaluationId()).orElseThrow();
 
         assertThat(reloaded.evaluationId()).isEqualTo(saved.evaluationId());
@@ -53,7 +54,6 @@ class JpaEvaluationRepositoryTest {
         Evaluation evaluation = Evaluation.create(request());
         evaluation.start();
         Evaluation saved = repository.save(evaluation);
-
         Evaluation reloaded = repository.findById(saved.evaluationId()).orElseThrow();
 
         assertThat(reloaded.state()).isEqualTo(EvaluationLifecycleState.RUNNING);
@@ -89,7 +89,6 @@ class JpaEvaluationRepositoryTest {
         evaluation.start();
         evaluation.currentAttempt().failed("execution failed", Map.of("category", "TIMEOUT", "source", "browser"));
         Evaluation saved = repository.save(evaluation);
-
         Evaluation reloaded = repository.findById(saved.evaluationId()).orElseThrow();
         TerminalOutcome outcome = reloaded.currentAttempt().terminalOutcome();
 
@@ -154,9 +153,7 @@ class JpaEvaluationRepositoryTest {
                 new CanonicalEvaluationRequest.NormalizedInput("Hotel Example", "Pune", "https://hotel.example/rooms"),
                 new CanonicalEvaluationRequest.EvaluationTarget(
                         com.antenapro.hotelcheck.input.EvaluationTargetType.WEBSITE,
-                        null,
-                        null,
-                        "https://hotel.example/rooms",
+                        null, null, "https://hotel.example/rooms",
                         new CanonicalEvaluationRequest.IdentityContext("Hotel Example", "Pune")
                 )
         );
