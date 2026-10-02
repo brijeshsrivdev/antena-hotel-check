@@ -1,6 +1,6 @@
 # REQ-006 — Hospitality Analysis Contract
 
-**Status:** READY  
+**Status:** PR_READY  
 **Owner:** Next implementation/specification session  
 **Type:** Specification
 
@@ -197,7 +197,48 @@ Do not mark the requirement `APPROVED`; only the orchestrator can do that.
 
 ## Session Completion Record
 
-Not started.
+### Session
+
+Session 6 — Hospitality Analysis Contract
+
+### Branch
+
+`spec/hospitality-analysis-contract`
+
+### PR
+
+[#6 — docs: define REQ-006 hospitality analysis contract](https://github.com/brijeshsrivdev/antena-hotel-check/pull/6)
+
+### Files Changed
+
+- `docs/specs/SPEC-006-hospitality-analysis.md` — created the implementation-neutral hospitality analysis contract covering the guest journey, hospitality analysis dimensions, finding semantics, evidence limitations, conflicts, qualitative importance, analysis coverage, grounded recommendations, technical supporting signals, and the relationship to the interactive preview.
+- `docs/specs/README.md` — indexed SPEC-006.
+- `requirements/REQ-006-hospitality-analysis-contract.md` — records this Session 6 completion record and PR details.
+
+### Summary
+
+Defined the durable hospitality analysis contract around **Discover → Understand → Explore → Trust → Book**. The specification establishes hotel identity/property understanding, discoverability/navigation, rooms, amenities/guest information, contact/location, booking discoverability/journey signals, trust/clarity, mobile/technical experience, and SEO/structured-data supporting signals as analysis dimensions. It distinguishes findings from evidence and limitations; separates observed deficiencies from inability to verify; preserves provenance, conflicts, freshness, and evidence traceability; defines qualitative importance and coverage semantics without introducing numerical scoring; and requires recommendations to be grounded in findings or meaningful evidence gaps.
+
+The specification also preserves the eventual report + interactive preview outcome and prevents unavailable, inferred, or demonstration information from silently becoming verified hotel fact. It intentionally avoids crawler/acquisition implementation, AI providers/prompts, scoring formulas, report/preview UI, persistence schema, booking/OTA integrations, pricing, infrastructure, and other non-scope areas.
+
+No separate architecture/product decision record was created because no technology or material architectural choice was required to establish this product/domain contract.
+
+### Validation
+
+- Inspected the repository and confirmed `main` was the current base before creating the branch.
+- Located the current `READY` requirement under `requirements/` and read REQ-006 completely.
+- Read all referenced context/specification documents: `project-context`, SPEC-001, SPEC-002, SPEC-003, SPEC-004, and SPEC-005.
+- Read relevant architecture and decision documents: `docs/architecture/architecture-concerns.md` and `docs/decisions/README.md`.
+- Created `docs/specs/SPEC-006-hospitality-analysis.md` and checked it against every REQ-006 scope area and acceptance criterion.
+- Updated `docs/specs/README.md` to index SPEC-006.
+- Confirmed the changes are documentation/specification-only; no application implementation was added.
+- No automated application tests were applicable because no application code was changed.
+- Created the exact required branch `spec/hospitality-analysis-contract` from current `main`.
+- Created PR #6 against `main`; PR remains open and unmerged.
+
+### Open Questions
+
+No material open question remains within the bounded REQ-006 specification scope. Detailed analysis check catalog, implementation algorithms, qualitative-importance calibration, coverage thresholds, source-selection rules, persistence/schema representation, report presentation, and preview consumption/UI remain intentionally deferred to later bounded requirements/specifications/architecture decisions.
 
 ## Orchestrator Review History
 
