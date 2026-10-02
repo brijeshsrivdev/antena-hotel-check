@@ -75,8 +75,8 @@ public final class HotelEvaluationInputValidator {
                     : null;
             CanonicalEvaluationRequest.EvaluationTarget target = new CanonicalEvaluationRequest.EvaluationTarget(
                     EvaluationTargetType.WEBSITE,
-                    hasHotelName ? hotelName : null,
-                    hasCity ? city : null,
+                    null,
+                    null,
                     urlResult.normalizedUrl(),
                     identityContext);
 
