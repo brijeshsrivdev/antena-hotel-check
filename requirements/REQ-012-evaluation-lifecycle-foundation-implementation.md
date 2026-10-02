@@ -141,7 +141,7 @@ The implementation is complete only when:
 
 ### Completion status
 
-PR_READY — implementation committed and ready for PR creation; awaiting orchestrator review.
+PR_READY — implementation committed and PR created; awaiting orchestrator review.
 
 ### Exact branch
 
@@ -149,8 +149,8 @@ PR_READY — implementation committed and ready for PR creation; awaiting orches
 
 ### PR
 
-- **PR:** Pending creation
-- **URL:** Pending creation
+- **PR:** #12
+- **URL:** https://github.com/brijeshsrivdev/antena-hotel-check/pull/12
 - **Base:** `main`
 - **Merged:** No
 
