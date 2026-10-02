@@ -153,13 +153,17 @@ Session — Evaluation Architecture Contract (REQ-009)
 
 ### Pull request
 
-PR will be recorded immediately after creation; the branch is ready for PR creation against `main`.
+- **PR:** #9
+- **PR URL:** https://github.com/brijeshsrivdev/antena-hotel-check/pull/9
+- **Base:** `main`
+- **State:** Open
+- **Merged:** No
 
 ### Files changed
 
 - `docs/architecture/EVALUATION-ARCHITECTURE.md` — created the implementation-neutral architecture contract covering conceptual components, boundaries, data/control flow, evaluation and attempt/run ownership, synchronous/asynchronous execution seams, failure/partial/retry/idempotency semantics, security/trust boundaries, data ownership, observability/auditability, state ownership, extension seams, acceptance criteria, edge cases, and technology-decision boundaries.
 - `docs/architecture/README.md` — created the architecture index and linked the new evaluation architecture contract alongside the existing architecture concerns document.
-- `requirements/REQ-009-evaluation-architecture-contract.md` — updated this same requirement with the session completion record.
+- `requirements/REQ-009-evaluation-architecture-contract.md` — updated this same requirement with the session completion record and final PR details.
 
 ### Summary of work
 
@@ -181,6 +185,7 @@ No ADR was created because REQ-009 can be satisfied without closing a material t
 - Confirmed the work is documentation/architecture-only and introduces no application implementation.
 - Confirmed the exact branch `spec/evaluation-architecture-contract` was created from the current `main` commit `ece1886718366a4f0354a9943b99b4c2c017b059`.
 - Confirmed all changes are on the required branch and are limited to the three required documentation files.
+- Confirmed PR #9 targets `main`, is open, and is not merged.
 - No automated application tests were applicable because this requirement explicitly limits work to documentation/architecture.
 
 ### Open questions
