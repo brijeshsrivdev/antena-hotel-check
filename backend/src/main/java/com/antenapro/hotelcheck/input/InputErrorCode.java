@@ -1,0 +1,12 @@
+package com.antenapro.hotelcheck.input;
+
+public enum InputErrorCode {
+    MISSING_HOTEL_NAME,
+    MISSING_CITY,
+    INCOMPLETE_HOTEL_IDENTITY,
+    INVALID_INPUT_COMBINATION,
+    BLANK_VALUE,
+    NO_USABLE_INPUT,
+    MALFORMED_WEBSITE_URL,
+    UNSUPPORTED_WEBSITE_URL_FORM
+}
