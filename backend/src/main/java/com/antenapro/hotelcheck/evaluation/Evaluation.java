@@ -14,11 +14,7 @@ public final class Evaluation {
     private final Clock clock;
     private final List<EvaluationAttempt> attempts = new ArrayList<>();
 
-    private Evaluation(
-            UUID evaluationId,
-            CanonicalEvaluationRequest request,
-            Clock clock
-    ) {
+    private Evaluation(UUID evaluationId, CanonicalEvaluationRequest request, Clock clock) {
         this.evaluationId = Objects.requireNonNull(evaluationId, "evaluationId must not be null");
         this.request = Objects.requireNonNull(request, "request must not be null");
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
@@ -34,41 +30,41 @@ public final class Evaluation {
         return evaluation;
     }
 
-    public UUID evaluationId() {
-        return evaluationId;
+    static Evaluation rehydrate(UUID evaluationId, CanonicalEvaluationRequest request,
+                                List<EvaluationAttempt> attempts, Clock clock) {
+        Objects.requireNonNull(attempts, "attempts must not be null");
+        if (attempts.isEmpty()) {
+            throw new IllegalArgumentException("evaluation must contain at least one attempt");
+        }
+
+        Evaluation evaluation = new Evaluation(evaluationId, request, clock);
+        int expectedAttemptNumber = 1;
+        for (EvaluationAttempt attempt : attempts) {
+            if (attempt.attemptNumber() != expectedAttemptNumber) {
+                throw new IllegalArgumentException("attempt numbers must be contiguous from 1");
+            }
+            if (!evaluation.request().equals(attempt.request())) {
+                throw new IllegalArgumentException("attempt request must match evaluation request");
+            }
+            evaluation.attempts.add(attempt);
+            expectedAttemptNumber++;
+        }
+        return evaluation;
     }
 
-    public CanonicalEvaluationRequest request() {
-        return request;
-    }
+    public UUID evaluationId() { return evaluationId; }
+    public CanonicalEvaluationRequest request() { return request; }
+    public EvaluationLifecycleState state() { return currentAttempt().state(); }
+    public EvaluationAttempt currentAttempt() { return attempts.get(attempts.size() - 1); }
+    public List<EvaluationAttempt> attempts() { return List.copyOf(attempts); }
 
-    public EvaluationLifecycleState state() {
-        return currentAttempt().state();
-    }
-
-    public EvaluationAttempt currentAttempt() {
-        return attempts.get(attempts.size() - 1);
-    }
-
-    public List<EvaluationAttempt> attempts() {
-        return List.copyOf(attempts);
-    }
-
-    public void start() {
-        currentAttempt().start();
-    }
+    public void start() { currentAttempt().start(); }
 
     public EvaluationAttempt retry() {
         if (!currentAttempt().state().isTerminal()) {
             throw new InvalidLifecycleTransitionException(currentAttempt().state(), EvaluationLifecycleState.RUNNING);
         }
-
-        EvaluationAttempt retry = EvaluationAttempt.retry(
-                UUID.randomUUID(),
-                attempts.size() + 1,
-                request,
-                clock
-        );
+        EvaluationAttempt retry = EvaluationAttempt.retry(UUID.randomUUID(), attempts.size() + 1, request, clock);
         attempts.add(retry);
         retry.start();
         return retry;
