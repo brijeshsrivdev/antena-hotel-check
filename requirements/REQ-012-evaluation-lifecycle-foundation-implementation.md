@@ -1,6 +1,6 @@
 # REQ-012 — Evaluation Lifecycle Foundation Implementation
 
-**Status:** READY  
+**Status:** PR_READY  
 **Owner:** Next implementation session  
 **Type:** Implementation  
 **Branch:** `feature/evaluation-lifecycle-foundation`
@@ -141,7 +141,7 @@ The implementation is complete only when:
 
 ### Completion status
 
-READY — awaiting execution.
+PR_READY — implementation committed and PR created; awaiting orchestrator review.
 
 ### Exact branch
 
@@ -149,22 +149,38 @@ READY — awaiting execution.
 
 ### PR
 
-- **PR:** Not created yet
-- **URL:** Not created yet
+- **PR:** #12
+- **URL:** https://github.com/brijeshsrivdev/antena-hotel-check/pull/12
 - **Base:** `main`
 - **Merged:** No
 
 ### Files changed
 
-To be completed by implementation session.
+- `backend/README.md`
+- `backend/src/main/java/com/antenapro/hotelcheck/evaluation/CapabilityOutcome.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/evaluation/CapabilityOutcomeStatus.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/evaluation/Evaluation.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/evaluation/EvaluationAttempt.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/evaluation/EvaluationLifecycleState.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/evaluation/InvalidLifecycleTransitionException.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/evaluation/OwnerFacingOutcome.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/evaluation/TerminalOutcome.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/evaluation/EvaluationLifecycleTest.java`
+- `requirements/REQ-012-evaluation-lifecycle-foundation-implementation.md`
 
 ### Validation performed
 
-To be completed by implementation session.
+- Inspected current `main` at commit `9b70639b70025a7a3089454e80ba244cb89f907c` and confirmed REQ-011 is merged into `main` via PR #11 before creating the required branch.
+- Created the exact required branch `feature/evaluation-lifecycle-foundation` from current `main`.
+- Compiled the new lifecycle production/domain classes plus the REQ-011 canonical request types with `javac --release 21`; compilation passed.
+- Added JUnit 5 coverage for accepted → running, terminal transition enforcement, completion gating, incomplete outcome, capability partial-failure semantics, terminal-state protection, unresolved/failed distinction, retry preservation/distinction, active-retry protection, and materially changed target separation.
+- `mvn test` could not be executed in the session environment because Maven is not installed (`mvn: command not found`). No Maven wrapper is present in the repository.
+- No network access, database, queue, crawler, browser automation, analyzer, AI, persistence, public API, or preview implementation was introduced.
 
 ### Open questions
 
-To be completed by implementation session.
+- Maven is unavailable in the current session environment, so the full Maven/JUnit suite remains to be executed by the available CI/review environment or orchestrator.
+- The lifecycle is intentionally in-memory/domain-only per REQ-012; persistence, public API, orchestration infrastructure, and external integrations remain future requirements.
 
 ### Orchestrator Review History
 

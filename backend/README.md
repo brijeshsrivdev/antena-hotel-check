@@ -1,6 +1,6 @@
 # Antena Hotel Check Backend
 
-This module is the initial Java 21 / Spring Boot foundation for the evaluation input boundary.
+This module is the initial Java 21 / Spring Boot foundation for the evaluation input and lifecycle boundaries.
 
 ## Scope
 
@@ -10,6 +10,15 @@ REQ-011 implements only:
 - deterministic input normalization and validation;
 - the typed accepted/rejected result model;
 - unit coverage for normal and boundary cases.
+
+REQ-012 implements only:
+
+- evaluation and evaluation-attempt domain representations;
+- deterministic lifecycle states and transition enforcement;
+- terminal outcome and lifecycle metadata retention;
+- retry/attempt semantics that preserve the accepted canonical request;
+- minimal owner-facing completion gating for report + interactive preview outcomes;
+- capability outcomes that can be partial/unavailable/failed without automatically failing the evaluation.
 
 It does not perform hotel resolution, crawling, network acquisition, analysis, scoring, AI generation, preview generation, persistence, authentication, or production deployment.
 
@@ -27,4 +36,4 @@ Run the Spring Boot foundation locally with:
 mvn spring-boot:run
 ```
 
-There is intentionally no public HTTP endpoint in REQ-011. The input boundary is implemented as a deterministic domain service so a later application/API layer can invoke it without coupling the domain contract to transport concerns.
+There is intentionally no public HTTP endpoint in REQ-011 or REQ-012. The input and lifecycle boundaries are implemented as deterministic domain services/aggregates so later application/API layers can invoke them without coupling the domain contract to transport concerns.
