@@ -307,7 +307,7 @@ Session 6 — Hotel Experience Model specification
 
 ### PR
 
-Pending creation after completion-record update.
+PR #7 — https://github.com/brijeshsrivdev/antena-hotel-check/pull/7
 
 ### Files changed
 
@@ -327,6 +327,7 @@ Created the implementation-neutral Hotel Experience Model contract. The specific
 - Confirmed the deliverable is documentation-only and remains within REQ-007 scope.
 - Confirmed the specification index includes SPEC-007.
 - No automated code tests were applicable because this session changes documentation only.
+- Confirmed PR #7 targets `main`, is open, and is not merged.
 
 ### Open questions
 
@@ -334,7 +335,11 @@ No blocking open questions were discovered. Numeric freshness thresholds, source
 
 ### PR details
 
-To be completed after PR creation.
+- **Branch:** `spec/hotel-experience-model`
+- **PR:** #7
+- **PR URL:** https://github.com/brijeshsrivdev/antena-hotel-check/pull/7
+- **Base:** `main`
+- **State:** Open; not merged
 
 ## Orchestrator Review History
 
