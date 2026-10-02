@@ -1,6 +1,6 @@
 # REQ-005 — Evidence Model Contract
 
-**Status:** READY  
+**Status:** PR_READY  
 **Owner:** Next implementation/specification session  
 **Type:** Specification
 
@@ -147,36 +147,49 @@ Do not mark the requirement `APPROVED`; only the orchestrator can do that.
 
 ## Session Completion Record
 
-_Implementation session must complete this section before requesting review._
-
 ### Session
 
-TBD
+Session 5 — Evidence Model Contract
 
 ### Branch
 
-TBD
+`spec/evidence-model-contract`
 
 ### PR
 
-TBD
+[#5 — docs: define REQ-005 evidence model contract](https://github.com/brijeshsrivdev/antena-hotel-check/pull/5)
 
 ### Files Changed
 
-TBD
+- `docs/specs/SPEC-005-evidence-model.md` — created the implementation-neutral evidence model contract covering evidence identity and evaluation/attempt association, source/provenance semantics, acquisition outcomes, provenance derivation, qualitative support semantics, duplicates/equivalence, conflicts, freshness/staleness, partial/unavailable evidence, downstream finding traceability, preview truthfulness, and security/trust boundaries.
+- `docs/specs/README.md` — indexed SPEC-005.
+- `requirements/REQ-005-evidence-model-contract.md` — records the Session 5 completion record and PR details.
 
 ### Summary
 
-TBD
+Defined the durable evidence/domain model that connects controlled public evidence acquisition to future hospitality analysis. The specification preserves `DISCOVERED`, `NORMALIZED`, `INFERRED`, and `DEMONSTRATION` as distinct provenance states; explicitly separates source observations from derived representations; associates evidence with the correct evaluation attempt/run; preserves first-party, third-party, user-provided, derived, and demonstration source relationships; handles duplicate/equivalent and conflicting evidence without silent overwrites; distinguishes available, unavailable, failed, and not-attempted observations; defines freshness/staleness semantics; and requires downstream findings to remain traceable to supporting evidence and material limitations.
+
+The specification intentionally avoids numerical confidence scoring, universal source ranking, database schema, framework, crawler/acquisition implementation, AI architecture, report/preview UI, hosting, and other implementation decisions outside REQ-005.
+
+No separate architecture or product decision record was created because the work establishes the required product/domain semantics without selecting implementation technology or infrastructure.
 
 ### Validation
 
-TBD
+- Inspected the repository and confirmed `main` is the default branch.
+- Located the current `READY` requirement under `requirements/` before making changes and read `REQ-005` completely.
+- Read the referenced `project-context`, SPEC-001, SPEC-002, SPEC-003, SPEC-004, specification index, architecture concerns, and decisions README documents before authoring the specification.
+- Confirmed the repository currently has no additional substantive decision records beyond `docs/decisions/README.md`.
+- Created documentation/specification changes only; no crawler, public-web acquisition implementation, analysis engine, scoring, AI, preview runtime, persistence schema, or infrastructure code was added.
+- Verified SPEC-005 addresses all REQ-005 scope areas and acceptance criteria, including evaluation association, provenance preservation, source semantics, derivation relationships, duplicate/equivalent evidence, conflicts, freshness/staleness, unavailable/failed/partial evidence, downstream finding traceability, and prevention of inferred/generated/demo content being represented as discovered hotel fact.
+- Indexed SPEC-005 in `docs/specs/README.md`.
+- Created branch `spec/evidence-model-contract` from `main`.
+- Created PR #5 against `main`; PR remains open and unmerged.
+- No automated application tests were applicable because this session is documentation/specification-only.
 
 ### Open Questions
 
-TBD
+No material open question remains within the bounded REQ-005 evidence-model scope. Exact persistence/schema representation, content-retention strategy, freshness thresholds by evidence type, implementation of provenance references, analysis-specific source/support selection, and preview provenance UI remain intentionally deferred to later requirements/specifications/architecture decisions.
 
 ## Orchestrator Review History
 
-No review yet.
+<!-- Orchestrator review rounds are appended below without deleting prior history. -->
