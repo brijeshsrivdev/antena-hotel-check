@@ -54,11 +54,9 @@ public class AcquisitionUrlNormalizer {
 
         String lowerHost = host.toLowerCase(Locale.ROOT);
 
-        if (!allowLocalhost) {
-            NormalizationResult ipCheck = validateHostIpAddresses(lowerHost, false);
-            if (!ipCheck.valid()) {
-                return ipCheck;
-            }
+        NormalizationResult ipCheck = validateHostIpAddresses(lowerHost, allowLocalhost);
+        if (!ipCheck.valid()) {
+            return ipCheck;
         }
 
         // Reconstruct canonical normalized URI
@@ -90,12 +88,11 @@ public class AcquisitionUrlNormalizer {
     }
 
     public static NormalizationResult validateHostIpAddresses(String host, boolean allowLocalhost) {
-        if (allowLocalhost) {
-            return NormalizationResult.success(host);
-        }
         String lowerHost = host.toLowerCase(Locale.ROOT);
         if ("localhost".equals(lowerHost) || "127.0.0.1".equals(lowerHost) || "0.0.0.0".equals(lowerHost) || "::1".equals(lowerHost)) {
-            return NormalizationResult.failure(AcquisitionOutcome.INVALID_TARGET, "Target resolves to non-public loopback network destination: " + host);
+            if (!allowLocalhost) {
+                return NormalizationResult.failure(AcquisitionOutcome.INVALID_TARGET, "Target resolves to non-public loopback network destination: " + host);
+            }
         }
         try {
             InetAddress[] addresses = InetAddress.getAllByName(host);
@@ -103,7 +100,7 @@ public class AcquisitionUrlNormalizer {
                 return NormalizationResult.failure(AcquisitionOutcome.INVALID_TARGET, "Target host could not be resolved to any IP address: " + host);
             }
             for (InetAddress addr : addresses) {
-                if (!isPublicIpAddress(addr, false)) {
+                if (!isPublicIpAddress(addr, allowLocalhost)) {
                     return NormalizationResult.failure(
                             AcquisitionOutcome.INVALID_TARGET,
                             "Target host '" + host + "' resolves to non-public network address: " + addr.getHostAddress()
@@ -117,13 +114,13 @@ public class AcquisitionUrlNormalizer {
     }
 
     public static boolean isPublicIpAddress(InetAddress address, boolean allowLocalhost) {
-        if (allowLocalhost) {
-            return true;
-        }
         if (address == null) {
             return false;
         }
-        if (address.isLoopbackAddress() || address.isAnyLocalAddress() || address.isSiteLocalAddress() || address.isLinkLocalAddress() || address.isMulticastAddress()) {
+        if (address.isLoopbackAddress()) {
+            return allowLocalhost;
+        }
+        if (address.isAnyLocalAddress() || address.isSiteLocalAddress() || address.isLinkLocalAddress() || address.isMulticastAddress()) {
             return false;
         }
         byte[] bytes = address.getAddress();
@@ -134,7 +131,8 @@ public class AcquisitionUrlNormalizer {
             int b0 = bytes[0] & 0xFF;
             int b1 = bytes[1] & 0xFF;
 
-            if (b0 == 127 || b0 == 10 || b0 == 0) return false; // 127.0.0.0/8, 10.0.0.0/8, 0.0.0.0/8
+            if (b0 == 127) return allowLocalhost; // 127.0.0.0/8 loopback
+            if (b0 == 10 || b0 == 0) return false; // 10.0.0.0/8, 0.0.0.0/8
             if (b0 == 172 && (b1 >= 16 && b1 <= 31)) return false; // 172.16.0.0/12
             if (b0 == 192 && b1 == 168) return false; // 192.168.0.0/16
             if (b0 == 169 && b1 == 254) return false; // 169.254.0.0/16 (Link-Local / AWS IMDS)

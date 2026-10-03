@@ -1,18 +1,25 @@
 package com.antenapro.hotelcheck.acquisition;
 
+import org.apache.hc.client5.http.classic.methods.HttpGet;
+import org.apache.hc.client5.http.config.RequestConfig;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpEntity;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.util.Timeout;
+
+import javax.net.ssl.SSLException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
-import java.net.Inet6Address;
-import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.net.http.HttpClient;
-import java.net.http.HttpHeaders;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpTimeoutException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -21,28 +28,17 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class HttpPublicWebAcquisitionService implements PublicWebAcquisitionService {
 
-    static {
-        // Enable setting custom Host header when sending requests to IP-pinned URIs
-        String existing = System.getProperty("jdk.httpclient.allowRestrictedHeaders");
-        if (existing == null || existing.isBlank()) {
-            System.setProperty("jdk.httpclient.allowRestrictedHeaders", "host,Host");
-        } else if (!existing.toLowerCase().contains("host")) {
-            System.setProperty("jdk.httpclient.allowRestrictedHeaders", existing + ",host,Host");
-        }
-    }
-
-    private final HttpClient httpClient;
+    private final CloseableHttpClient customClient;
 
     public HttpPublicWebAcquisitionService() {
-        this(HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build());
+        this(null);
     }
 
-    public HttpPublicWebAcquisitionService(HttpClient httpClient) {
-        this.httpClient = httpClient;
+    public HttpPublicWebAcquisitionService(CloseableHttpClient customClient) {
+        this.customClient = customClient;
     }
 
     @Override
@@ -65,311 +61,253 @@ public class HttpPublicWebAcquisitionService implements PublicWebAcquisitionServ
         List<String> redirectChain = new ArrayList<>();
         int redirectCount = 0;
 
-        HttpClient clientToUse = this.httpClient;
-        if (clientToUse.connectTimeout().isEmpty() || !clientToUse.connectTimeout().get().equals(config.connectTimeout())) {
-            clientToUse = HttpClient.newBuilder()
-                    .connectTimeout(config.connectTimeout())
-                    .followRedirects(HttpClient.Redirect.NEVER)
-                    .build();
-        }
+        CloseableHttpClient clientToUse = (this.customClient != null)
+                ? this.customClient
+                : createHttpClient(config);
 
-        while (true) {
-            AcquisitionUrlNormalizer.NormalizationResult currentNorm =
-                    AcquisitionUrlNormalizer.normalizeAndValidate(currentUrl, config.allowLocalhost());
+        boolean isCustomClient = (this.customClient != null);
 
-            if (!currentNorm.valid()) {
-                return AcquisitionResult.failure(
-                        currentNorm.outcome(),
-                        requestedUrl,
-                        currentUrl,
-                        currentNorm.errorMessage(),
-                        redirectChain
-                );
-            }
+        try {
+            while (true) {
+                AcquisitionUrlNormalizer.NormalizationResult currentNorm =
+                        AcquisitionUrlNormalizer.normalizeAndValidate(currentUrl, config.allowLocalhost());
 
-            URI currentUri = URI.create(currentNorm.normalizedUrl());
-            String host = currentUri.getHost();
-            int port = currentUri.getPort();
-            String scheme = currentUri.getScheme();
-
-            // Single DNS resolution step: Resolve host to IP addresses once
-            InetAddress[] addresses;
-            try {
-                addresses = InetAddress.getAllByName(host);
-            } catch (UnknownHostException e) {
-                return AcquisitionResult.failure(
-                        AcquisitionOutcome.NETWORK_ERROR,
-                        requestedUrl,
-                        currentUrl,
-                        "Network error - Unknown host: " + e.getMessage(),
-                        redirectChain
-                );
-            }
-
-            // Validate ALL resolved IP addresses against public network boundaries
-            if (!config.allowLocalhost()) {
-                for (InetAddress addr : addresses) {
-                    if (!AcquisitionUrlNormalizer.isPublicIpAddress(addr, false)) {
-                        return AcquisitionResult.failure(
-                                AcquisitionOutcome.INVALID_TARGET,
-                                requestedUrl,
-                                currentUrl,
-                                "Target host '" + host + "' resolves to non-public network address: " + addr.getHostAddress(),
-                                redirectChain
-                        );
-                    }
-                }
-            }
-
-            // Pin socket connection directly to the pre-validated IP address to eliminate secondary DNS resolution / TOCTOU rebinding
-            InetAddress targetAddress = addresses[0];
-            String ipHost = (targetAddress instanceof Inet6Address)
-                    ? "[" + targetAddress.getHostAddress() + "]"
-                    : targetAddress.getHostAddress();
-
-            URI pinnedUri;
-            try {
-                pinnedUri = new URI(
-                        scheme,
-                        currentUri.getRawUserInfo(),
-                        ipHost,
-                        port,
-                        currentUri.getRawPath(),
-                        currentUri.getRawQuery(),
-                        null
-                );
-            } catch (Exception e) {
-                return AcquisitionResult.failure(
-                        AcquisitionOutcome.INVALID_TARGET,
-                        requestedUrl,
-                        currentUrl,
-                        "Failed to construct pinned URI: " + e.getMessage(),
-                        redirectChain
-                );
-            }
-
-            String hostHeaderValue = host + (port != -1 ? ":" + port : "");
-
-            HttpRequest httpRequest;
-            try {
-                httpRequest = HttpRequest.newBuilder()
-                        .uri(pinnedUri)
-                        .timeout(config.readTimeout())
-                        .header("Host", hostHeaderValue)
-                        .header("User-Agent", config.userAgent())
-                        .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                        .GET()
-                        .build();
-            } catch (Exception e) {
-                return AcquisitionResult.failure(
-                        AcquisitionOutcome.INVALID_TARGET,
-                        requestedUrl,
-                        currentUrl,
-                        "Failed to construct HTTP request: " + e.getMessage(),
-                        redirectChain
-                );
-            }
-
-            Instant retrievalTimestamp = Instant.now();
-            HttpResponse<InputStream> response;
-
-            try {
-                response = clientToUse.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
-            } catch (HttpTimeoutException e) {
-                return AcquisitionResult.failure(
-                        AcquisitionOutcome.TIMEOUT,
-                        requestedUrl,
-                        currentUrl,
-                        "Read timeout of " + config.readTimeout() + " exceeded",
-                        redirectChain
-                );
-            } catch (UnknownHostException e) {
-                return AcquisitionResult.failure(
-                        AcquisitionOutcome.NETWORK_ERROR,
-                        requestedUrl,
-                        currentUrl,
-                        "Network error - Unknown host: " + e.getMessage(),
-                        redirectChain
-                );
-            } catch (ConnectException e) {
-                return AcquisitionResult.failure(
-                        AcquisitionOutcome.NETWORK_ERROR,
-                        requestedUrl,
-                        currentUrl,
-                        "Network error - Connection failed: " + e.getMessage(),
-                        redirectChain
-                );
-            } catch (IOException e) {
-                String msg = e.getMessage() != null ? e.getMessage() : e.toString();
-                if (msg.toLowerCase().contains("timeout")) {
+                if (!currentNorm.valid()) {
                     return AcquisitionResult.failure(
-                            AcquisitionOutcome.TIMEOUT,
+                            currentNorm.outcome(),
                             requestedUrl,
                             currentUrl,
-                            "Timeout encountered: " + msg,
+                            currentNorm.errorMessage(),
                             redirectChain
                     );
                 }
-                return AcquisitionResult.failure(
-                        AcquisitionOutcome.NETWORK_ERROR,
-                        requestedUrl,
-                        currentUrl,
-                        "Network error: " + msg,
-                        redirectChain
-                );
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return AcquisitionResult.failure(
-                        AcquisitionOutcome.NETWORK_ERROR,
-                        requestedUrl,
-                        currentUrl,
-                        "Request interrupted",
-                        redirectChain
-                );
-            }
 
-            int statusCode = response.statusCode();
-            HttpHeaders headers = response.headers();
-            Optional<String> contentType = headers.firstValue("Content-Type");
-
-            // Handle 3xx Redirects
-            if (statusCode >= 300 && statusCode < 400) {
-                Optional<String> location = headers.firstValue("Location");
+                URI currentUri;
                 try {
-                    response.body().close();
-                } catch (IOException ignored) {}
-
-                if (location.isEmpty() || location.get().isBlank()) {
-                    return AcquisitionResult.failure(
-                            AcquisitionOutcome.HTTP_ERROR,
-                            requestedUrl,
-                            currentUrl,
-                            "Redirect response missing Location header (HTTP " + statusCode + ")",
-                            redirectChain
-                    );
-                }
-
-                redirectChain.add(currentUrl);
-                redirectCount++;
-
-                if (redirectCount > config.maxRedirects()) {
-                    return AcquisitionResult.failure(
-                            AcquisitionOutcome.REDIRECT_LIMIT_EXCEEDED,
-                            requestedUrl,
-                            currentUrl,
-                            "Redirect limit of " + config.maxRedirects() + " exceeded",
-                            redirectChain
-                    );
-                }
-
-                try {
-                    URI currentUriObj = URI.create(currentUrl);
-                    URI nextUri = currentUriObj.resolve(location.get());
-                    currentUrl = nextUri.toString();
+                    currentUri = URI.create(currentNorm.normalizedUrl());
                 } catch (Exception e) {
                     return AcquisitionResult.failure(
                             AcquisitionOutcome.INVALID_TARGET,
                             requestedUrl,
                             currentUrl,
-                            "Invalid redirect target location: " + location.get(),
+                            "Malformed target URI: " + e.getMessage(),
                             redirectChain
                     );
                 }
-                continue;
-            }
 
-            // Check Content-Length if present
-            Optional<String> contentLengthOpt = headers.firstValue("Content-Length");
-            if (contentLengthOpt.isPresent()) {
-                try {
-                    long contentLength = Long.parseLong(contentLengthOpt.get().trim());
-                    if (contentLength > config.maxResponseSizeBytes()) {
-                        try { response.body().close(); } catch (IOException ignored) {}
+                HttpGet httpGet = new HttpGet(currentUri);
+                httpGet.setHeader("User-Agent", config.userAgent());
+                httpGet.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+
+                Instant retrievalTimestamp = Instant.now();
+
+                try (CloseableHttpResponse response = clientToUse.execute(httpGet)) {
+                    int statusCode = response.getCode();
+                    Header contentTypeHeader = response.getFirstHeader("Content-Type");
+                    String contentType = contentTypeHeader != null ? contentTypeHeader.getValue() : null;
+
+                    // Handle 3xx Redirects
+                    if (statusCode >= 300 && statusCode < 400) {
+                        Header locationHeader = response.getFirstHeader("Location");
+                        EntityUtils.consumeQuietly(response.getEntity());
+
+                        if (locationHeader == null || locationHeader.getValue().isBlank()) {
+                            return AcquisitionResult.failure(
+                                    AcquisitionOutcome.HTTP_ERROR,
+                                    requestedUrl,
+                                    currentUrl,
+                                    "Redirect response missing Location header (HTTP " + statusCode + ")",
+                                    redirectChain
+                            );
+                        }
+
+                        redirectChain.add(currentUrl);
+                        redirectCount++;
+
+                        if (redirectCount > config.maxRedirects()) {
+                            return AcquisitionResult.failure(
+                                    AcquisitionOutcome.REDIRECT_LIMIT_EXCEEDED,
+                                    requestedUrl,
+                                    currentUrl,
+                                    "Redirect limit of " + config.maxRedirects() + " exceeded",
+                                    redirectChain
+                            );
+                        }
+
+                        try {
+                            URI nextUri = currentUri.resolve(locationHeader.getValue());
+                            currentUrl = nextUri.toString();
+                        } catch (Exception e) {
+                            return AcquisitionResult.failure(
+                                    AcquisitionOutcome.INVALID_TARGET,
+                                    requestedUrl,
+                                    currentUrl,
+                                    "Invalid redirect target location: " + locationHeader.getValue(),
+                                    redirectChain
+                            );
+                        }
+                        continue;
+                    }
+
+                    HttpEntity entity = response.getEntity();
+                    if (entity != null && entity.getContentLength() > config.maxResponseSizeBytes()) {
+                        EntityUtils.consumeQuietly(entity);
                         return AcquisitionResult.failure(
                                 AcquisitionOutcome.RESPONSE_TOO_LARGE,
                                 requestedUrl,
                                 currentUrl,
-                                "Content-Length " + contentLength + " exceeds maximum allowed size of " + config.maxResponseSizeBytes() + " bytes",
+                                "Content-Length " + entity.getContentLength() + " exceeds maximum allowed size of " + config.maxResponseSizeBytes() + " bytes",
                                 redirectChain
                         );
                     }
-                } catch (NumberFormatException ignored) {}
-            }
 
-            // Read response body with streaming size enforcement
-            byte[] bodyBytes;
-            try (InputStream is = response.body()) {
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                byte[] buffer = new byte[8192];
-                long totalBytesRead = 0;
-                int bytesRead;
-                boolean sizeExceeded = false;
+                    byte[] bodyBytes = new byte[0];
+                    if (entity != null) {
+                        try (InputStream is = entity.getContent()) {
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            byte[] buffer = new byte[8192];
+                            long totalBytesRead = 0;
+                            int bytesRead;
+                            boolean sizeExceeded = false;
 
-                while ((bytesRead = is.read(buffer)) != -1) {
-                    totalBytesRead += bytesRead;
-                    if (totalBytesRead > config.maxResponseSizeBytes()) {
-                        sizeExceeded = true;
-                        break;
+                            while ((bytesRead = is.read(buffer)) != -1) {
+                                totalBytesRead += bytesRead;
+                                if (totalBytesRead > config.maxResponseSizeBytes()) {
+                                    sizeExceeded = true;
+                                    break;
+                                }
+                                baos.write(buffer, 0, bytesRead);
+                            }
+
+                            if (sizeExceeded) {
+                                EntityUtils.consumeQuietly(entity);
+                                return AcquisitionResult.failure(
+                                        AcquisitionOutcome.RESPONSE_TOO_LARGE,
+                                        requestedUrl,
+                                        currentUrl,
+                                        "Response body size exceeded maximum allowed limit of " + config.maxResponseSizeBytes() + " bytes",
+                                        redirectChain
+                                );
+                            }
+                            bodyBytes = baos.toByteArray();
+                        }
                     }
-                    baos.write(buffer, 0, bytesRead);
-                }
 
-                if (sizeExceeded) {
-                    return AcquisitionResult.failure(
-                            AcquisitionOutcome.RESPONSE_TOO_LARGE,
+                    Charset charset = parseCharset(contentType);
+                    String bodyString = new String(bodyBytes, charset);
+
+                    Map<String, String> provenanceMetadata = buildProvenanceMetadata(
                             requestedUrl,
                             currentUrl,
-                            "Response body size exceeded maximum allowed limit of " + config.maxResponseSizeBytes() + " bytes",
+                            statusCode,
+                            contentType,
+                            retrievalTimestamp,
+                            redirectCount,
+                            response
+                    );
+
+                    AcquisitionOutcome outcome = (statusCode >= 200 && statusCode < 300)
+                            ? AcquisitionOutcome.SUCCESS
+                            : AcquisitionOutcome.HTTP_ERROR;
+
+                    String errorMessage = (outcome == AcquisitionOutcome.HTTP_ERROR)
+                            ? "HTTP request failed with status " + statusCode
+                            : null;
+
+                    return new AcquisitionResult(
+                            outcome,
+                            requestedUrl,
+                            currentUrl,
+                            statusCode,
+                            contentType,
+                            retrievalTimestamp,
+                            AcquisitionMethod.HTTP_PUBLIC,
+                            bodyString,
+                            provenanceMetadata,
+                            redirectChain,
+                            errorMessage
+                    );
+                } catch (UnknownHostException e) {
+                    String msg = e.getMessage() != null ? e.getMessage() : e.toString();
+                    if (msg.contains("non-public")) {
+                        return AcquisitionResult.failure(
+                                AcquisitionOutcome.INVALID_TARGET,
+                                requestedUrl,
+                                currentUrl,
+                                msg,
+                                redirectChain
+                        );
+                    }
+                    return AcquisitionResult.failure(
+                            AcquisitionOutcome.NETWORK_ERROR,
+                            requestedUrl,
+                            currentUrl,
+                            "Network error - Unknown host: " + msg,
+                            redirectChain
+                    );
+                } catch (SSLException e) {
+                    return AcquisitionResult.failure(
+                            AcquisitionOutcome.NETWORK_ERROR,
+                            requestedUrl,
+                            currentUrl,
+                            "SSL/TLS Handshake failed: " + e.getMessage(),
+                            redirectChain
+                    );
+                } catch (ConnectException e) {
+                    return AcquisitionResult.failure(
+                            AcquisitionOutcome.NETWORK_ERROR,
+                            requestedUrl,
+                            currentUrl,
+                            "Network error - Connection failed: " + e.getMessage(),
+                            redirectChain
+                    );
+                } catch (IOException e) {
+                    String msg = e.getMessage() != null ? e.getMessage() : e.toString();
+                    String lower = msg.toLowerCase();
+                    if (lower.contains("timeout") || lower.contains("timed out")) {
+                        return AcquisitionResult.failure(
+                                AcquisitionOutcome.TIMEOUT,
+                                requestedUrl,
+                                currentUrl,
+                                "Read/connect timeout of " + config.readTimeout() + " exceeded: " + msg,
+                                redirectChain
+                        );
+                    }
+                    return AcquisitionResult.failure(
+                            AcquisitionOutcome.NETWORK_ERROR,
+                            requestedUrl,
+                            currentUrl,
+                            "Network error: " + msg,
                             redirectChain
                     );
                 }
-
-                bodyBytes = baos.toByteArray();
-            } catch (IOException e) {
-                return AcquisitionResult.failure(
-                        AcquisitionOutcome.NETWORK_ERROR,
-                        requestedUrl,
-                        currentUrl,
-                        "Failed to read response body: " + e.getMessage(),
-                        redirectChain
-                );
             }
-
-            Charset charset = parseCharset(contentType.orElse(null));
-            String bodyString = new String(bodyBytes, charset);
-
-            Map<String, String> provenanceMetadata = buildProvenanceMetadata(
-                    requestedUrl,
-                    currentUrl,
-                    statusCode,
-                    contentType.orElse(null),
-                    retrievalTimestamp,
-                    redirectCount,
-                    headers
-            );
-
-            AcquisitionOutcome outcome = (statusCode >= 200 && statusCode < 300)
-                    ? AcquisitionOutcome.SUCCESS
-                    : AcquisitionOutcome.HTTP_ERROR;
-
-            String errorMessage = (outcome == AcquisitionOutcome.HTTP_ERROR)
-                    ? "HTTP request failed with status " + statusCode
-                    : null;
-
-            return new AcquisitionResult(
-                    outcome,
-                    requestedUrl,
-                    currentUrl,
-                    statusCode,
-                    contentType.orElse(null),
-                    retrievalTimestamp,
-                    AcquisitionMethod.HTTP_PUBLIC,
-                    bodyString,
-                    provenanceMetadata,
-                    redirectChain,
-                    errorMessage
-            );
+        } finally {
+            if (!isCustomClient && clientToUse != null) {
+                try {
+                    clientToUse.close();
+                } catch (IOException ignored) {}
+            }
         }
+    }
+
+    private CloseableHttpClient createHttpClient(AcquisitionConfig config) {
+        PoolingHttpClientConnectionManager connectionManager = PoolingHttpClientConnectionManagerBuilder.create()
+                .setDnsResolver(new PublicWebDnsResolver(config.allowLocalhost()))
+                .build();
+
+        RequestConfig requestConfig = RequestConfig.custom()
+                .setConnectTimeout(Timeout.ofMilliseconds(config.connectTimeout().toMillis()))
+                .setResponseTimeout(Timeout.ofMilliseconds(config.readTimeout().toMillis()))
+                .setRedirectsEnabled(false)
+                .build();
+
+        return HttpClients.custom()
+                .setConnectionManager(connectionManager)
+                .setDefaultRequestConfig(requestConfig)
+                .setUserAgent(config.userAgent())
+                .disableRedirectHandling()
+                .build();
     }
 
     private Map<String, String> buildProvenanceMetadata(
@@ -379,7 +317,7 @@ public class HttpPublicWebAcquisitionService implements PublicWebAcquisitionServ
             String contentType,
             Instant retrievalTimestamp,
             int redirectCount,
-            HttpHeaders headers
+            CloseableHttpResponse response
     ) {
         Map<String, String> metadata = new LinkedHashMap<>();
         metadata.put("requestedUrl", requestedUrl);
@@ -390,10 +328,17 @@ public class HttpPublicWebAcquisitionService implements PublicWebAcquisitionServ
         metadata.put("acquisitionMethod", AcquisitionMethod.HTTP_PUBLIC.name());
         metadata.put("redirectCount", String.valueOf(redirectCount));
 
-        headers.firstValue("Server").ifPresent(v -> metadata.put("header.server", v));
-        headers.firstValue("ETag").ifPresent(v -> metadata.put("header.etag", v));
-        headers.firstValue("Last-Modified").ifPresent(v -> metadata.put("header.last-modified", v));
-        headers.firstValue("Cache-Control").ifPresent(v -> metadata.put("header.cache-control", v));
+        Header serverHeader = response.getFirstHeader("Server");
+        if (serverHeader != null) metadata.put("header.server", serverHeader.getValue());
+
+        Header etagHeader = response.getFirstHeader("ETag");
+        if (etagHeader != null) metadata.put("header.etag", etagHeader.getValue());
+
+        Header lastModHeader = response.getFirstHeader("Last-Modified");
+        if (lastModHeader != null) metadata.put("header.last-modified", lastModHeader.getValue());
+
+        Header cacheHeader = response.getFirstHeader("Cache-Control");
+        if (cacheHeader != null) metadata.put("header.cache-control", cacheHeader.getValue());
 
         return Collections.unmodifiableMap(metadata);
     }

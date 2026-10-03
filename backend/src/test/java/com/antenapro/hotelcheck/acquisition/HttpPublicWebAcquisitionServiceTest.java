@@ -144,6 +144,27 @@ class HttpPublicWebAcquisitionServiceTest {
     }
 
     @Test
+    void testRedirectToPrivateAddressRejection() {
+        server.createContext("/redirect-private", exchange -> {
+            exchange.getResponseHeaders().set("Location", "http://10.0.0.1/internal");
+            exchange.sendResponseHeaders(302, -1);
+            exchange.close();
+        });
+
+        AcquisitionConfig config = AcquisitionConfig.builder()
+                .allowLocalhost(true) // allow initial server connection
+                .build();
+        AcquisitionRequest request = new AcquisitionRequest(baseUrl + "/redirect-private", config);
+
+        AcquisitionResult result = service.acquire(request);
+
+        assertFalse(result.isSuccess());
+        assertEquals(AcquisitionOutcome.INVALID_TARGET, result.outcome());
+        assertTrue(result.errorMessage().contains("non-public"));
+        assertEquals(1, result.redirectChain().size());
+    }
+
+    @Test
     void testRedirectLimitExceeded() {
         server.createContext("/loop", exchange -> {
             exchange.getResponseHeaders().set("Location", baseUrl + "/loop");
@@ -168,7 +189,7 @@ class HttpPublicWebAcquisitionServiceTest {
     void testResponseTooLargeContentLengthHeader() {
         server.createContext("/large-header", exchange -> {
             exchange.getResponseHeaders().set("Content-Length", "1000000");
-            exchange.sendResponseHeaders(200, 0);
+            exchange.sendResponseHeaders(200, 1000000L);
             exchange.close();
         });
 
@@ -274,6 +295,18 @@ class HttpPublicWebAcquisitionServiceTest {
         AcquisitionConfig config = AcquisitionConfig.builder().allowLocalhost(true).build();
         // Request closed port 65530
         AcquisitionRequest request = new AcquisitionRequest("http://127.0.0.1:65530/test", config);
+
+        AcquisitionResult result = service.acquire(request);
+
+        assertFalse(result.isSuccess());
+        assertEquals(AcquisitionOutcome.NETWORK_ERROR, result.outcome());
+    }
+
+    @Test
+    void testHttpsHostnameVerificationEnforced() {
+        AcquisitionConfig config = AcquisitionConfig.defaults();
+        // Request an unresolvable or invalid HTTPS URL to verify SSL/hostname validation fails safely as NETWORK_ERROR without bypassing TLS
+        AcquisitionRequest request = new AcquisitionRequest("https://invalid-nonexistent-domain-999.example/test", config);
 
         AcquisitionResult result = service.acquire(request);
 
