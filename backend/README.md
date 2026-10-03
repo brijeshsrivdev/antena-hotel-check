@@ -1,6 +1,6 @@
 # Antena Hotel Check Backend
 
-This module is the initial Java 21 / Spring Boot foundation for the evaluation input and lifecycle boundaries.
+This module is the Java 21 / Spring Boot foundation for the evaluation input, lifecycle, and persistence boundaries.
 
 ## Scope
 
@@ -20,7 +20,14 @@ REQ-012 implements only:
 - minimal owner-facing completion gating for report + interactive preview outcomes;
 - capability outcomes that can be partial/unavailable/failed without automatically failing the evaluation.
 
-It does not perform hotel resolution, crawling, network acquisition, analysis, scoring, AI generation, preview generation, persistence, authentication, or production deployment.
+REQ-013 implements only:
+
+- PostgreSQL/JPA persistence for the existing evaluation aggregate;
+- repository/domain separation through `EvaluationRepository`;
+- persistence and reconstruction of canonical request, attempts, lifecycle state, terminal outcomes, capability outcomes, and owner-facing outcomes;
+- Testcontainers PostgreSQL integration coverage for reload and retry semantics.
+
+The backend does not perform hotel resolution, crawling, network acquisition, analysis, scoring, AI generation, preview generation, authentication, or production deployment.
 
 ## Local validation
 
@@ -29,6 +36,8 @@ From `backend/`:
 ```bash
 mvn test
 ```
+
+REQ-013 persistence tests require Docker/Testcontainers to be available locally or in CI.
 
 The repository-level backend validation workflow runs the same Maven test lifecycle with Java 21 on a GitHub-hosted runner. It is triggered for pull requests targeting `main` and for backend-related pushes.
 
@@ -42,4 +51,4 @@ Run the Spring Boot foundation locally with:
 mvn spring-boot:run
 ```
 
-There is intentionally no public HTTP endpoint in REQ-011 or REQ-012. The input and lifecycle boundaries are implemented as deterministic domain services/aggregates so later application/API layers can invoke them without coupling the domain contract to transport concerns.
+There is intentionally no public HTTP endpoint in these implementation slices. The input, lifecycle, and persistence boundaries remain separated so later application/API layers can invoke them without coupling the domain contract to transport or JPA concerns.
