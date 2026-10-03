@@ -22,6 +22,13 @@ public record AcquisitionConfig(
         if (maxResponseSizeBytes <= 0) maxResponseSizeBytes = DEFAULT_MAX_RESPONSE_SIZE_BYTES;
         if (maxRedirects < 0) maxRedirects = DEFAULT_MAX_REDIRECTS;
         if (userAgent == null || userAgent.isBlank()) userAgent = DEFAULT_USER_AGENT;
+
+        if (allowLocalhost) {
+            String env = System.getProperty("env", System.getenv("ENV"));
+            if ("production".equalsIgnoreCase(env) || "prod".equalsIgnoreCase(env)) {
+                throw new IllegalStateException("allowLocalhost=true is strictly forbidden in production environment!");
+            }
+        }
     }
 
     public static AcquisitionConfig defaults() {

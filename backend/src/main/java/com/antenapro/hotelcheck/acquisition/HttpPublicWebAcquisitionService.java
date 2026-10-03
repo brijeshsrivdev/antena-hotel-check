@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
@@ -23,6 +24,16 @@ import java.util.Map;
 import java.util.Optional;
 
 public class HttpPublicWebAcquisitionService implements PublicWebAcquisitionService {
+
+    static {
+        // Enable setting custom Host header when sending requests to IP-pinned URIs
+        String existing = System.getProperty("jdk.httpclient.allowRestrictedHeaders");
+        if (existing == null || existing.isBlank()) {
+            System.setProperty("jdk.httpclient.allowRestrictedHeaders", "host,Host");
+        } else if (!existing.toLowerCase().contains("host")) {
+            System.setProperty("jdk.httpclient.allowRestrictedHeaders", existing + ",host,Host");
+        }
+    }
 
     private final HttpClient httpClient;
 
@@ -78,8 +89,10 @@ public class HttpPublicWebAcquisitionService implements PublicWebAcquisitionServ
 
             URI currentUri = URI.create(currentNorm.normalizedUrl());
             String host = currentUri.getHost();
+            int port = currentUri.getPort();
+            String scheme = currentUri.getScheme();
 
-            // Perform single-stage DNS resolution and validate ALL returned addresses against SSRF boundaries
+            // Single DNS resolution step: Resolve host to IP addresses once
             InetAddress[] addresses;
             try {
                 addresses = InetAddress.getAllByName(host);
@@ -93,6 +106,7 @@ public class HttpPublicWebAcquisitionService implements PublicWebAcquisitionServ
                 );
             }
 
+            // Validate ALL resolved IP addresses against public network boundaries
             if (!config.allowLocalhost()) {
                 for (InetAddress addr : addresses) {
                     if (!AcquisitionUrlNormalizer.isPublicIpAddress(addr, false)) {
@@ -107,11 +121,41 @@ public class HttpPublicWebAcquisitionService implements PublicWebAcquisitionServ
                 }
             }
 
+            // Pin socket connection directly to the pre-validated IP address to eliminate secondary DNS resolution / TOCTOU rebinding
+            InetAddress targetAddress = addresses[0];
+            String ipHost = (targetAddress instanceof Inet6Address)
+                    ? "[" + targetAddress.getHostAddress() + "]"
+                    : targetAddress.getHostAddress();
+
+            URI pinnedUri;
+            try {
+                pinnedUri = new URI(
+                        scheme,
+                        currentUri.getRawUserInfo(),
+                        ipHost,
+                        port,
+                        currentUri.getRawPath(),
+                        currentUri.getRawQuery(),
+                        null
+                );
+            } catch (Exception e) {
+                return AcquisitionResult.failure(
+                        AcquisitionOutcome.INVALID_TARGET,
+                        requestedUrl,
+                        currentUrl,
+                        "Failed to construct pinned URI: " + e.getMessage(),
+                        redirectChain
+                );
+            }
+
+            String hostHeaderValue = host + (port != -1 ? ":" + port : "");
+
             HttpRequest httpRequest;
             try {
                 httpRequest = HttpRequest.newBuilder()
-                        .uri(currentUri)
+                        .uri(pinnedUri)
                         .timeout(config.readTimeout())
+                        .header("Host", hostHeaderValue)
                         .header("User-Agent", config.userAgent())
                         .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                         .GET()

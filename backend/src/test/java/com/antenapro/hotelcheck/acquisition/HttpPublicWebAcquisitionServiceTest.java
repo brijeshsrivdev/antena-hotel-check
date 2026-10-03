@@ -329,4 +329,16 @@ class HttpPublicWebAcquisitionServiceTest {
         assertEquals(AcquisitionOutcome.INVALID_TARGET, res3.outcome());
         assertTrue(res3.errorMessage().contains("non-public"));
     }
+
+    @Test
+    void testAllowLocalhostProductionLeakForbidden() {
+        System.setProperty("env", "production");
+        try {
+            assertThrows(IllegalStateException.class, () -> {
+                new AcquisitionConfig(null, null, 0, 0, null, true);
+            });
+        } finally {
+            System.clearProperty("env");
+        }
+    }
 }
