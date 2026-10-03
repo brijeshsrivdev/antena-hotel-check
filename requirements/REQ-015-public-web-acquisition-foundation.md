@@ -47,8 +47,8 @@ PR_READY — implementation committed and pushed; awaiting PR creation / orchest
 
 - **Local Maven Validation:** Executed `mvn test` locally with OpenJDK 22. Total 64 tests executed across the backend module (22 acquisition & SSRF regression tests, 9 persistence integration tests, 11 lifecycle tests, and 22 input validation tests). 0 failures, 0 errors, 0 skipped (`BUILD SUCCESS`).
 - **GitHub Actions CI Evidence:**
-  - **Run ID:** `37145334756`
-  - **URL:** https://github.com/brijeshsrivdev/antena-hotel-check/actions/runs/37145334756
+  - **Run ID:** `37145456726`
+  - **URL:** https://github.com/brijeshsrivdev/antena-hotel-check/actions/runs/37145456726
   - **Status:** `completed`
   - **Conclusion:** `success`
   - **Workflow:** Backend Validation (Java 21 / Maven tests on `ubuntu-latest`)
