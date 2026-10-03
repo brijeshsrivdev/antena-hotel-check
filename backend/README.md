@@ -39,6 +39,12 @@ mvn test
 
 REQ-013 persistence tests require Docker/Testcontainers to be available locally or in CI.
 
+The repository-level backend validation workflow runs the same Maven test lifecycle with Java 21 on a GitHub-hosted runner. It is triggered for pull requests targeting `main` and for backend-related pushes.
+
+When Testcontainers-backed integration tests are present in the backend project, the GitHub-hosted runner's Docker environment is used by those tests without requiring a persistent database or production credentials.
+
+CI is the validation authority when the local implementation environment does not provide Maven/Docker/Testcontainers support.
+
 Run the Spring Boot foundation locally with:
 
 ```bash
