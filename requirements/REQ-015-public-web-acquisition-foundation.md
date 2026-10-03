@@ -1,8 +1,59 @@
 # REQ-015 — Public Web Acquisition Foundation
 
-STATUS: READY
+STATUS: PR_READY
 REQUIREMENT_ID: REQ-015
 BRANCH: feature/public-web-acquisition-foundation
+
+## Completion Record
+
+### Completion Status
+
+PR_READY — implementation committed and pushed; awaiting PR creation / orchestrator review.
+
+### Exact Branch
+
+`feature/public-web-acquisition-foundation`
+
+### Files Changed
+
+- `backend/src/main/java/com/antenapro/hotelcheck/acquisition/AcquisitionOutcome.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/acquisition/AcquisitionMethod.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/acquisition/AcquisitionConfig.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/acquisition/AcquisitionRequest.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/acquisition/AcquisitionResult.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/acquisition/PublicWebAcquisitionService.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/acquisition/AcquisitionUrlNormalizer.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/acquisition/HttpPublicWebAcquisitionService.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/acquisition/AcquisitionUrlNormalizerTest.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/acquisition/HttpPublicWebAcquisitionServiceTest.java`
+- `.gitignore`
+- `requirements/REQ-015-public-web-acquisition-foundation.md`
+
+### Implementation Summary
+
+- **Acquisition Contracts & Enums:** Defined `PublicWebAcquisitionService` interface, `AcquisitionOutcome` enum (covering `SUCCESS`, `HTTP_ERROR`, `TIMEOUT`, `REDIRECT_LIMIT_EXCEEDED`, `RESPONSE_TOO_LARGE`, `UNSUPPORTED_SCHEME`, `NETWORK_ERROR`, `INVALID_TARGET`), `AcquisitionMethod` enum (`HTTP_PUBLIC`, `BROWSER_PUBLIC`, `THIRD_PARTY_PUBLIC`, `UNAVAILABLE`), `AcquisitionConfig`, `AcquisitionRequest`, and immutable record `AcquisitionResult`.
+- **Url Normalizer & Safety:** Implemented `AcquisitionUrlNormalizer` to enforce HTTP/HTTPS scheme restrictions, normalize host/port/path/fragments, and reject loopback, private IP (RFC 1918), link-local, and metadata addresses when `allowLocalhost` is disabled.
+- **HTTP Acquisition Service:** Implemented `HttpPublicWebAcquisitionService` backed by standard Java 21 `java.net.http.HttpClient` with manual redirect handling (tracking `redirectChain` and enforcing `maxRedirects`), stream-based response-size enforcement (`RESPONSE_TOO_LARGE`), read/connect timeouts (`TIMEOUT`), and provenance metadata assembly (`requestedUrl`, `finalUrl`, `httpStatus`, `contentType`, `retrievalTimestamp`, `acquisitionMethod`, `redirectCount`, selected HTTP response headers).
+- **Test Suite:** Added deterministic unit tests in `AcquisitionUrlNormalizerTest` and `HttpPublicWebAcquisitionServiceTest` using JDK `com.sun.net.httpserver.HttpServer` covering success, 404/500 HTTP errors, 302 redirects, redirect limits, Content-Length & streaming size bounds, timeouts, unsupported schemes, invalid targets, network failures, and conversion from `CanonicalEvaluationRequest`.
+
+### Validation Performed
+
+- Executed `mvn test` locally with OpenJDK 22.
+- Total 58 tests executed across the backend module (including all 17 acquisition tests, 9 persistence integration tests, 11 lifecycle tests, and 21 input validation tests).
+- 0 failures, 0 errors, 0 skipped (`BUILD SUCCESS`).
+
+### Open Questions / Blockers
+
+- Browser-rendered escalation is intentionally deferred to future bounded specifications per SPEC-004.
+- GitHub Actions CI validation workflow will run upon PR push against `main`.
+
+## Governance
+
+- Create the exact branch named in `BRANCH` from current `main`.
+- Execute ONLY REQ-015.
+- Do not merge the PR.
+- Stop after creating/updating the PR and wait for orchestrator review.
+
 
 ## Objective
 
