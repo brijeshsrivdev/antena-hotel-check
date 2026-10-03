@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.net.http.HttpClient;
@@ -75,10 +76,41 @@ public class HttpPublicWebAcquisitionService implements PublicWebAcquisitionServ
                 );
             }
 
+            URI currentUri = URI.create(currentNorm.normalizedUrl());
+            String host = currentUri.getHost();
+
+            // Perform single-stage DNS resolution and validate ALL returned addresses against SSRF boundaries
+            InetAddress[] addresses;
+            try {
+                addresses = InetAddress.getAllByName(host);
+            } catch (UnknownHostException e) {
+                return AcquisitionResult.failure(
+                        AcquisitionOutcome.NETWORK_ERROR,
+                        requestedUrl,
+                        currentUrl,
+                        "Network error - Unknown host: " + e.getMessage(),
+                        redirectChain
+                );
+            }
+
+            if (!config.allowLocalhost()) {
+                for (InetAddress addr : addresses) {
+                    if (!AcquisitionUrlNormalizer.isPublicIpAddress(addr, false)) {
+                        return AcquisitionResult.failure(
+                                AcquisitionOutcome.INVALID_TARGET,
+                                requestedUrl,
+                                currentUrl,
+                                "Target host '" + host + "' resolves to non-public network address: " + addr.getHostAddress(),
+                                redirectChain
+                        );
+                    }
+                }
+            }
+
             HttpRequest httpRequest;
             try {
                 httpRequest = HttpRequest.newBuilder()
-                        .uri(URI.create(currentNorm.normalizedUrl()))
+                        .uri(currentUri)
                         .timeout(config.readTimeout())
                         .header("User-Agent", config.userAgent())
                         .header("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
@@ -187,8 +219,8 @@ public class HttpPublicWebAcquisitionService implements PublicWebAcquisitionServ
                 }
 
                 try {
-                    URI currentUri = URI.create(currentUrl);
-                    URI nextUri = currentUri.resolve(location.get());
+                    URI currentUriObj = URI.create(currentUrl);
+                    URI nextUri = currentUriObj.resolve(location.get());
                     currentUrl = nextUri.toString();
                 } catch (Exception e) {
                     return AcquisitionResult.failure(

@@ -2,6 +2,9 @@ package com.antenapro.hotelcheck.acquisition;
 
 import org.junit.jupiter.api.Test;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class AcquisitionUrlNormalizerTest {
@@ -61,5 +64,40 @@ class AcquisitionUrlNormalizerTest {
         var res3 = AcquisitionUrlNormalizer.normalizeAndValidate("http://127.0.0.1:8080/test", true);
         assertTrue(res3.valid());
         assertEquals("http://127.0.0.1:8080/test", res3.normalizedUrl());
+    }
+
+    @Test
+    void testCloudMetadataAndPrivateSubnetsRejection() {
+        // AWS IMDS / Link-local address
+        var res1 = AcquisitionUrlNormalizer.normalizeAndValidate("http://169.254.169.254/latest/meta-data/", false);
+        assertFalse(res1.valid());
+        assertEquals(AcquisitionOutcome.INVALID_TARGET, res1.outcome());
+
+        // RFC 1918 Private networks
+        var res2 = AcquisitionUrlNormalizer.normalizeAndValidate("http://10.0.0.1/internal", false);
+        assertFalse(res2.valid());
+        assertEquals(AcquisitionOutcome.INVALID_TARGET, res2.outcome());
+
+        var res3 = AcquisitionUrlNormalizer.normalizeAndValidate("http://172.16.0.1/internal", false);
+        assertFalse(res3.valid());
+        assertEquals(AcquisitionOutcome.INVALID_TARGET, res3.outcome());
+
+        var res4 = AcquisitionUrlNormalizer.normalizeAndValidate("http://192.168.1.1/internal", false);
+        assertFalse(res4.valid());
+        assertEquals(AcquisitionOutcome.INVALID_TARGET, res4.outcome());
+
+        // Any local / 0.0.0.0
+        var res5 = AcquisitionUrlNormalizer.normalizeAndValidate("http://0.0.0.0/test", false);
+        assertFalse(res5.valid());
+        assertEquals(AcquisitionOutcome.INVALID_TARGET, res5.outcome());
+    }
+
+    @Test
+    void testIsPublicIpAddressHelper() throws UnknownHostException {
+        assertTrue(AcquisitionUrlNormalizer.isPublicIpAddress(InetAddress.getByName("8.8.8.8"), false));
+        assertFalse(AcquisitionUrlNormalizer.isPublicIpAddress(InetAddress.getByName("127.0.0.1"), false));
+        assertFalse(AcquisitionUrlNormalizer.isPublicIpAddress(InetAddress.getByName("10.1.2.3"), false));
+        assertFalse(AcquisitionUrlNormalizer.isPublicIpAddress(InetAddress.getByName("169.254.169.254"), false));
+        assertFalse(AcquisitionUrlNormalizer.isPublicIpAddress(InetAddress.getByName("192.168.0.1"), false));
     }
 }

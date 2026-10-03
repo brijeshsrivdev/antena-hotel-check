@@ -312,4 +312,21 @@ class HttpPublicWebAcquisitionServiceTest {
         assertEquals(AcquisitionOutcome.SUCCESS, result.outcome());
         assertEquals(200, result.statusCode());
     }
+
+    @Test
+    void testPrivateAddressTargetRejectionInService() {
+        AcquisitionConfig config = AcquisitionConfig.builder().allowLocalhost(false).build();
+
+        AcquisitionResult res1 = service.acquire(new AcquisitionRequest("http://169.254.169.254/latest/meta-data/", config));
+        assertEquals(AcquisitionOutcome.INVALID_TARGET, res1.outcome());
+        assertTrue(res1.errorMessage().contains("non-public"));
+
+        AcquisitionResult res2 = service.acquire(new AcquisitionRequest("http://10.0.0.1/admin", config));
+        assertEquals(AcquisitionOutcome.INVALID_TARGET, res2.outcome());
+        assertTrue(res2.errorMessage().contains("non-public"));
+
+        AcquisitionResult res3 = service.acquire(new AcquisitionRequest("http://192.168.1.1/router", config));
+        assertEquals(AcquisitionOutcome.INVALID_TARGET, res3.outcome());
+        assertTrue(res3.errorMessage().contains("non-public"));
+    }
 }
