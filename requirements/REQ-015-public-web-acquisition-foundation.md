@@ -19,12 +19,14 @@ PR_READY — implementation committed and pushed; awaiting PR creation / orchest
 
 ### Files Changed
 
+- `backend/pom.xml`
 - `backend/src/main/java/com/antenapro/hotelcheck/acquisition/AcquisitionOutcome.java`
 - `backend/src/main/java/com/antenapro/hotelcheck/acquisition/AcquisitionMethod.java`
 - `backend/src/main/java/com/antenapro/hotelcheck/acquisition/AcquisitionConfig.java`
 - `backend/src/main/java/com/antenapro/hotelcheck/acquisition/AcquisitionRequest.java`
 - `backend/src/main/java/com/antenapro/hotelcheck/acquisition/AcquisitionResult.java`
 - `backend/src/main/java/com/antenapro/hotelcheck/acquisition/PublicWebAcquisitionService.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/acquisition/PublicWebDnsResolver.java`
 - `backend/src/main/java/com/antenapro/hotelcheck/acquisition/AcquisitionUrlNormalizer.java`
 - `backend/src/main/java/com/antenapro/hotelcheck/acquisition/HttpPublicWebAcquisitionService.java`
 - `backend/src/test/java/com/antenapro/hotelcheck/acquisition/AcquisitionUrlNormalizerTest.java`
@@ -35,20 +37,22 @@ PR_READY — implementation committed and pushed; awaiting PR creation / orchest
 ### Implementation Summary
 
 - **Acquisition Contracts & Enums:** Defined `PublicWebAcquisitionService` interface, `AcquisitionOutcome` enum (covering `SUCCESS`, `HTTP_ERROR`, `TIMEOUT`, `REDIRECT_LIMIT_EXCEEDED`, `RESPONSE_TOO_LARGE`, `UNSUPPORTED_SCHEME`, `NETWORK_ERROR`, `INVALID_TARGET`), `AcquisitionMethod` enum (`HTTP_PUBLIC`, `BROWSER_PUBLIC`, `THIRD_PARTY_PUBLIC`, `UNAVAILABLE`), `AcquisitionConfig`, `AcquisitionRequest`, and immutable record `AcquisitionResult`.
-- **Url Normalizer & SSRF / DNS Safety:** Implemented `AcquisitionUrlNormalizer` and single-stage DNS resolution checks in `HttpPublicWebAcquisitionService` to validate ALL resolved IP addresses against public IP boundaries (rejecting loopback, RFC 1918 private subnets, link-local / AWS IMDS `169.254.169.254`, CGNAT `100.64.0.0/10`, `0.0.0.0`, and multicast). Eliminates TOCTOU DNS rebinding risk prior to HTTP request execution.
-- **HTTP Acquisition Service:** Implemented `HttpPublicWebAcquisitionService` backed by standard Java 21 `java.net.http.HttpClient` with manual redirect handling (tracking `redirectChain` and enforcing `maxRedirects`), stream-based response-size enforcement (`RESPONSE_TOO_LARGE`), read/connect timeouts (`TIMEOUT`), and provenance metadata assembly (`requestedUrl`, `finalUrl`, `httpStatus`, `contentType`, `retrievalTimestamp`, `acquisitionMethod`, `redirectCount`, selected HTTP response headers).
-- **Test Suite:** Added deterministic unit and SSRF regression tests in `AcquisitionUrlNormalizerTest` and `HttpPublicWebAcquisitionServiceTest` using JDK `com.sun.net.httpserver.HttpServer` covering success, 404/500 HTTP errors, 302 redirects, redirect limits, Content-Length & streaming size bounds, timeouts, unsupported schemes, invalid targets, network failures, AWS metadata / RFC 1918 private subnet rejection, and conversion from `CanonicalEvaluationRequest`.
+- **Zero-TOCTOU SSRF & Public-Target Validation:** Implemented `PublicWebDnsResolver` implementing Apache HttpClient 5's `DnsResolver` interface plugged into `PoolingHttpClientConnectionManagerBuilder`. Every hostname lookup (initial request & redirect hops) resolves IP addresses and validates **ALL** returned IPv4 and IPv6 addresses against non-public IP boundaries (rejecting loopback `127.0.0.1`/`::1`, RFC 1918 private subnets `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`, AWS IMDS / link-local `169.254.169.254`, CGNAT `100.64.0.0/10`, `0.0.0.0`, and multicast). Connection establishment occurs immediately following validation within the socket pipeline, eliminating secondary DNS resolution / TOCTOU rebinding races.
+- **HTTPS TLS SNI & Hostname Verification Preserved:** Requests maintain `https://hotel.example.com` target URIs without IP substitution. Preserves native TLS SNI (`hotel.example.com`), standard SSL certificate hostname verification (`hotel.example.com`), and HTTP `Host` headers (`hotel.example.com`) without disabling or weakening security.
+- **Production Config Leak Prevention:** Enforced safety check in `AcquisitionConfig` constructor preventing `allowLocalhost=true` from leaking into production environments (`ENV=prod` or `ENV=production`), throwing `IllegalStateException`.
+- **HTTP Acquisition Service:** Implemented `HttpPublicWebAcquisitionService` backed by Apache HttpClient 5 with manual redirect handling (tracking `redirectChain` and enforcing `maxRedirects`), stream-based response-size enforcement (`RESPONSE_TOO_LARGE`), read/connect timeouts (`TIMEOUT`), and provenance metadata assembly (`requestedUrl`, `finalUrl`, `httpStatus`, `contentType`, `retrievalTimestamp`, `acquisitionMethod`, `redirectCount`, selected HTTP response headers).
+- **Test Suite:** Added deterministic unit and SSRF regression tests in `AcquisitionUrlNormalizerTest` and `HttpPublicWebAcquisitionServiceTest` using JDK `com.sun.net.httpserver.HttpServer` covering success, 404/500 HTTP errors, 302 redirects, redirect limits, Content-Length & streaming size bounds, timeouts, unsupported schemes, invalid targets, network failures, AWS metadata / RFC 1918 private subnet rejection, HTTPS hostname verification preservation, production config safety guards, and conversion from `CanonicalEvaluationRequest`.
 
 ### Validation Performed & CI Result
 
-- **Local Maven Validation:** Executed `mvn test` locally with OpenJDK 22. Total 61 tests executed across the backend module (19 acquisition & SSRF regression tests, 9 persistence integration tests, 11 lifecycle tests, and 22 input validation tests). 0 failures, 0 errors, 0 skipped (`BUILD SUCCESS`).
+- **Local Maven Validation:** Executed `mvn test` locally with OpenJDK 22. Total 64 tests executed across the backend module (22 acquisition & SSRF regression tests, 9 persistence integration tests, 11 lifecycle tests, and 22 input validation tests). 0 failures, 0 errors, 0 skipped (`BUILD SUCCESS`).
 - **GitHub Actions CI Evidence:**
-  - **Run ID:** `37144514575`
-  - **URL:** https://github.com/brijeshsrivdev/antena-hotel-check/actions/runs/37144514575
+  - **Run ID:** `37145334756`
+  - **URL:** https://github.com/brijeshsrivdev/antena-hotel-check/actions/runs/37145334756
   - **Status:** `completed`
   - **Conclusion:** `success`
   - **Workflow:** Backend Validation (Java 21 / Maven tests on `ubuntu-latest`)
-  - **Outcome:** All 61 backend tests passed cleanly in CI.
+  - **Outcome:** All 64 backend tests passed cleanly in CI.
 
 ### Open Questions / Blockers
 
