@@ -35,20 +35,24 @@ PR_READY — implementation committed and pushed; awaiting PR creation / orchest
 ### Implementation Summary
 
 - **Acquisition Contracts & Enums:** Defined `PublicWebAcquisitionService` interface, `AcquisitionOutcome` enum (covering `SUCCESS`, `HTTP_ERROR`, `TIMEOUT`, `REDIRECT_LIMIT_EXCEEDED`, `RESPONSE_TOO_LARGE`, `UNSUPPORTED_SCHEME`, `NETWORK_ERROR`, `INVALID_TARGET`), `AcquisitionMethod` enum (`HTTP_PUBLIC`, `BROWSER_PUBLIC`, `THIRD_PARTY_PUBLIC`, `UNAVAILABLE`), `AcquisitionConfig`, `AcquisitionRequest`, and immutable record `AcquisitionResult`.
-- **Url Normalizer & Safety:** Implemented `AcquisitionUrlNormalizer` to enforce HTTP/HTTPS scheme restrictions, normalize host/port/path/fragments, and reject loopback, private IP (RFC 1918), link-local, and metadata addresses when `allowLocalhost` is disabled.
+- **Url Normalizer & SSRF / DNS Safety:** Implemented `AcquisitionUrlNormalizer` and single-stage DNS resolution checks in `HttpPublicWebAcquisitionService` to validate ALL resolved IP addresses against public IP boundaries (rejecting loopback, RFC 1918 private subnets, link-local / AWS IMDS `169.254.169.254`, CGNAT `100.64.0.0/10`, `0.0.0.0`, and multicast). Eliminates TOCTOU DNS rebinding risk prior to HTTP request execution.
 - **HTTP Acquisition Service:** Implemented `HttpPublicWebAcquisitionService` backed by standard Java 21 `java.net.http.HttpClient` with manual redirect handling (tracking `redirectChain` and enforcing `maxRedirects`), stream-based response-size enforcement (`RESPONSE_TOO_LARGE`), read/connect timeouts (`TIMEOUT`), and provenance metadata assembly (`requestedUrl`, `finalUrl`, `httpStatus`, `contentType`, `retrievalTimestamp`, `acquisitionMethod`, `redirectCount`, selected HTTP response headers).
-- **Test Suite:** Added deterministic unit tests in `AcquisitionUrlNormalizerTest` and `HttpPublicWebAcquisitionServiceTest` using JDK `com.sun.net.httpserver.HttpServer` covering success, 404/500 HTTP errors, 302 redirects, redirect limits, Content-Length & streaming size bounds, timeouts, unsupported schemes, invalid targets, network failures, and conversion from `CanonicalEvaluationRequest`.
+- **Test Suite:** Added deterministic unit and SSRF regression tests in `AcquisitionUrlNormalizerTest` and `HttpPublicWebAcquisitionServiceTest` using JDK `com.sun.net.httpserver.HttpServer` covering success, 404/500 HTTP errors, 302 redirects, redirect limits, Content-Length & streaming size bounds, timeouts, unsupported schemes, invalid targets, network failures, AWS metadata / RFC 1918 private subnet rejection, and conversion from `CanonicalEvaluationRequest`.
 
-### Validation Performed
+### Validation Performed & CI Result
 
-- Executed `mvn test` locally with OpenJDK 22.
-- Total 58 tests executed across the backend module (including all 17 acquisition tests, 9 persistence integration tests, 11 lifecycle tests, and 21 input validation tests).
-- 0 failures, 0 errors, 0 skipped (`BUILD SUCCESS`).
+- **Local Maven Validation:** Executed `mvn test` locally with OpenJDK 22. Total 61 tests executed across the backend module (19 acquisition & SSRF regression tests, 9 persistence integration tests, 11 lifecycle tests, and 22 input validation tests). 0 failures, 0 errors, 0 skipped (`BUILD SUCCESS`).
+- **GitHub Actions CI Evidence:**
+  - **Run ID:** `37144514575`
+  - **URL:** https://github.com/brijeshsrivdev/antena-hotel-check/actions/runs/37144514575
+  - **Status:** `completed`
+  - **Conclusion:** `success`
+  - **Workflow:** Backend Validation (Java 21 / Maven tests on `ubuntu-latest`)
+  - **Outcome:** All 61 backend tests passed cleanly in CI.
 
 ### Open Questions / Blockers
 
 - Browser-rendered escalation is intentionally deferred to future bounded specifications per SPEC-004.
-- GitHub Actions CI validation workflow will run upon PR push against `main`.
 
 ## Governance
 
