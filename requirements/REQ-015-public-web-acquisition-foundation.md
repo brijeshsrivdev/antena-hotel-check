@@ -10,9 +10,12 @@ BRANCH: feature/public-web-acquisition-foundation
 
 PR_READY — implementation committed and pushed; awaiting PR creation / orchestrator review.
 
-### Exact Branch
+### PR
 
-`feature/public-web-acquisition-foundation`
+- **Branch:** `feature/public-web-acquisition-foundation`
+- **PR URL:** https://github.com/brijeshsrivdev/antena-hotel-check/pull/new/feature/public-web-acquisition-foundation
+- **Base:** `main`
+- **Merged:** No (awaiting orchestrator review)
 
 ### Files Changed
 
