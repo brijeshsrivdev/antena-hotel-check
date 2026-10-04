@@ -43,6 +43,8 @@ Mature, trustworthy analysis
         ↓
 Actionable Recommendations
         ↓
+Connected Digital Performance (optional paid capability)
+        ↓
 Antena Opportunity
         ↓
 Improved hotel experience
@@ -199,7 +201,119 @@ Generate report
 
 This is a major product milestone: the system should produce a trustworthy result for a real hotel without requiring manual intervention inside the analysis layer.
 
-## Phase 3 — Production Evaluation Engine
+## Phase 3 — Connected Digital Performance (Paid / Plan-Gated)
+
+This capability is intentionally **not part of the free/public-web-only baseline analysis**. It is a potential paid-plan capability for hotels that connect their own first-party Google properties.
+
+The product should preserve a useful core report without these connections. Connected data should make the report materially richer, not become a prerequisite for basic Hotel Check functionality.
+
+### Google Business Profile
+
+Potential connected metrics include:
+
+- Google Search visibility/impressions;
+- Google Maps visibility/impressions;
+- website clicks;
+- calls;
+- direction requests;
+- booking actions where available;
+- other supported profile-performance interactions.
+
+### Google Search Console
+
+Potential connected metrics include:
+
+- search queries;
+- impressions;
+- clicks;
+- click-through rate;
+- average position;
+- landing-page/search performance.
+
+### Google Analytics 4
+
+Potential connected metrics include:
+
+- users;
+- sessions;
+- landing pages;
+- device mix;
+- engagement;
+- traffic sources;
+- booking/key-event funnel signals where configured.
+
+### Connected-data principle
+
+Connected first-party data should complement public-web analysis:
+
+```text
+Public Web Analysis
+        +
+Connected First-Party Performance Data
+        ↓
+Richer Hospitality Analysis
+```
+
+Examples of future insights:
+
+```text
+High Google visibility
+        ↓
+Low website click-through
+        ↓
+Discovery-to-website opportunity
+```
+
+or:
+
+```text
+Strong room-page traffic
+        ↓
+Low booking-journey progression
+        ↓
+Potential booking-friction opportunity
+```
+
+These conclusions must remain grounded in the actual connected metrics and configured measurement context. Do not infer conversion problems when the required analytics events are not configured or available.
+
+### Pricing / entitlement boundary
+
+The eventual commercial model should allow plan-level entitlement for connected digital performance features.
+
+Possible structure:
+
+```text
+Base Hotel Check
+    → public-web analysis
+
+Paid / Connected plan
+    → Google Business Profile
+    → Search Console
+    → GA4
+    → richer performance analysis
+```
+
+Exact pricing, limits, and plan names are intentionally **not decided here** and require a separate product/pricing decision before implementation.
+
+### Privacy / authorization boundary
+
+Connected metrics must be accessed only through properly authorized hotel-owned properties/accounts.
+
+Never attempt to obtain private analytics data without explicit authorization.
+
+A missing connection means:
+
+```text
+behavioral/performance analysis unavailable
+```
+
+not:
+
+```text
+poor performance
+```
+
+## Phase 4 — Production Evaluation Engine
 
 ### Evaluation Orchestration
 
@@ -251,7 +365,7 @@ Hotel
 
 The eventual product should be able to answer whether the hotel's digital experience improved over time.
 
-## Phase 4 — Antena Conversion Opportunity
+## Phase 5 — Antena Conversion Opportunity
 
 This phase comes **after digital presence analysis is sufficiently mature**.
 
@@ -317,7 +431,7 @@ Home
 
 The interactive preview is a core product capability, not merely a marketing screenshot.
 
-## Phase 5 — AI-Assisted Intelligence
+## Phase 6 — AI-Assisted Intelligence
 
 AI should be introduced **after deterministic evidence and analysis are trustworthy**.
 
@@ -357,7 +471,8 @@ Do not jump directly to:
 - broad crawling infrastructure without a bounded requirement;
 - generic SEO auditing;
 - competitor analysis as the core product;
-- Antena preview generation before analysis is trustworthy.
+- Antena preview generation before analysis is trustworthy;
+- connected Google analytics features in the free baseline without an explicit product/pricing decision.
 
 Each of these requires an explicit bounded requirement and architectural justification.
 
