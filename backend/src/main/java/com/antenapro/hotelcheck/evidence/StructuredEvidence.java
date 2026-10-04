@@ -1,5 +1,6 @@
 package com.antenapro.hotelcheck.evidence;
 
+import com.antenapro.hotelcheck.acquisition.AcquisitionMethod;
 import com.antenapro.hotelcheck.acquisition.AcquisitionOutcome;
 import com.antenapro.hotelcheck.evaluation.EvaluationAcquisitionResult;
 
@@ -12,12 +13,12 @@ public record StructuredEvidence(
         UUID attemptId,
         int attemptNumber,
         EvaluationAcquisitionResult sourceObservation,
-        EvidenceProvenance provenance,
+        EvidenceProvenance sourceProvenance,
         AcquisitionOutcome acquisitionOutcome,
         String requestedUrl,
         String finalUrl,
         Instant retrievalTimestamp,
-        String acquisitionMethod,
+        AcquisitionMethod acquisitionMethod,
         Integer statusCode,
         String contentType,
         String observedContent,
@@ -30,8 +31,9 @@ public record StructuredEvidence(
             throw new IllegalArgumentException("attemptNumber must be positive");
         }
         Objects.requireNonNull(sourceObservation, "sourceObservation must not be null");
-        Objects.requireNonNull(provenance, "provenance must not be null");
+        Objects.requireNonNull(sourceProvenance, "sourceProvenance must not be null");
         Objects.requireNonNull(acquisitionOutcome, "acquisitionOutcome must not be null");
+        Objects.requireNonNull(acquisitionMethod, "acquisitionMethod must not be null");
     }
 
     public boolean hasObservedContent() {
