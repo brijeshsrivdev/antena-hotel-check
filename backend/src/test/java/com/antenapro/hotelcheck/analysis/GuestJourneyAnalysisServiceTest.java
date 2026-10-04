@@ -44,7 +44,7 @@ class GuestJourneyAnalysisServiceTest {
 
         assertEquals(GuestJourneyImpactState.OBSERVED_IMPACT, explore.state());
         assertEquals(1, explore.observedImpacts().size());
-        assertTrue(explore.observedImpacts().iterator().next().kind() == HospitalityFindingKind.DEFICIENCY);
+        assertEquals(HospitalityFindingKind.DEFICIENCY, explore.observedImpacts().iterator().next().kind());
         assertEquals(evidence, explore.observedImpacts().iterator().next().supportingEvidence());
     }
 
@@ -60,6 +60,23 @@ class GuestJourneyAnalysisServiceTest {
         assertEquals(Set.of(HospitalityObservationCategory.AMENITIES),
                 analysis.stage(GuestJourneyStage.UNDERSTAND).observedImpacts().stream()
                         .map(HospitalityFinding::category).collect(java.util.stream.Collectors.toSet()));
+    }
+
+    @Test
+    void identityConflictUsesGovernedTypedSemanticsToAffectTrust() {
+        Evaluation evaluation = evaluation();
+        StructuredEvidence first = evidence(evaluation, "https://hotel.example.com/about", AcquisitionOutcome.SUCCESS,
+                "<h1>Grand Hotel</h1>");
+        StructuredEvidence second = evidence(evaluation, "https://directory.example.com/hotel", AcquisitionOutcome.SUCCESS,
+                "<h1>Grand Resort Hotel</h1>");
+
+        GuestJourneyStageAnalysis trust = analysisService
+                .analyze(evaluation.evaluationId(), List.of(first, second), HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED)
+                .guestJourneyAnalysis().stage(GuestJourneyStage.TRUST);
+
+        assertEquals(GuestJourneyImpactState.OBSERVED_IMPACT, trust.state());
+        assertEquals(2, trust.observedImpacts().size());
+        assertTrue(trust.observedImpacts().stream().allMatch(f -> f.category() == HospitalityObservationCategory.HOTEL_IDENTITY));
     }
 
     @Test
@@ -96,6 +113,26 @@ class GuestJourneyAnalysisServiceTest {
                 analysis.unmappedLimitations().iterator().next().type());
         assertTrue(analysis.stages().stream().allMatch(stage -> stage.state() == GuestJourneyImpactState.UNSUPPORTED));
         assertTrue(analysis.stages().stream().allMatch(stage -> stage.limitations().isEmpty()));
+    }
+
+    @Test
+    void explicitStageLimitationRemainsDistinguishableFromJourneyFailure() {
+        StructuredEvidence evidence = evidence("https://hotel.example.com/rooms", AcquisitionOutcome.TIMEOUT, null);
+        HospitalityAnalysisResult base = analyze(evidence);
+        HospitalityAnalysisLimitation limitation = new HospitalityAnalysisLimitation(
+                Set.of(HospitalityObservationCategory.ROOMS),
+                Set.of(GuestJourneyStage.EXPLORE),
+                HospitalityAnalysisLimitationType.UNABLE_TO_VERIFY,
+                evidence,
+                "Room page could not be observed reliably.");
+        HospitalityAnalysisResult result = new HospitalityAnalysisResult(
+                base.evaluationId(), base.findings(), Set.of(limitation), base.coverage());
+
+        GuestJourneyStageAnalysis explore = result.guestJourneyAnalysis().stage(GuestJourneyStage.EXPLORE);
+
+        assertEquals(GuestJourneyImpactState.LIMITATION, explore.state());
+        assertEquals(Set.of(limitation), explore.limitations());
+        assertTrue(explore.observedImpacts().isEmpty());
     }
 
     @Test
