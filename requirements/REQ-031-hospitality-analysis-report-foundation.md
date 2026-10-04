@@ -1,6 +1,6 @@
 # REQ-031 — Hospitality Analysis Report Foundation
 
-STATUS: READY
+STATUS: PR_READY
 REQUIREMENT_ID: REQ-031
 TYPE: Implementation
 BRANCH: `feature/hospitality-analysis-report-foundation`
@@ -335,4 +335,158 @@ The report model should make the existing analysis understandable and consumable
 
 The next implementation decision after REQ-031 must be based on actual repository maturity and product value, not automatic REQ-number progression.
 
-**STOPPING FOR IMPLEMENTATION SESSION.**
+## Session 31 Implementation Record
+
+### Repository/context reconciliation
+
+- Current `main` at implementation start: `d06cca42550e612daeb8fc2cc940492e32e8cb4f`, the requirement commit that added REQ-031.
+- REQ-027 was verified merged as PR #27.
+- REQ-028 was verified merged as PR #28.
+- REQ-029 was verified merged as PR #29.
+- REQ-030 was verified merged as PR #30.
+- REQ-031 was verified present on `main` with `STATUS: READY` before implementation.
+- Existing REQ-027 through REQ-030 contracts were inspected on `main`; no material mismatch was found that required stopping the session.
+
+### Contracts inspected
+
+Inspected the required evidence, analysis, and engineering context plus the implemented contracts for:
+
+- `CanonicalEvaluationRequest.EvaluationTarget` as the existing hotel/target identity source;
+- `HospitalityAnalysisResult` as the immutable analysis aggregation boundary;
+- `GuestJourneyAnalysis` / `GuestJourneyStageAnalysis` as the existing journey model;
+- `HospitalityAnalysisCoverage` as the existing governed coverage representation;
+- `HospitalityAnalysisLimitation` as the existing limitation/provenance boundary;
+- `HospitalityFinding` / `HospitalityFindingKind` as the existing deficiency/observation distinction;
+- `HospitalityRecommendation` as the existing bounded recommendation output.
+
+The report implementation does not create a second evaluation, evidence, journey, finding, limitation, coverage, or recommendation model.
+
+### Implementation summary
+
+Added the smallest explicit backend report boundary:
+
+- `HospitalityAnalysisReport` — immutable report representation retaining the existing analysis result, guest-journey analysis, hotel target identity when available, and existing recommendations.
+- `HospitalityAnalysisReportSummary` — deterministic executive summary containing only bounded counts and the existing journey stages with observed impact; it is not a score, priority, or coverage calculation.
+- `HospitalityAnalysisReportService` — deterministic in-memory aggregation service that validates one evaluation boundary and reuses existing objects rather than re-running analysis or recommendation rules.
+
+The report exposes deficiencies by filtering the existing typed `HospitalityFindingKind.DEFICIENCY`; ordinary observations are not promoted to problems or strengths. Because the current governed finding model exposes no explicit positive/verified strength contract, `strengths()` is intentionally empty and does not infer strengths from missing deficiencies.
+
+Hotel identity is accepted only from the existing `CanonicalEvaluationRequest.EvaluationTarget`. The assembly service permits a missing target and preserves it as `null`; it performs no discovery or resolution.
+
+The report summary derives only:
+
+- deficiency count from existing deficiency findings;
+- limitation count from existing limitations;
+- recommendation count from supplied recommendation outputs;
+- journey stages whose existing journey analysis state is `OBSERVED_IMPACT`.
+
+No coverage score, finding-count coverage, severity, prioritization, ROI, conversion estimate, booking-success claim, AI, network access, persistence, UI, PDF, or Antena integration was added.
+
+### Truth-boundary decisions
+
+- Missing hotel identity remains `null`; no target is invented.
+- Existing `HospitalityAnalysisCoverage` is retained by reference and not recalculated.
+- Existing limitations remain limitations; they are not converted into deficiencies or recommendations.
+- Existing deficiency semantics remain typed `HospitalityFindingKind.DEFICIENCY`; ordinary observations remain observations.
+- No observed strength is synthesized from the absence of a deficiency. The current report therefore exposes an empty strength set.
+- Recommendations are supplied to the report service and reused by reference; an empty recommendation input remains empty.
+- Guest-journey impacts are taken from `GuestJourneyAnalysis` state and existing stage impacts; no finding text is parsed.
+- Booking truth is unchanged: the report cannot create a booking deficiency or recommendation that the analysis/recommendation layers did not already produce.
+
+### Provenance / evaluation isolation
+
+The report retains the existing `HospitalityAnalysisResult`, `GuestJourneyAnalysis`, `HospitalityFinding`, `HospitalityAnalysisLimitation`, and `HospitalityRecommendation` objects rather than copying evidence or creating new provenance identifiers. Their existing source/evaluation chains remain inspectable.
+
+The report model and assembly service require the report evaluation ID to match the analysis result and journey analysis, and require every recommendation to belong to the same evaluation. Cross-evaluation recommendations or journey objects are rejected rather than discarded or reassigned.
+
+### Files changed
+
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisReport.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisReportSummary.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisReportService.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisReportServiceTest.java`
+- `requirements/REQ-031-hospitality-analysis-report-foundation.md`
+
+### Tests
+
+Focused REQ-031 tests were added for:
+
+- single-evaluation report assembly and object/provenance preservation;
+- ordinary observation not becoming a strength;
+- missing hotel identity remaining missing;
+- recommendation reuse rather than regeneration;
+- evaluation A/B isolation for recommendations and journey analysis;
+- booking truth preservation;
+- deterministic repeat assembly.
+
+GitHub Actions Backend Validation **#298** / run ID **`37218896170`** passed against the exact final PR head **`2d481823c4f98ba0a970c06e9bbd9b2a576623d2`**.
+
+Result:
+
+- Workflow: `Backend Validation`
+- Job: `Java 21 / Maven tests`
+- Command: `mvn --batch-mode --no-transfer-progress test`
+- Result: **BUILD SUCCESS**
+- Tests: **192**
+- Failures: **0**
+- Errors: **0**
+- Skipped: **0**
+- Focused `HospitalityAnalysisReportServiceTest`: **8 tests**, all passing.
+
+The prior validation run #296 was superseded because the requirement-file update changed the branch head. Run #298 is the authoritative validation for this implementation head. The workflow checked out the PR merge ref for PR #31 containing final head `2d481823c4f98ba0a970c06e9bbd9b2a576623d2` and base `d06cca42550e612daeb8fc2cc940492e32e8cb4f`.
+
+Local Maven execution is not available in this session environment because direct repository cloning cannot resolve `github.com`; local test success is therefore not claimed. GitHub Actions is the authoritative repository-level validation path.
+
+### Architectural decisions
+
+1. Use one explicit immutable report record plus one small assembly service and one bounded summary record; no generic report framework was introduced.
+2. Retain existing domain objects by reference so evidence/provenance chains are not duplicated.
+3. Use `CanonicalEvaluationRequest.EvaluationTarget` as the only hotel identity source and permit it to be absent rather than inventing identity.
+4. Keep strengths conservative: no positive signal contract currently exists, so the report exposes no synthesized strengths.
+5. Keep the summary descriptive and bounded; it contains counts and stage-state information only and has no scoring/prioritization semantics.
+
+### Security / production review
+
+The new code is pure in-memory domain aggregation. It performs no network access, URL fetching, persistence, external calls, file access, dynamic execution, or mutable global state. Inputs are validated for evaluation ownership and null collections at the domain boundary. The implementation performs only bounded collection filtering and set copying over already-produced analysis objects.
+
+### Limitations
+
+- The current analysis model does not expose a governed positive/verified strength signal distinct from ordinary observations, so strengths cannot responsibly be populated yet.
+- Hotel target identity is nullable at the report boundary because REQ-031 does not define target discovery or identity resolution.
+- The report exists only as an in-memory domain representation; API, rendering, persistence, and customer-facing delivery remain downstream requirements.
+- Local Maven execution remains unavailable because the session environment cannot resolve `github.com`; CI is the authoritative repository-level validation path.
+
+### Self-review
+
+#### Scope
+Only REQ-031 report model, deterministic assembly, focused tests, and this requirement record were changed. No acquisition, evidence, observation, signal, finding, limitation, coverage, journey, recommendation, UI, integration, persistence, or Antena behavior was changed.
+
+#### Correctness
+The report reuses typed deficiency semantics, preserves existing coverage/limitation/journey/recommendation objects, validates evaluation ownership, and never parses finding text or generates recommendations.
+
+#### Truthfulness
+Missing evidence, absent findings, unsupported dimensions, acquisition limitations, and no recommendations remain non-positive/non-defect claims. Booking truth is inherited unchanged from upstream governed outputs.
+
+#### Determinism
+The assembly uses no clock, randomness, network, AI, or mutable global state. The same existing objects and inputs produce equal report values.
+
+#### Testing
+Focused REQ-031 tests were added. Backend Validation run #298 passed against the exact final PR head with 192 tests and zero failures/errors.
+
+#### Repository hygiene
+The branch diff contains only the four REQ-031 implementation/test files plus this requirement update. No unrelated generated artifacts or application modules were changed.
+
+### Final validation record
+
+Final-head validation is complete.
+
+- Final PR head: `2d481823c4f98ba0a970c06e9bbd9b2a576623d2`
+- Backend Validation: **run #298 / ID `37218896170`**
+- Result: **BUILD SUCCESS**
+- Full backend suite: **192 tests, 0 failures, 0 errors, 0 skipped**
+- Focused REQ-031 suite: **8 tests, all passing**
+- PR: **#31**, base `main`, unmerged
+
+`STATUS: PR_READY` is final for this validated implementation head.
+
+**STOPPING FOR ORCHESTRATOR REVIEW.**
