@@ -34,7 +34,7 @@ public final class HospitalityAnalysisSignalService {
                     "Guest-facing amenity or facility information was observed.");
             case CONTACT -> signal(
                     observation,
-                    Set.of(GuestJourneyStage.DISCOVER, GuestJourneyStage.TRUST),
+                    Set.of(GuestJourneyStage.DISCOVER),
                     "A guest contact or location path was observed.");
             case BOOKING -> signal(
                     observation,
