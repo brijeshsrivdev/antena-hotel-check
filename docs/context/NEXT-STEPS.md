@@ -10,19 +10,21 @@ REQ-029 — Guest Journey Analysis Foundation is merged as PR #29.
 
 REQ-030 — Hospitality Recommendation Foundation is merged as PR #30.
 
+REQ-031 — Hospitality Analysis Report Foundation is merged as PR #31.
+
 REQ-020 — Orchestrator Durable Context Foundation is merged and establishes the durable handoff/context mechanism.
 
 ## Immediate Next Slice
 
-REQ-031 — Hospitality Analysis Report Foundation — READY.
+REQ-032 — Evaluation Execution Orchestration Foundation — READY.
 
 Implementation branch:
 
-`feature/hospitality-analysis-report-foundation`
+`feature/evaluation-execution-orchestration-foundation`
 
-REQ-031 is the next bounded vertical slice. It moves the system from internal analysis outputs toward a stable structured report model that can later support APIs, UI, PDFs, or public reports.
+REQ-032 is the next bounded vertical slice. It moves the system from a collection of individually implemented analysis components toward one explicit end-to-end evaluation execution flow.
 
-The implementation must consume existing analysis, journey, recommendation, coverage, and limitation outputs. It must not redesign those contracts.
+The implementation must consume existing acquisition, evidence, observation, analysis, journey, recommendation, and report contracts. It must not redesign those contracts.
 
 ## Completed Analysis Foundation
 
@@ -45,7 +47,7 @@ Guest Journey Analysis
   ↓
 Actionable Recommendations
   ↓
-Structured Analysis Report  ← REQ-031
+Structured Analysis Report
 ```
 
 REQ-023 establishes the truthful distinction between **unable to verify** and an observed hotel deficiency.
@@ -68,41 +70,43 @@ DISCOVER → UNDERSTAND → EXPLORE → TRUST → BOOK
 
 REQ-030 establishes deterministic bounded recommendations derived from governed deficiencies/semantics without scoring, prioritization, AI, or speculative advice.
 
-## REQ-031 Direction
+REQ-031 establishes the first structured report-domain boundary by aggregating existing governed outputs without committing the project to UI, API, persistence, PDF, or public-report presentation.
 
-REQ-031 should create a stable domain-level report representation, not a presentation layer.
+## REQ-032 Direction
+
+REQ-032 should create a single explicit orchestration service for one canonical evaluation execution.
 
 ```text
-Hospitality Analysis Result
-        +
-Guest Journey Analysis
-        +
-Hospitality Recommendations
+Canonical Evaluation Request
         ↓
-Structured Hospitality Analysis Report
+Evaluation Execution Orchestrator
+        ↓
+Existing acquisition integration
+        ↓
+Structured evidence
+        ↓
+Existing deterministic analysis pipeline
+        ↓
+Guest journey
+        ↓
+Recommendations
+        ↓
+Structured report
 ```
 
-The report should make it possible to represent, at minimum:
+The orchestrator should coordinate existing contracts rather than absorb their responsibilities.
 
-- hotel/evaluation identity;
-- analysis coverage and truthful limitations;
-- executive-level analysis summary derived from existing governed outputs;
-- guest journey stages and their governed impacts;
-- observed strengths only where existing evidence supports them;
-- deficiencies/problems;
-- recommendations;
-- provenance/evaluation attribution where required by existing contracts.
-
-Do not invent positive hotel facts merely because a report section expects content.
+It should make the end-to-end sequence testable and explicit while preserving current failure/truth semantics.
 
 ## Future Sequence
 
-After REQ-031, reassess the actual repository state before defining the next slice. Likely future areas include:
+After REQ-032, reassess the actual repository state before defining the next slice. Likely future areas include:
 
-- report API/rendering boundary;
-- real-hotel end-to-end evaluation orchestration;
-- analysis quality/calibration and additional supported dimensions;
+- API boundary for starting/retrieving an evaluation;
 - persistence and evaluation history;
+- real-hotel end-to-end validation against controlled public targets;
+- analysis quality/calibration and additional supported dimensions;
+- customer-facing report rendering;
 - connected digital-performance signals such as Google Business Profile, Search Console, GA4, or similar plan-gated capabilities;
 - eventually Antena integration and `<hotel-name>.antenapro.com` experience generation.
 
@@ -112,6 +116,10 @@ These are **not yet implementation requirements** unless separately specified an
 
 ```text
 Hotel public digital presence
+        ↓
+Canonical Evaluation Request
+        ↓
+End-to-End Evaluation Orchestration  ← REQ-032
         ↓
 Acquisition
         ↓
@@ -174,4 +182,4 @@ After every merged agent PR, update durable orchestrator context before starting
 
 Do not jump directly to a complete scoring engine, arbitrary coverage classifier, generic AI analysis, full hospitality ontology, recommendation prioritization, report rendering/UI, interactive Antena-hosted experience, broad crawling infrastructure, or generic SEO auditing. Each requires an explicit bounded requirement.
 
-REQ-031 is intentionally bounded to a structured domain report assembled from existing trustworthy analysis outputs. It must not expand into UI, rendering, persistence, connected integrations, preview generation, or Antena integration.
+REQ-032 is intentionally bounded to orchestration of existing trustworthy components. It must not expand into API design, persistence, UI, connected integrations, preview generation, or Antena integration.
