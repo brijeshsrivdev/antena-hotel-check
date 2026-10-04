@@ -157,19 +157,29 @@ No live hotel website or external network dependency is used by the tests.
 
 ### Validation
 
-The corrected implementation was pushed to the existing PR branch. Backend Validation is required against the corrected head before this record is considered final.
-
 Local Maven validation is not available in the session environment because direct repository cloning cannot resolve `github.com`.
+
+GitHub Actions Backend Validation run **#143** / run ID **`37177205942`** executed against corrected branch head **`7118c58c83dc54651c448a1bb09ae47b60c6d327`**:
+
+- Workflow: **Backend Validation**
+- Job: **Java 21 / Maven tests**
+- Command: `mvn --batch-mode --no-transfer-progress test`
+- Result: **BUILD SUCCESS**
+- Conclusion: **SUCCESS**
+- Corrected implementation tests passed.
+
+This final corrected-head CI run is the authoritative repository-level validation for the review correction.
 
 ### CI
 
-**PENDING FINAL CORRECTED-HEAD RUN** — the prior successful run validated the pre-correction implementation and is not treated as sufficient for this review correction.
+**PASS** — Backend Validation run #143 / run ID `37177205942`.
 
 ### PR
 
 - **PR:** #23 — `REQ-023: Hospitality Analysis Limitation Foundation`
 - **Base:** `main`
 - **Head:** `feature/hospitality-analysis-limitation-foundation`
+- **Validated corrected head:** `7118c58c83dc54651c448a1bb09ae47b60c6d327`
 - **Status:** OPEN
 - **Merged:** No
 
@@ -222,6 +232,6 @@ The new boundary performs no network access, persistence, external service calls
 
 ## Governance
 
-`STATUS: PR_READY` — implementation and review correction complete, pending final corrected-head Backend Validation confirmation, PR #23 remains open against `main`, and the PR remains unmerged for orchestrator review.
+`STATUS: PR_READY` — implementation and review correction complete, final corrected-head Backend Validation passed, PR #23 remains open against `main`, and the PR remains unmerged for orchestrator review.
 
 **STOPPING FOR ORCHESTRATOR REVIEW.**
