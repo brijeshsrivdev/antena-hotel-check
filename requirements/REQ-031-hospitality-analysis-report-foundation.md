@@ -419,7 +419,7 @@ Focused REQ-031 tests were added for:
 - booking truth preservation;
 - deterministic repeat assembly.
 
-The first final-head validation run was GitHub Actions Backend Validation **#296** / run ID **`37218759163`**, against PR head **`388520b1a48c776b1e3f4e6c4d215e7d5f7bbf54`**.
+GitHub Actions Backend Validation **#298** / run ID **`37218896170`** passed against the exact final PR head **`2d481823c4f98ba0a970c06e9bbd9b2a576623d2`**.
 
 Result:
 
@@ -433,7 +433,9 @@ Result:
 - Skipped: **0**
 - Focused `HospitalityAnalysisReportServiceTest`: **8 tests**, all passing.
 
-Local Maven execution is not available in this session environment because direct repository cloning cannot resolve `github.com`; local test success is therefore not claimed. The GitHub Actions run is the authoritative repository-level validation.
+The prior validation run #296 was superseded because the requirement-file update changed the branch head. Run #298 is the authoritative validation for this implementation head. The workflow checked out the PR merge ref for PR #31 containing final head `2d481823c4f98ba0a970c06e9bbd9b2a576623d2` and base `d06cca42550e612daeb8fc2cc940492e32e8cb4f`.
+
+Local Maven execution is not available in this session environment because direct repository cloning cannot resolve `github.com`; local test success is therefore not claimed. GitHub Actions is the authoritative repository-level validation path.
 
 ### Architectural decisions
 
@@ -469,15 +471,22 @@ Missing evidence, absent findings, unsupported dimensions, acquisition limitatio
 The assembly uses no clock, randomness, network, AI, or mutable global state. The same existing objects and inputs produce equal report values.
 
 #### Testing
-Focused REQ-031 tests were added and the complete backend suite passed in Backend Validation run #296 against the exact pre-finalization PR head. This requirement-file update changes the branch head, so a new Backend Validation run is required and will be the authoritative final-head validation.
+Focused REQ-031 tests were added. Backend Validation run #298 passed against the exact final PR head with 192 tests and zero failures/errors.
 
 #### Repository hygiene
 The branch diff contains only the four REQ-031 implementation/test files plus this requirement update. No unrelated generated artifacts or application modules were changed.
 
-### Final-head validation rule
+### Final validation record
 
-The requirement-file update containing this record changed the PR head after run #296. Therefore run #296 is intentionally **not** treated as final-head validation for `PR_READY`.
+Final-head validation is complete.
 
-Backend Validation must pass against the exact new final PR head. Only after that run succeeds is `STATUS: PR_READY` considered final.
+- Final PR head: `2d481823c4f98ba0a970c06e9bbd9b2a576623d2`
+- Backend Validation: **run #298 / ID `37218896170`**
+- Result: **BUILD SUCCESS**
+- Full backend suite: **192 tests, 0 failures, 0 errors, 0 skipped**
+- Focused REQ-031 suite: **8 tests, all passing**
+- PR: **#31**, base `main`, unmerged
+
+`STATUS: PR_READY` is final for this validated implementation head.
 
 **STOPPING FOR ORCHESTRATOR REVIEW.**
