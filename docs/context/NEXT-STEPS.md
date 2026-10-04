@@ -2,27 +2,37 @@
 
 ## Current Position
 
-REQ-019 — Hospitality Observation Foundation is the latest completed product foundation.
+REQ-019 — Hospitality Observation Foundation is the latest completed product capability.
 
-REQ-020 — Orchestrator Durable Context Foundation is the current documentation/workflow foundation being established so that future orchestration does not depend on temporary chat context.
+REQ-020 — Orchestrator Durable Context Foundation is merged and establishes the durable handoff/context mechanism.
 
 ## Immediate Next Action
 
-Complete review and merge of REQ-020. After merge, inspect the updated `main` and define the next smallest product requirement from the repository specifications and implemented boundaries.
+Inspect the updated `main` and define the next smallest product requirement for trustworthy digital-presence analysis.
 
-Do not assume the next product requirement merely from this file.
+Do not assume the next product requirement merely from this file. Read the relevant specifications and inspect the implementation before defining it.
 
-## Current Product Boundary
+## Product Sequence
 
 ```text
+Hotel public digital presence
+        ↓
 Acquisition
-    ↓
+        ↓
 Structured Evidence
-    ↓
+        ↓
 Bounded Hospitality Observations
+        ↓
+Digital-presence / hospitality analysis
+        ↓
+Mature, trustworthy analysis result
+        ↓
+Antena integration opportunity
+        ↓
+<hotel-name>.antenapro.com
 ```
 
-The next product layer is expected to move toward hospitality analysis, but its exact scope must be defined from current repository evidence.
+The current focus is the analysis portion of this sequence. The Antena-hosted hotel experience is a later downstream capability and must not be implemented prematurely.
 
 ## What Must Not Be Implemented Prematurely
 
@@ -33,9 +43,10 @@ Do not jump directly to:
 - a full hospitality ontology
 - recommendation generation
 - report generation
-- interactive preview generation
+- interactive Antena-hosted hotel experience
 - broad crawling infrastructure
-- generic SEO auditing
+- generic SEO auditing as the product center
+- downstream Antena integration before analysis is mature
 
 Each must be introduced only through an explicit, bounded requirement.
 
