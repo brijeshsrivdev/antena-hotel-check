@@ -311,9 +311,14 @@ class HospitalityAnalysisCoverageTest {
     }
 
     private StructuredEvidence evidence(AcquisitionOutcome outcome, String body, String limitation) {
-        Integer statusCode = outcome == AcquisitionOutcome.HTTP_ERROR
-                ? 503
-                : outcome == AcquisitionOutcome.SUCCESS ? 200 : null;
+        Integer statusCode;
+        if (outcome == AcquisitionOutcome.HTTP_ERROR) {
+            statusCode = 503;
+        } else if (outcome == AcquisitionOutcome.SUCCESS) {
+            statusCode = 200;
+        } else {
+            statusCode = null;
+        }
         AcquisitionResult acquisition = new AcquisitionResult(
                 outcome,
                 WEBSITE,
@@ -340,7 +345,7 @@ class HospitalityAnalysisCoverageTest {
                 outcome.name(),
                 CLOCK.instant()
         );
-        EvaluationAcquisitionResult source = new EvaluationAcquisitionResult(evaluation, attempt, acquisition, capabilityOutcome);
+        EvaluationAcquisitionResult source = new EvaluationAcquisitionResult(evaluation, attempt, acquisition);
 
         return new StructuredEvidence(
                 evaluation.evaluationId(),
