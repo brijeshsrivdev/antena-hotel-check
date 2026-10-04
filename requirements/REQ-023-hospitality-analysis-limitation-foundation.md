@@ -1,6 +1,6 @@
 # REQ-023 — Hospitality Analysis Limitation Foundation
 
-**STATUS:** READY  
+**STATUS:** IN_PROGRESS  
 **REQUIREMENT_ID:** REQ-023  
 **TYPE:** Implementation  
 **BRANCH:** `feature/hospitality-analysis-limitation-foundation`
@@ -115,10 +115,110 @@ Reuse existing acquisition/evidence status types where appropriate. Do not dupli
 
 If the repository does not provide enough information to distinguish an inability to verify from a condition that must remain unresolved, STOP and report the ambiguity rather than inventing semantics.
 
+## Implementation Record — Session 23
+
+### Implementation summary
+
+Implemented a small deterministic limitation boundary directly from `StructuredEvidence` to an immutable `HospitalityAnalysisLimitation`.
+
+The boundary:
+
+- accepts only existing normalized evidence and performs no acquisition or network access;
+- represents only `UNABLE_TO_VERIFY` at this slice;
+- preserves the exact originating `AcquisitionOutcome` as the source condition instead of creating a duplicate acquisition-status vocabulary;
+- supports hospitality categories and guest-journey stages when the caller can deterministically associate them with the inaccessible source/flow;
+- retains the complete `StructuredEvidence` by reference, preserving source observation, evaluation/attempt attribution, acquisition provenance, URLs, and limitation detail;
+- supports only repository acquisition outcomes that unambiguously mean the requested source could not be reliably observed: `HTTP_ERROR`, `TIMEOUT`, `REDIRECT_LIMIT_EXCEEDED`, `RESPONSE_TOO_LARGE`, and `NETWORK_ERROR`;
+- deliberately rejects `SUCCESS`, including successful evidence without retained content, so successful evidence is never converted into a limitation;
+- deliberately rejects `INVALID_TARGET` and `UNSUPPORTED_SCHEME` because the current contracts do not establish those request-validation conditions as hotel-source inability-to-verify semantics;
+- requires `DISCOVERED` source provenance so inferred/derived representations cannot manufacture a source limitation.
+
+No finding behavior, acquisition behavior, evidence normalization behavior, signal behavior, scoring, severity, recommendation, coverage, report, persistence, API, UI, AI, or preview behavior was changed.
+
+### Files changed
+
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisLimitationType.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisLimitation.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisLimitationService.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisLimitationServiceTest.java`
+- this requirement file
+
+### Tests
+
+Added deterministic unit coverage for:
+
+- timeout → `UNABLE_TO_VERIFY` limitation;
+- HTTP error → limitation with exact source condition;
+- network failure → limitation;
+- booking category / `BOOK` journey context preservation;
+- evaluation/attempt attribution;
+- supporting evidence and source-observation traceability;
+- deterministic repeatability;
+- successful evidence not becoming limitation;
+- successful evidence with no retained content not becoming limitation;
+- invalid target not being interpreted as inability to verify;
+- unsupported scheme not being interpreted as inability to verify;
+- non-`DISCOVERED` evidence not producing a limitation;
+- source evidence immutability;
+- null input handling.
+
+No live hotel website or external network dependency is used by the tests.
+
+### Validation
+
+Local Maven validation is not available in the session environment because direct repository cloning cannot resolve `github.com`. GitHub Actions Backend Validation is therefore required and will be treated as the authoritative executed backend validation.
+
+### CI
+
+**PENDING** — PR CI has not yet been executed for this implementation.
+
+### PR
+
+**PENDING** — PR will be created against `main` after the implementation commit.
+
+### Limitations / open questions
+
+- The current acquisition/evidence contracts do not contain a `NOT_ATTEMPTED` acquisition outcome. REQ-023 therefore does not invent one or map any existing condition to `NOT_ATTEMPTED`.
+- The current acquisition contract has no separate `UNAVAILABLE` `AcquisitionOutcome`; `UNAVAILABLE` exists as an acquisition method. REQ-023 uses only explicit non-success outcomes that establish failure to reliably observe the requested source.
+- Category/journey context is optional because the current `StructuredEvidence` model does not itself carry hospitality meaning. The limitation boundary preserves those fields only when a caller already knows them deterministically.
+- `INSUFFICIENT_EVIDENCE` and `NOT_APPLICABLE` decision logic remain unimplemented because the current repository does not provide an explicit deterministic input contract for either state.
+
+### Material architectural decision
+
+The limitation retains `StructuredEvidence` by reference rather than copying the acquisition/evidence graph. This preserves traceability through `StructuredEvidence → EvaluationAcquisitionResult → EvaluationAttempt → AcquisitionResult` while avoiding duplicated mutable state. The exact `AcquisitionOutcome` is retained as the limitation source condition instead of introducing a parallel failure taxonomy.
+
+### Self-review
+
+#### Scope
+
+Only REQ-023 was implemented. No acquisition, evaluation lifecycle, evidence normalization, hospitality observation, analysis signal, or finding behavior was modified.
+
+#### Truthfulness
+
+The limitation represents inability to verify the requested source/flow. It never asserts that a hotel lacks booking, rooms, room information, or another capability. Successful evidence and unsupported request-validation outcomes are rejected rather than over-interpreted.
+
+#### NOT_ATTEMPTED / missing evidence
+
+The repository does not provide a `NOT_ATTEMPTED` acquisition outcome, so no invented mapping was added. Successful evidence with no retained content is also rejected as a limitation rather than converted into a deficiency or inability-to-verify conclusion.
+
+#### Traceability
+
+Every created limitation retains the complete supporting `StructuredEvidence`, including source observation, acquisition outcome, URLs, provenance, evaluation ID, attempt ID/number, and limitation detail.
+
+#### Architecture
+
+No generic limitation engine, error framework, rule engine, factory, persistence model, or acquisition infrastructure was introduced.
+
+#### Determinism
+
+The mapping is a pure in-memory operation with no clock, randomness, external network, or AI dependency.
+
+#### Security / production
+
+The new boundary performs no network access, persistence, external service calls, or unbounded processing. It only consumes already-normalized evidence.
+
 ## Governance
 
-This requirement is intentionally the smallest next slice after REQ-022 because SPEC-006 requires downstream analysis to distinguish observed conditions from evidence limitations. It must not be expanded into full coverage, severity, recommendations, reporting, or preview behavior.
+REQ-023 will be set to `PR_READY` only after the PR is created and actual Backend Validation CI succeeds.
 
-Implementation must follow the established lifecycle:
-
-`Requirement → inspect → implement → tests → CI → PR_READY → orchestrator review → merge → durable context update`.
+**STOPPING FOR CI / PR completion before orchestrator review.**
