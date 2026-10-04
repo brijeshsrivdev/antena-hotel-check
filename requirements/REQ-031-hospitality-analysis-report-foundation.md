@@ -1,0 +1,338 @@
+# REQ-031 — Hospitality Analysis Report Foundation
+
+STATUS: READY
+REQUIREMENT_ID: REQ-031
+TYPE: Implementation
+BRANCH: `feature/hospitality-analysis-report-foundation`
+
+## Objective
+
+Introduce the first stable, structured hospitality analysis report domain over the completed deterministic analysis, guest-journey, coverage, limitation, and recommendation boundaries.
+
+REQ-031 makes the mature analysis chain consumable as one report representation. It is a domain/model boundary, not a presentation or rendering layer.
+
+## Repository Baseline
+
+REQ-031 consumes the existing pipeline:
+
+```text
+StructuredEvidence
+      ↓
+HospitalityObservation
+      ↓
+Qualified HospitalityAnalysisSignal
+      ↓
+HospitalityFinding / Deficiency / Limitation
+      ↓
+HospitalityAnalysisCoverage
+      ↓
+HospitalityAnalysisResult
+      ↓
+GuestJourneyAnalysis
+      ↓
+HospitalityRecommendations
+      ↓
+Structured Hospitality Analysis Report
+```
+
+It must not redesign acquisition, evidence, observations, signals, findings, deficiencies, limitations, coverage, analysis result, guest journey, or recommendation contracts.
+
+## Scope
+
+Implement a small immutable report representation and deterministic assembly service that can represent, at minimum:
+
+- evaluation identity and hotel target identity already available from governed evaluation inputs/results;
+- analysis coverage and truthful limitations;
+- an executive-level summary derived only from existing governed outputs;
+- guest-journey stages and their governed impacts;
+- observed strengths only where existing evidence/analysis explicitly supports them;
+- observed deficiencies/problems;
+- bounded recommendations;
+- source/evaluation attribution needed to preserve existing provenance boundaries.
+
+The report must aggregate existing domain outputs. It must not independently rediscover hotel facts or re-run analysis rules.
+
+## Report Truth Boundary
+
+The report is a representation of existing governed analysis, not a new evidence source.
+
+```text
+Missing evidence              ≠ positive hotel fact
+No finding                    ≠ verified strength
+Unsupported dimension         ≠ successful dimension
+Acquisition failure           ≠ hotel deficiency
+NOT_ATTEMPTED                 ≠ hotel deficiency
+Unable to verify              ≠ observed deficiency
+No recommendation             ≠ no problem exists
+```
+
+Do not fill empty report sections with invented content.
+
+A report section may be empty, unavailable, or explicitly limited when the underlying governed contracts do not establish content.
+
+## Evaluation Identity
+
+A report must belong to exactly one evaluation boundary.
+
+Evaluation A must never include findings, limitations, journey impacts, recommendations, or coverage from Evaluation B.
+
+Use the existing evaluation identity semantics rather than creating a second evaluation model.
+
+## Hotel / Target Identity
+
+Use only hotel/target identity already established by the existing canonical evaluation and analysis contracts.
+
+Do not perform target discovery or independently resolve hotel identity in REQ-031.
+
+If a hotel identity is not sufficiently available from existing contracts, preserve the missing/unknown state rather than inventing it.
+
+## Executive Summary
+
+REQ-031 may provide a deterministic summary representation derived from existing report components.
+
+The summary must not be an LLM-generated narrative.
+
+It must not introduce:
+
+- new findings;
+- new scores;
+- new severity;
+- business-value estimates;
+- conversion estimates;
+- unsupported strengths;
+- unsupported claims about booking success.
+
+A summary can contain bounded counts or structured statements only when those values are already represented by governed report inputs.
+
+Avoid turning the summary into a generic website-audit scorecard.
+
+## Guest Journey
+
+Reuse the existing `GuestJourneyAnalysis` and `GuestJourneyStage` semantics:
+
+```text
+DISCOVER → UNDERSTAND → EXPLORE → TRUST → BOOK
+```
+
+The report must preserve stage impacts and limitations already produced by the journey layer.
+
+Do not create a second journey model.
+
+Do not recalculate journey impacts from finding text.
+
+Do not convert absence of a finding into a positive journey claim.
+
+## Strengths
+
+Strengths are allowed only when existing analysis contracts explicitly establish an observed positive/verified signal suitable for reporting.
+
+The absence of a deficiency is not sufficient to create a strength.
+
+If the current analysis model does not expose a governed positive signal for a proposed strength, the report must leave that strength unrepresented rather than invent it.
+
+## Problems / Deficiencies
+
+Reuse existing `HospitalityFinding` / deficiency semantics.
+
+Do not create a second problem/finding hierarchy.
+
+Preserve:
+
+- source finding identity;
+- evaluation identity;
+- existing journey-stage impact where available;
+- existing provenance chain.
+
+## Limitations
+
+Reuse existing limitation semantics, including `UNABLE_TO_VERIFY` where present.
+
+Limitations must remain distinguishable from deficiencies.
+
+Do not turn limitations into hotel defects merely because the report needs a "problems" section.
+
+Do not convert limitations into recommendations unless the existing recommendation layer already produced one.
+
+## Recommendations
+
+Reuse `HospitalityRecommendation` outputs from REQ-030.
+
+Do not generate recommendations inside the report service.
+
+The report is an aggregation boundary, not a second recommendation engine.
+
+Preserve recommendation provenance and journey-stage information already present in the recommendation model.
+
+## Coverage
+
+Reuse `HospitalityAnalysisCoverage` / existing coverage semantics.
+
+Do not introduce:
+
+- report completeness percentages;
+- new coverage formulas;
+- scores;
+- weighted dimensions;
+- page-count-based coverage;
+- finding-count-based coverage.
+
+Coverage must remain exactly the governed analysis coverage representation.
+
+## Provenance
+
+The report must preserve enough references to trace report sections back to their existing governed source objects.
+
+At minimum, report entries derived from findings/recommendations must retain source identifiers and evaluation identity where those fields already exist.
+
+Do not duplicate `StructuredEvidence` into the report model.
+
+Do not create a second provenance framework.
+
+## Determinism
+
+For identical existing analysis inputs:
+
+```text
+HospitalityAnalysisResult
++
+GuestJourneyAnalysis
++
+HospitalityRecommendations
+        ↓
+identical Structured Hospitality Analysis Report
+```
+
+No randomness, current-time dependency, mutable global state, network access, or AI.
+
+## No Scoring / Prioritization
+
+Do not introduce:
+
+- overall score;
+- dimension score;
+- journey score;
+- severity score;
+- recommendation priority;
+- ROI/conversion estimates;
+- business-value ranking.
+
+If stable ordering is needed, use deterministic technical ordering and document that it is not business priority.
+
+## No AI / Network / External Integrations
+
+No LLM, model provider, prompt, generative summary, network access, crawling, browser automation, target discovery, Google Business Profile, Search Console, GA4, OTA APIs, booking APIs, or external analytics.
+
+Connected first-party digital performance remains a future plan-gated capability.
+
+## No Presentation Layer
+
+Do not implement:
+
+- frontend;
+- report pages;
+- dashboard UI;
+- PDF generation;
+- email rendering;
+- public report rendering;
+- HTML templates;
+- CSS/design system;
+- charting/visualization.
+
+The output is a backend/domain report model only.
+
+## No Persistence
+
+Do not introduce report database tables, repositories, migrations, storage schemas, or evaluation-history persistence.
+
+Persistence is a later requirement.
+
+## No Antena Integration
+
+Do not implement:
+
+- `<hotel-name>.antenapro.com`;
+- Antena opportunity mapping;
+- preview generation;
+- Antena package mapping;
+- conversion CTAs.
+
+Antena integration remains downstream after analysis maturity.
+
+## Hospitality-First Boundary
+
+The report must present hospitality analysis concepts rather than becoming a generic SEO/website audit report.
+
+Technical/SEO/structured-data/mobile information may appear only through existing governed analysis outputs. REQ-031 must not add new technical auditing logic.
+
+## Architectural Shape
+
+Prefer:
+
+```text
+Immutable report record/model
++
+small deterministic assembly service
++
+focused tests
+```
+
+Do not introduce:
+
+- generic report engines;
+- template engines;
+- reflection-based aggregation;
+- dynamic section registries;
+- workflow engines;
+- generic document frameworks;
+- scoring engines;
+- AI abstractions.
+
+Keep the report domain explicit and understandable from existing contracts.
+
+## Testing Acceptance Criteria
+
+Automated tests must demonstrate:
+
+1. A report can be assembled from one evaluation's existing analysis result, journey analysis, and recommendations.
+2. Evaluation identity is preserved.
+3. Evaluation A cannot leak data into Evaluation B.
+4. Existing coverage is preserved without recalculation.
+5. Existing limitations remain limitations.
+6. Existing deficiencies remain deficiencies.
+7. Existing recommendations are reused rather than regenerated.
+8. Missing evidence does not create positive hotel facts.
+9. No finding does not automatically create a strength.
+10. Unsupported dimensions remain unsupported.
+11. Booking truth remains unchanged.
+12. Journey-stage impacts are preserved without text parsing.
+13. Source/provenance references remain traceable.
+14. Identical input produces identical report output.
+15. No scoring/prioritization exists.
+16. No AI/network dependency exists.
+17. No persistence or UI dependency exists.
+18. REQ-027 through REQ-030 behavior remains unchanged.
+19. Complete backend tests pass.
+
+## Completion Requirements
+
+Before `PR_READY`:
+
+- inspect current `main` and referenced requirements/specifications;
+- implement only REQ-031;
+- add focused deterministic tests;
+- run complete backend Maven tests;
+- run Backend Validation against the exact final PR head;
+- update this same requirement file with implementation, tests, validation, architectural decisions, truth-boundary decisions, limitations, and self-review;
+- ensure the final requirement-file update is included in the successfully validated final PR head.
+
+Do not merge. Do not start REQ-032.
+
+## Orchestrator Intent
+
+REQ-031 is deliberately the first report-model boundary after the analysis chain becomes actionable.
+
+The report model should make the existing analysis understandable and consumable without prematurely committing the project to a UI, API, persistence model, PDF format, or public-report presentation.
+
+The next implementation decision after REQ-031 must be based on actual repository maturity and product value, not automatic REQ-number progression.
+
+**STOPPING FOR IMPLEMENTATION SESSION.**
