@@ -1,10 +1,11 @@
 # REQ-020 — Orchestrator Durable Context Foundation
 
-**STATUS:** PR_READY  
+**STATUS:** MERGED  
 **REQUIREMENT_ID:** REQ-020  
 **TYPE:** Project/Process Foundation  
 **BRANCH:** `docs/orchestrator-durable-context-foundation`  
-**PR:** Pending creation
+**PR:** #20  
+**MERGE COMMIT:** `ad0a4e9dc06e38ccb544e6b648f040930b65c64d`
 
 ## Objective
 
@@ -45,7 +46,7 @@ No Hotel Check application behavior was changed.
 - Kept the context documents concise and complementary rather than duplicating specifications.
 - Explicitly avoided describing future product work as implemented.
 - No application test suite was required for this documentation/workflow-only change.
-- CI/documentation validation will be reported from the PR once available.
+- PR #20 was reviewed and merged.
 
 ## Ownership
 
@@ -61,6 +62,4 @@ This foundation does not provide automatic context synchronization, automatic se
 
 ## Requirement Status
 
-`PR_READY`
-
-STOPPING FOR ORCHESTRATOR REVIEW.
+`MERGED`
