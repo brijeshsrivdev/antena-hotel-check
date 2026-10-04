@@ -6,7 +6,9 @@
 
 ## Purpose
 
-This document captures current product direction beyond the immediate implementation slice. It is intentionally directional, not a fixed delivery schedule.
+This document captures the current product direction beyond the immediate implementation slice. It is intentionally **directional**, not a fixed delivery schedule.
+
+Implementation order, scope, and timing may change as repository evidence, completed analysis capabilities, product learning, and architectural constraints evolve.
 
 Individual implementation requirements remain the authoritative source for committed work. This roadmap must not be treated as proof that a future requirement is already specified or implemented.
 
@@ -58,21 +60,21 @@ Improved hotel experience
 
 ## Current Position
 
-The repository has completed the deterministic analysis/report foundation through REQ-034.
+The repository has completed the core deterministic analysis/report foundation through REQ-034.
 
 Current blocker:
 
 - **REQ-032 — Evaluation Execution Orchestration Foundation — BLOCKED.**
 
-The blocker is a circular contract dependency: `HospitalityAnalysisService` requires `HospitalityAnalysisCoverageState` before creating `HospitalityAnalysisCoverage`, while `HospitalityAnalysisCoverageClassifier` currently consumes that final `HospitalityAnalysisCoverage` object.
+Session 35 reconciled a circular coverage contract: `HospitalityAnalysisService` requires a caller-supplied `HospitalityAnalysisCoverageState` before it creates final `HospitalityAnalysisCoverage`, while `HospitalityAnalysisCoverageClassifier` currently consumes that final coverage object.
 
-Session 35 established:
+The orchestrator has therefore established:
 
 - **REQ-035 — Hospitality Coverage Assessment Contract — READY.**
-- REQ-035 defines the pre-classification coverage fact boundary needed to remove the circular dependency.
-- REQ-035 is specification-only and is not implemented.
+- REQ-035 defines the missing pre-classification fact boundary.
+- REQ-035 is specification-only and is **not implemented**.
 
-The immediate sequence is therefore:
+The immediate sequence is:
 
 ```text
 REQ-035 contract
@@ -111,20 +113,13 @@ NOT_ATTEMPTED ≠ hotel deficiency
 Unsupported dimension ≠ hotel deficiency
 ```
 
-### REQ-035 — Hospitality Coverage Assessment Contract
+### REQ-035 — Coverage Assessment Contract
 
 **Status:** READY
 
-Define the smallest immutable pre-classification fact contract using the existing evaluation identity, five guest-journey stages, and nine hospitality dimensions.
+Define the smallest immutable pre-classification fact contract using existing evaluation identity, the five guest-journey stages, and the nine hospitality dimensions.
 
-The assessment represents:
-
-- intended journey stages;
-- intended dimensions;
-- assessable journey stages/dimensions;
-- limited journey stages/dimensions.
-
-Covered scope is assessable ∪ limited scope. Limited scope counts as covered but does not count as assessable evidence.
+The assessment represents intended, assessable, and limited journey/dimension scope for exactly one evaluation. Covered scope is assessable ∪ limited scope. Limited scope contributes to coverage but not to the assessable-stage threshold.
 
 The assessment does not contain the final coverage state and does not replace `HospitalityAnalysisCoverage`.
 
@@ -156,11 +151,27 @@ Recommendations
 Report
 ```
 
-The orchestrator must coordinate existing contracts rather than absorb their responsibilities or duplicate coverage calibration.
+The orchestrator must coordinate existing contracts rather than absorb their responsibilities.
 
 ### Real Hotel Evaluation
 
-After REQ-032 is implemented, run the complete analysis pipeline against controlled real publicly accessible hotels.
+After REQ-032 is implemented, run the complete analysis pipeline against controlled real publicly accessible hotels:
+
+```text
+Hotel name + city OR hotel URL
+        ↓
+Acquire
+        ↓
+Normalize
+        ↓
+Observe
+        ↓
+Analyze
+        ↓
+Find deficiencies
+        ↓
+Generate report
+```
 
 This is a major product milestone: the system should produce a trustworthy result for a real hotel without manual intervention inside the analysis layer.
 
@@ -174,37 +185,249 @@ Prioritize hospitality dimensions that materially improve the guest journey. Do 
 
 ### Report API / Rendering Boundary
 
-Expose the mature analysis/report through a stable API suitable for Antena Admin, future public reports, internal tooling, and automated hotel evaluation workflows.
+Expose the mature analysis/report through a stable API suitable for:
+
+- Antena Admin;
+- future public reports;
+- internal tooling;
+- automated hotel evaluation workflows.
 
 ### Customer-Facing Report
 
 Render the structured analysis into a useful hotel-owner experience only after the underlying report semantics are sufficiently mature.
 
-The report should distinguish verified/discovered information, observed problems, limitations, recommendations, and unavailable/unsupported areas.
+The report should distinguish:
+
+- verified/discovered information;
+- observed problems;
+- limitations;
+- recommendations;
+- unavailable/unsupported areas.
+
+Do not turn absence of evidence into negative hotel claims.
 
 ## Phase 3 — Connected Digital Performance (Paid / Plan-Gated)
 
-This capability is intentionally not part of the free/public-web-only baseline analysis. It is a potential paid-plan capability for hotels that connect their own first-party Google properties.
+This capability is intentionally **not part of the free/public-web-only baseline analysis**. It is a potential paid-plan capability for hotels that connect their own first-party Google properties.
 
-Connected first-party data should complement public-web analysis and must remain grounded in actual authorized metrics and measurement context.
+The product should preserve a useful core report without these connections. Connected data should make the report materially richer, not become a prerequisite for basic Hotel Check functionality.
+
+### Google Business Profile
+
+Potential connected metrics include:
+
+- Google Search visibility/impressions;
+- Google Maps visibility/impressions;
+- website clicks;
+- calls;
+- direction requests;
+- booking actions where available;
+- other supported profile-performance interactions.
+
+### Google Search Console
+
+Potential connected metrics include:
+
+- search queries;
+- impressions;
+- clicks;
+- click-through rate;
+- average position;
+- landing-page/search performance.
+
+### Google Analytics 4
+
+Potential connected metrics include:
+
+- users;
+- sessions;
+- landing pages;
+- device mix;
+- engagement;
+- traffic sources;
+- booking/key-event funnel signals where configured.
+
+### Connected-data principle
+
+Connected first-party data should complement public-web analysis:
+
+```text
+Public Web Analysis
+        +
+Connected First-Party Performance Data
+        ↓
+Richer Hospitality Analysis
+```
+
+These conclusions must remain grounded in actual connected metrics and configured measurement context. Do not infer conversion problems when required analytics events are not configured or available.
+
+### Pricing / entitlement boundary
+
+The eventual commercial model should allow plan-level entitlement for connected digital performance features.
+
+Possible structure:
+
+```text
+Base Hotel Check
+    → public-web analysis
+
+Paid / Connected plan
+    → Google Business Profile
+    → Search Console
+    → GA4
+    → richer performance analysis
+```
+
+Exact pricing, limits, and plan names remain undecided and require a separate product/pricing decision before implementation.
+
+### Privacy / authorization boundary
+
+Connected metrics must be accessed only through properly authorized hotel-owned properties/accounts.
+
+Never attempt to obtain private analytics data without explicit authorization.
+
+A missing connection means:
+
+```text
+behavioral/performance analysis unavailable
+```
+
+not:
+
+```text
+poor performance
+```
 
 ## Phase 4 — Production Evaluation Engine
 
+### Evaluation Orchestration
+
 REQ-032 is the first foundation for production-grade execution, but production concerns should be added only after the deterministic end-to-end path is proven.
 
-Potential later concerns include idempotency, retries, timeouts, partial failure handling, attempt tracking, observability, hotel target resolution, and evaluation history.
+Potential later concerns include:
+
+- idempotency;
+- retries;
+- timeouts;
+- partial failure handling;
+- attempt tracking;
+- observability.
+
+### Hotel Target Discovery / Resolution
+
+Support input such as:
+
+```text
+Hotel XYZ, Pune
+```
+
+or a hotel name + city and resolve it to the appropriate public digital presence.
+
+Avoid turning the product into a generic scraping/search platform.
+
+### Evaluation History
+
+Support repeated evaluations of the same hotel:
+
+```text
+Hotel
+ ├── Evaluation #1
+ ├── Evaluation #2
+ └── Evaluation #3
+```
+
+The eventual product should be able to answer whether the hotel's digital experience improved over time.
 
 ## Phase 5 — Antena Conversion Opportunity
 
-This phase comes after digital presence analysis is sufficiently mature.
+This phase comes **after digital presence analysis is sufficiently mature**.
 
-Antena is the product that can ultimately address problems identified by Hotel Check. The eventual hotel preview at `<hotel-name>.antenapro.com` must distinguish verified/discovered hotel information, normalized/inferred information, and demonstration/generated content.
+Antena is the product that can ultimately address the problems identified by Hotel Check.
+
+### Antena Opportunity Mapping
+
+Map analysis findings to capabilities Antena can provide:
+
+```text
+Analysis Finding
+       ↓
+Can Antena address this?
+       ↓
+Yes / No
+       ↓
+Relevant Antena capability
+```
+
+Examples:
+
+| Analysis finding | Potential Antena opportunity |
+|---|---|
+| Poor room presentation | Antena hotel website |
+| Weak booking CTA | Antena direct booking |
+| Missing dining presentation | Antena dining capability |
+| Weak contact/location journey | Antena hotel website |
+| Poor mobile experience | Antena responsive experience |
+| Weak information architecture | Antena hotel website |
+
+### Hotel Preview Generation
+
+Generate an Antena-hosted hotel preview:
+
+```text
+<hotel-slug>.antenapro.com
+```
+
+The generated experience must distinguish:
+
+- verified/discovered hotel information;
+- normalized/inferred information;
+- demonstration/generated content.
+
+Invented information must never silently appear as verified hotel facts.
+
+### Interactive Guest Preview
+
+The eventual preview should be genuinely explorable, potentially including:
+
+```text
+Home
+ ├── Rooms
+ │    └── Room Detail
+ ├── Amenities
+ ├── Dining
+ ├── Location
+ ├── Contact
+ └── Booking
+```
 
 The interactive preview is a core product capability, not merely a marketing screenshot.
 
 ## Phase 6 — AI-Assisted Intelligence
 
-AI should be introduced after deterministic evidence and analysis are trustworthy. AI must not replace the evidence/provenance model or become an opaque source of hotel facts.
+AI should be introduced **after deterministic evidence and analysis are trustworthy**.
+
+Potential uses:
+
+- semantic interpretation;
+- nuanced trust analysis;
+- summarization;
+- recommendation wording;
+- multilingual analysis;
+- advanced content interpretation.
+
+Preferred architecture:
+
+```text
+Evidence
+   ↓
+Deterministic facts/signals
+   ↓
+AI interpretation
+   ↓
+Traceable conclusion
+```
+
+AI must not replace the evidence/provenance model or become an opaque source of hotel facts.
 
 ## What Is Explicitly Not the Roadmap Default
 
@@ -222,7 +445,11 @@ Do not jump directly to:
 - Antena preview generation before analysis is trustworthy;
 - connected Google analytics features in the free baseline without an explicit product/pricing decision.
 
+Each of these requires an explicit bounded requirement and architectural justification.
+
 ## Planning Principle
+
+The roadmap is intentionally flexible.
 
 After each significant merged slice:
 
@@ -233,4 +460,6 @@ After each significant merged slice:
 5. Implement through the normal SDD + TDD + PR lifecycle.
 6. Update durable context after merge.
 
-Therefore requirement numbers after the current active requirement are directional placeholders, not a promise of exact ordering or implementation timing.
+Therefore **REQ numbers after the current active requirement are directional placeholders, not a promise of exact ordering or implementation timing**.
+
+The orchestrator may split, combine, reorder, defer, or replace roadmap items when repository evidence or product learning justifies it.
