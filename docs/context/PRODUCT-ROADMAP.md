@@ -66,16 +66,17 @@ Current blocker:
 
 Session 32 correctly stopped because the existing analysis service requires a caller-supplied `HospitalityAnalysisCoverageState`, while the canonical evaluation request does not provide one and REQ-024 intentionally established representation without classification/calibration rules.
 
-The orchestrator has created:
+The orchestrator has created and accepted:
 
 - **REQ-033 — Hospitality Analysis Coverage Classification Contract — READY.**
+- **REQ-034 — Hospitality Analysis Coverage Classification Implementation — READY.**
 
 The immediate sequence is therefore:
 
 ```text
 REQ-033 contract
       ↓
-coverage classification implementation
+REQ-034 implementation
       ↓
 REQ-032 orchestration
 ```
@@ -122,13 +123,13 @@ Initial calibration:
 
 These are analysis-capability classifications, not hotel-quality scores.
 
-### Coverage Classification Implementation
+### REQ-034 — Coverage Classification Implementation
 
-**Status:** NOT YET SPECIFIED
+**Status:** READY
 
-Implement the deterministic classifier defined by REQ-033 after the contract is reviewed and accepted.
+Implement the deterministic classifier governed by REQ-033 as a small domain service.
 
-The implementation must remain separate from the end-to-end orchestrator so the orchestration layer does not become the owner of product calibration.
+The implementation remains separate from the end-to-end orchestrator so the orchestration layer does not become the owner of product calibration.
 
 ### REQ-032 — Evaluation Execution Orchestration
 
