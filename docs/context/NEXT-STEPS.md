@@ -2,36 +2,29 @@
 
 ## Current Position
 
-REQ-022 — Hospitality Finding Foundation is merged into `main`.
+REQ-023 — Hospitality Analysis Limitation Foundation is merged into `main`.
 
 REQ-020 — Orchestrator Durable Context Foundation is merged and establishes the durable handoff/context mechanism.
 
 ## Immediate Next Slice
 
-REQ-023 — Hospitality Analysis Limitation Foundation.
+Inspect the updated `main`, specifications, and implemented contracts before defining the next requirement. Do not pre-commit to a feature.
 
-Purpose: establish a truthful, deterministic representation of **unable to verify** conditions without turning them into hotel deficiencies.
-
-Required distinction:
+The completed analysis foundation now reaches:
 
 ```text
-Unable to verify booking
-  ≠ Booking is broken
-
-No usable evidence
-  ≠ Hotel lacks the capability
-
-NOT_ATTEMPTED
-  ≠ Feature absent
+Acquisition
+  ↓
+Structured Evidence
+  ↓
+Hospitality Observation
+  ↓
+Qualified Analysis Signal
+  ↓
+Hospitality Finding / Unable-to-Verify Limitation
 ```
 
-The implementation must consume existing acquisition/evidence state and must not introduce new acquisition, network access, AI, scoring, severity, recommendations, coverage, reporting, persistence, or Antena integration.
-
-Do not assume a limitation merely because evidence is absent. Use only repository-supported acquisition/evidence conditions. If the existing contracts cannot distinguish a limitation from `NOT_ATTEMPTED` or simple absence of evidence, stop rather than invent semantics.
-
-## After REQ-023
-
-Do not pre-commit to a feature beyond the next repository-grounded slice. After REQ-023 is merged, the orchestrator should inspect `main`, specifications, and implemented contracts again before defining the next requirement.
+REQ-023 establishes the truthful distinction between **unable to verify** and an observed hotel deficiency. It does not implement severity, scoring, recommendations, coverage, reporting, AI, persistence, or Antena integration.
 
 ## Product Sequence
 
@@ -57,23 +50,7 @@ Antena integration opportunity
 <hotel-name>.antenapro.com
 ```
 
-The current focus is the analysis portion of this sequence. The Antena-hosted hotel experience is a later downstream capability and must not be implemented prematurely.
-
-## What Must Not Be Implemented Prematurely
-
-Do not jump directly to:
-
-- a complete hotel scoring engine
-- generic AI analysis
-- a full hospitality ontology
-- recommendation generation
-- report generation
-- interactive Antena-hosted hotel experience
-- broad crawling infrastructure
-- generic SEO auditing as the product center
-- downstream Antena integration before analysis is mature
-
-Each must be introduced only through an explicit, bounded requirement.
+Current focus remains the analysis portion. Antena-hosted integration is downstream and must not be implemented prematurely.
 
 ## Standard Continuation Lifecycle
 
@@ -98,3 +75,7 @@ Merge
     ↓
 Update durable context
 ```
+
+## Guardrails
+
+Do not jump directly to a complete scoring engine, generic AI analysis, full hospitality ontology, recommendations, report generation, interactive Antena-hosted experience, broad crawling infrastructure, or generic SEO auditing. Each requires an explicit bounded requirement.
