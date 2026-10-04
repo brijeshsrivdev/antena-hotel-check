@@ -53,7 +53,7 @@ class HospitalityAnalysisServiceTest {
                 evidence.evaluationId(), List.of(evidence), HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED);
 
         assertEquals(evidence.evaluationId(), result.evaluationId());
-        assertEquals(6, result.findings().size());
+        assertEquals(7, result.findings().size());
         assertTrue(result.findings().stream().anyMatch(f -> f.category() == HospitalityObservationCategory.HOTEL_IDENTITY));
         assertTrue(result.findings().stream().anyMatch(f -> f.category() == HospitalityObservationCategory.ROOMS));
         assertTrue(result.findings().stream().anyMatch(f -> f.category() == HospitalityObservationCategory.AMENITIES));
@@ -68,9 +68,10 @@ class HospitalityAnalysisServiceTest {
 
     @Test
     void multipleEvidenceItemsRemainTraceableAndDistinct() {
-        StructuredEvidence homepage = evidence(AcquisitionOutcome.SUCCESS,
+        Evaluation evaluation = evaluation();
+        StructuredEvidence homepage = evidence(evaluation, AcquisitionOutcome.SUCCESS,
                 "<h1>Grand Hotel</h1><a href=\"/rooms\">Rooms</a>", null);
-        StructuredEvidence booking = evidence(AcquisitionOutcome.SUCCESS,
+        StructuredEvidence booking = evidence(evaluation, AcquisitionOutcome.SUCCESS,
                 "<a href=\"/booking\">Reservation</a>", null);
 
         HospitalityAnalysisResult result = service.analyze(
@@ -141,9 +142,10 @@ class HospitalityAnalysisServiceTest {
 
     @Test
     void conflictingEvidenceIsRetainedRatherThanOverwritten() {
-        StructuredEvidence first = evidence(AcquisitionOutcome.SUCCESS,
+        Evaluation evaluation = evaluation();
+        StructuredEvidence first = evidence(evaluation, AcquisitionOutcome.SUCCESS,
                 "<h1>Grand Hotel</h1><a href=\"/rooms\">Rooms</a>", null);
-        StructuredEvidence second = evidence(AcquisitionOutcome.SUCCESS,
+        StructuredEvidence second = evidence(evaluation, AcquisitionOutcome.SUCCESS,
                 "<h1>Grand Hotel</h1><a href=\"/suites\">Suites</a>", null);
 
         HospitalityAnalysisResult result = service.analyze(
@@ -210,6 +212,10 @@ class HospitalityAnalysisServiceTest {
     }
 
     private StructuredEvidence evidence(AcquisitionOutcome outcome, String body, String limitation) {
+        return evidence(evaluation(), outcome, body, limitation);
+    }
+
+    private StructuredEvidence evidence(Evaluation evaluation, AcquisitionOutcome outcome, String body, String limitation) {
         Integer statusCode = outcome == AcquisitionOutcome.SUCCESS ? 200 : null;
         AcquisitionResult acquisition = new AcquisitionResult(
                 outcome, WEBSITE, WEBSITE + "/", statusCode, body == null ? null : "text/html",
@@ -217,9 +223,6 @@ class HospitalityAnalysisServiceTest {
                 outcome == AcquisitionOutcome.TIMEOUT || outcome == AcquisitionOutcome.NETWORK_ERROR
                         ? AcquisitionMethod.UNAVAILABLE : AcquisitionMethod.HTTP_PUBLIC,
                 body, Map.of(), List.of(), limitation);
-        CanonicalEvaluationRequest request = ((ValidationResult.Accepted)
-                inputValidator.validate(new HotelEvaluationInput(null, null, WEBSITE))).request();
-        Evaluation evaluation = Evaluation.create(request, CLOCK);
         EvaluationAttempt attempt = evaluation.currentAttempt();
         CapabilityOutcome capabilityOutcome = CapabilityOutcome.record(
                 "public-web-acquisition",
@@ -230,5 +233,11 @@ class HospitalityAnalysisServiceTest {
                 evaluation.evaluationId(), attempt.attemptId(), attempt.attemptNumber(), source, EvidenceProvenance.DISCOVERED,
                 outcome, acquisition.requestedUrl(), acquisition.finalUrl(), acquisition.retrievalTimestamp(),
                 acquisition.acquisitionMethod(), acquisition.statusCode(), acquisition.contentType(), acquisition.body(), acquisition.errorMessage());
+    }
+
+    private Evaluation evaluation() {
+        CanonicalEvaluationRequest request = ((ValidationResult.Accepted)
+                inputValidator.validate(new HotelEvaluationInput(null, null, WEBSITE))).request();
+        return Evaluation.create(request, CLOCK);
     }
 }
