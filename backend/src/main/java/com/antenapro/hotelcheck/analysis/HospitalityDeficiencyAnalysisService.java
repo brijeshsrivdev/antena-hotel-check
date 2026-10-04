@@ -5,7 +5,6 @@ import com.antenapro.hotelcheck.evidence.StructuredEvidence;
 import com.antenapro.hotelcheck.hospitality.HospitalityObservation;
 import com.antenapro.hotelcheck.hospitality.HospitalityObservationCategory;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -129,7 +128,8 @@ public final class HospitalityDeficiencyAnalysisService {
                 HospitalityAnalysisSignal right = identitySignals.get(j);
                 if (!left.originatingObservation().evaluationId().equals(right.originatingObservation().evaluationId())
                         || sameSource(left, right)
-                        || sameNormalizedValue(left.originatingObservation().observedValue(), right.originatingObservation().observedValue())) {
+                        || !materiallyConflictingIdentity(left.originatingObservation().observedValue(),
+                        right.originatingObservation().observedValue())) {
                     continue;
                 }
 
@@ -195,8 +195,12 @@ public final class HospitalityDeficiencyAnalysisService {
                 .equals(right.originatingObservation().sourceReference());
     }
 
-    private static boolean sameNormalizedValue(String left, String right) {
-        return normalize(left).equals(normalize(right));
+    private static boolean materiallyConflictingIdentity(String left, String right) {
+        String normalizedLeft = normalize(left);
+        String normalizedRight = normalize(right);
+        return !normalizedLeft.equals(normalizedRight)
+                && !normalizedLeft.contains(normalizedRight)
+                && !normalizedRight.contains(normalizedLeft);
     }
 
     private static String normalize(String value) {
