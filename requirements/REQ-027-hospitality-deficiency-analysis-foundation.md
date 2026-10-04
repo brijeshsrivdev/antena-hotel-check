@@ -201,13 +201,13 @@ No keyword-based booking detection, booking-success inference, new observation c
 
 ### Final CI / head
 
-**PASS — post-correction validation required on final head.**
+**PENDING — post-correction validation.**
 
 Pre-correction PR head: `8dde63e0465c46b448d13473a553b31baae03ef8`.
 
-Corrected commit: `b9c0a1db98ad7971c78ffccde11bd786ca0ee7c3`.
+Corrected implementation commit: `50418aaba93acc3dd7c7a876b8bb4cb9ed136ca9`.
 
-The final PR head must be updated here after GitHub Actions Backend Validation passes on the corrected commit.
+The final PR head must be recorded here after GitHub Actions Backend Validation passes on the corrected branch head.
 
 ### Governance
 
