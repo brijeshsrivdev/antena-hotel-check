@@ -101,3 +101,15 @@ This is a compact record of durable decisions that a future orchestrator should 
 **Rationale:** The product must distinguish an observed problem from inability to verify. This protects the analysis from false negative hotel claims while still allowing the analysis to become useful to owners by identifying genuinely observable guest-journey problems.
 
 **Source:** SPEC-006 analysis semantics and REQ-027.
+
+## Decision 011 — Coverage classification must be governed separately from coverage representation
+
+**Status:** Active
+
+**Decision:** REQ-024 represents an explicitly governed coverage state but does not classify it. An end-to-end orchestrator must not invent a default coverage state or derive one from page counts, finding counts, arbitrary percentages, or other ungoverned heuristics.
+
+A dedicated coverage-classification contract must define and calibrate the semantics before orchestration can supply `HospitalityAnalysisCoverageState` to deterministic analysis.
+
+**Rationale:** Session 32 exposed a real contract gap: `HospitalityAnalysisService` requires a coverage state, while `CanonicalEvaluationRequest` does not provide one and REQ-024 intentionally leaves classification unspecified. Hiding this decision inside REQ-032 would create an accidental product rule at the wrong architectural boundary.
+
+**Source:** REQ-024 and Session 32 repository reconciliation. REQ-033 now defines the first governed classification contract.
