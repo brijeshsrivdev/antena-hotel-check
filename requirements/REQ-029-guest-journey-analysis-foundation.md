@@ -445,9 +445,10 @@ Focused REQ-029 coverage was added in `GuestJourneyAnalysisServiceTest`, includi
 
 ### Validation
 
-- GitHub Actions Backend Validation run `37208928038` passed against the exact PR head `76cdcc1fa0295f8396f3559620994ce92197e69a`.
-- The workflow completed successfully, including the `Java 21 / Maven tests` job and its `Run backend Maven tests` step.
-- The validated PR head already contains the REQ-029 requirement file update that records the earlier validation discrepancy; the requirement file is therefore included in this successful validation.
+- Backend Validation run `37208791707` passed for the earlier implementation head `0de2dd92d889959f167d0cc149cb7caa5cfeb121`.
+- Backend Validation run `37208928038` then passed against PR head `76cdcc1fa0295f8396f3559620994ce92197e69a`, which included the first correction to this requirement's validation record.
+- Backend Validation run `37209427523` passed against the exact subsequent PR head `749b0f0597c43f2b4fc8f5284c7827aade57f76c`, which included the final-head validation record update in this section.
+- The successful run completed the `Java 21 / Maven tests` job and its `Run backend Maven tests` step.
 - The workflow executes the complete backend Maven test suite (`mvn --batch-mode --no-transfer-progress test`), including the focused REQ-029 test class.
 - The PR diff was inspected for unrelated application changes; the change set is confined to the REQ-029 journey/domain/test scope.
 
@@ -474,12 +475,12 @@ Focused REQ-029 coverage was added in `GuestJourneyAnalysisServiceTest`, includi
 
 ### Final-head CI result
 
-- Final PR head at validation: `76cdcc1fa0295f8396f3559620994ce92197e69a`.
-- Backend Validation run: `37208928038` (`Backend Validation`, run #264).
+- Exact PR head validated by Backend Validation run `37209427523`: `749b0f0597c43f2b4fc8f5284c7827aade57f76c`.
+- Backend Validation run: `37209427523` (`Backend Validation`, run #265).
 - Result: `success`.
 - `Java 21 / Maven tests`: `success`.
 - `Run backend Maven tests`: `success`.
-- The requirement file update is included in the validated PR head.
+- The requirement file update containing this validation record is included in that validated PR head.
 
 ## Required Validation
 
@@ -491,7 +492,7 @@ Before marking `PR_READY`:
 4. Verify no unrelated application changes were introduced.
 5. Verify the requirement file contains the final validation result.
 
-All five checks are satisfied for the current PR-ready head. No implementation changes were made in response to the validation issue; the correction was limited to recording the exact-head successful CI validation.
+All five checks are satisfied for the recorded PR-ready validation head `749b0f0597c43f2b4fc8f5284c7827aade57f76c`. No implementation changes were made in response to the validation issue; the corrections were limited to recording exact-head successful CI validation.
 
 ## Expected Session Outcome
 
