@@ -41,15 +41,17 @@ class HospitalityAnalysisResultTest {
 
     @Test
     void aggregatesFindingsLimitationsAndCoverageWithoutDuplicatingDomainObjects() {
-        StructuredEvidence evidence = evidence(AcquisitionOutcome.SUCCESS, "<a href=\"/book\">Book Now</a>", null);
-        HospitalityFinding finding = finding(evidence);
-        HospitalityAnalysisLimitation limitation = limitation(evidence);
-        HospitalityAnalysisCoverage coverage = coverage(evidence.evaluationId(), finding, limitation);
+        Evaluation evaluation = evaluation();
+        StructuredEvidence findingEvidence = evidence(evaluation, AcquisitionOutcome.SUCCESS, "<a href=\"/book\">Book Now</a>", null);
+        StructuredEvidence limitationEvidence = evidence(evaluation, AcquisitionOutcome.TIMEOUT, null, "booking source timed out");
+        HospitalityFinding finding = finding(findingEvidence);
+        HospitalityAnalysisLimitation limitation = limitation(limitationEvidence);
+        HospitalityAnalysisCoverage coverage = coverage(evaluation.evaluationId(), finding, limitation);
 
         HospitalityAnalysisResult result = new HospitalityAnalysisResult(
-                evidence.evaluationId(), Set.of(finding), Set.of(limitation), coverage);
+                evaluation.evaluationId(), Set.of(finding), Set.of(limitation), coverage);
 
-        assertEquals(evidence.evaluationId(), result.evaluationId());
+        assertEquals(evaluation.evaluationId(), result.evaluationId());
         assertSame(finding, result.findings().iterator().next());
         assertSame(limitation, result.limitations().iterator().next());
         assertSame(coverage, result.coverage());
@@ -129,7 +131,7 @@ class HospitalityAnalysisResultTest {
                 evidence.evaluationId(), findings, limitations, coverage);
 
         findings.clear();
-        limitations.add(limitation(evidence));
+        limitations.add(limitation(evidence(AcquisitionOutcome.TIMEOUT, null, "booking source timed out")));
 
         assertEquals(Set.of(finding), result.findings());
         assertTrue(result.limitations().isEmpty());
@@ -139,18 +141,26 @@ class HospitalityAnalysisResultTest {
 
     @Test
     void sameInputsProduceEquivalentResults() {
-        StructuredEvidence evidence = evidence(AcquisitionOutcome.SUCCESS, "<h1>Hotel</h1>", null);
-        HospitalityFinding finding = finding(evidence);
-        HospitalityAnalysisLimitation limitation = limitation(evidence);
-        HospitalityAnalysisCoverage coverage = coverage(evidence.evaluationId(), finding, limitation);
+        Evaluation evaluation = evaluation();
+        StructuredEvidence findingEvidence = evidence(evaluation, AcquisitionOutcome.SUCCESS, "<h1>Hotel</h1>", null);
+        StructuredEvidence limitationEvidence = evidence(evaluation, AcquisitionOutcome.TIMEOUT, null, "booking source timed out");
+        HospitalityFinding finding = finding(findingEvidence);
+        HospitalityAnalysisLimitation limitation = limitation(limitationEvidence);
+        HospitalityAnalysisCoverage coverage = coverage(evaluation.evaluationId(), finding, limitation);
 
         HospitalityAnalysisResult first = new HospitalityAnalysisResult(
-                evidence.evaluationId(), Set.of(finding), Set.of(limitation), coverage);
+                evaluation.evaluationId(), Set.of(finding), Set.of(limitation), coverage);
         HospitalityAnalysisResult second = new HospitalityAnalysisResult(
-                evidence.evaluationId(), Set.of(finding), Set.of(limitation), coverage);
+                evaluation.evaluationId(), Set.of(finding), Set.of(limitation), coverage);
 
         assertEquals(first, second);
         assertEquals(first.hashCode(), second.hashCode());
+    }
+
+    private Evaluation evaluation() {
+        CanonicalEvaluationRequest request = ((ValidationResult.Accepted) inputValidator
+                .validate(new HotelEvaluationInput(null, null, WEBSITE))).request();
+        return Evaluation.create(request, CLOCK);
     }
 
     private HospitalityFinding finding(StructuredEvidence evidence) {
@@ -198,6 +208,10 @@ class HospitalityAnalysisResultTest {
     }
 
     private StructuredEvidence evidence(AcquisitionOutcome outcome, String body, String limitation) {
+        return evidence(evaluation(), outcome, body, limitation);
+    }
+
+    private StructuredEvidence evidence(Evaluation evaluation, AcquisitionOutcome outcome, String body, String limitation) {
         Integer statusCode;
         if (outcome == AcquisitionOutcome.HTTP_ERROR) {
             statusCode = 503;
@@ -220,9 +234,6 @@ class HospitalityAnalysisResultTest {
                 Map.of(),
                 List.of(),
                 limitation);
-        CanonicalEvaluationRequest request = ((ValidationResult.Accepted) inputValidator
-                .validate(new HotelEvaluationInput(null, null, WEBSITE))).request();
-        Evaluation evaluation = Evaluation.create(request, CLOCK);
         EvaluationAttempt attempt = evaluation.currentAttempt();
         CapabilityOutcome capabilityOutcome = CapabilityOutcome.record(
                 "public-web-acquisition",
