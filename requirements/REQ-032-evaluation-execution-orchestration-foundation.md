@@ -1,56 +1,40 @@
 # REQ-032 — Evaluation Execution Orchestration Foundation
 
-STATUS: BLOCKED
+STATUS: READY
 REQUIREMENT_ID: REQ-032
 TYPE: Implementation
 BRANCH: `feature/evaluation-execution-orchestration-foundation`
 
-## Blocker
+## Dependency Resolution
 
-REQ-032 is intentionally blocked after Session 32 repository reconciliation identified a missing governed source for `HospitalityAnalysisCoverageState`.
+REQ-032 was previously blocked after Session 32 repository reconciliation identified a missing governed source for `HospitalityAnalysisCoverageState`.
 
-The existing `HospitalityAnalysisService.analyze(...)` contract requires a caller-supplied `HospitalityAnalysisCoverageState`. REQ-024 explicitly established coverage representation only and states that the coverage state must be an already-governed classification; it does not calculate or classify the state. The current `CanonicalEvaluationRequest` contains no coverage classification input.
+The dependency is now resolved:
 
-Therefore REQ-032 cannot safely invent a default such as `PARTIALLY_ASSESSED` or derive a state from page/finding counts or arbitrary thresholds.
+- REQ-033 — Hospitality Analysis Coverage Classification Contract — accepted.
+- REQ-034 — Hospitality Analysis Coverage Classification Implementation — IMPLEMENTED / MERGED as PR #32.
+- Current `main` includes the governed `HospitalityAnalysisCoverageClassifier`.
 
-### Required dependency
+The classifier provides the required deterministic caller-supplied coverage state without moving product calibration into the orchestration layer.
 
-`REQ-033 — Hospitality Analysis Coverage Classification Contract` now defines the product calibration required to create a governed classifier.
+REQ-032 is therefore restored to `READY` after reconciliation against current `main`.
 
-Implementation order:
+## Reconciliation Record
 
-```text
-REQ-033 — Coverage Classification Contract
-        ↓
-Coverage Classification Implementation
-        ↓
-REQ-032 — Evaluation Execution Orchestration
-```
+Current `main` after REQ-034 merge:
 
-REQ-032 must remain `BLOCKED` until the governed coverage classifier is implemented and merged.
+`b4a9e63b541c215fb5138cd66200a0ae5ca96d99`
 
-## Session 32 Reconciliation Record
+Confirmed merged:
 
-The implementation session inspected current `main` at:
+- REQ-027 — Hospitality Deficiency Analysis Foundation;
+- REQ-028 — Hospitality Analysis Completeness Foundation;
+- REQ-029 — Guest Journey Analysis Foundation;
+- REQ-030 — Hospitality Recommendation Foundation;
+- REQ-031 — Hospitality Analysis Report Foundation;
+- REQ-034 — Hospitality Analysis Coverage Classification Implementation.
 
-`9425d4209069c51c8441b5da78f67854dd8bf53b`
-
-Confirmed on `main`:
-
-- REQ-027 merged;
-- REQ-028 merged;
-- REQ-029 merged;
-- REQ-030 merged;
-- REQ-031 merged;
-- REQ-032 exists and was `READY` before this reconciliation;
-- acquisition integration exists;
-- evidence normalization exists;
-- deterministic hospitality analysis exists;
-- guest-journey analysis exists;
-- recommendation generation exists;
-- structured report assembly exists.
-
-The analysis service currently requires:
+The existing analysis service still requires:
 
 ```text
 analyze(
@@ -60,13 +44,11 @@ analyze(
 )
 ```
 
-The coverage state is not derived by that service. The existing coverage model explicitly treats classification as governed caller input and does not define thresholds. The canonical evaluation request also does not contain a coverage state.
+The governed coverage classifier now supplies `coverageState` from the existing `HospitalityAnalysisCoverage` representation using the REQ-033 calibration. REQ-032 must invoke that classifier rather than inventing or duplicating classification rules.
 
-The session correctly stopped without creating a branch, modifying application code, or creating a PR.
+## Objective
 
-## Original Objective
-
-Once the coverage-classification dependency is available, REQ-032 will introduce the smallest explicit end-to-end orchestration boundary for executing one canonical hotel evaluation through the existing Antena Hotel Check analysis pipeline.
+Introduce the smallest explicit end-to-end orchestration boundary for executing one canonical hotel evaluation through the existing Antena Hotel Check analysis pipeline.
 
 The product objective remains:
 
@@ -108,15 +90,15 @@ Structured Hospitality Analysis Report
 
 The orchestrator must remain a thin coordinator and must not become the source of coverage semantics.
 
-## Scope After Blocker Resolution
+## Scope
 
-When unblocked, implement only:
+Implement only:
 
 1. one canonical evaluation request boundary;
 2. existing evaluation/attempt lifecycle usage;
 3. existing acquisition integration exactly once;
 4. existing evidence normalization;
-5. governed coverage classification;
+5. governed coverage classification using `HospitalityAnalysisCoverageClassifier`;
 6. existing deterministic hospitality analysis;
 7. existing guest-journey analysis;
 8. existing recommendation generation;
@@ -148,8 +130,10 @@ Do not add:
 
 ## Governance
 
-`STATUS: READY` may be restored only after the coverage classification implementation is merged and the orchestrator requirement has been reconciled against the resulting `main`.
+The coverage-classification dependency has been resolved by REQ-034. REQ-032 is now `READY` for implementation.
 
-Until then:
+The implementation session must still reconcile the actual current `main` before coding and must stop if another material contract gap is discovered.
 
-**STOPPING — BLOCKED BY GOVERNED COVERAGE CLASSIFICATION DEPENDENCY.**
+## Final-Head Validation Rule
+
+The requirement implementation record must reference validation performed against the exact final PR head. If the requirement file changes after a successful CI run, Backend Validation must be rerun against the resulting final head.
