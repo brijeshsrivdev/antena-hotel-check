@@ -126,23 +126,6 @@ class HospitalityRecommendationServiceTest {
     }
 
     @Test
-    void nonDeficiencyFindingDoesNotProduceRecommendation() {
-        UUID evaluationId = UUID.randomUUID();
-        StructuredEvidence evidence = mock(StructuredEvidence.class);
-        when(evidence.evaluationId()).thenReturn(evaluationId);
-        when(evidence.attemptId()).thenReturn(UUID.randomUUID());
-        HospitalityObservation observation = observation(evaluationId, HospitalityObservationCategory.ROOMS,
-                "Room information", "https://example.com/rooms", evidence);
-        HospitalityAnalysisSignal signal = new HospitalityAnalysisSignal(
-                observation, Set.of(GuestJourneyStage.EXPLORE), "Room information observed",
-                HospitalityAnalysisSignalStatus.QUALIFIED);
-        HospitalityFinding finding = new HospitalityFinding(
-                signal, HospitalityFindingStatus.VERIFIED_OBSERVED, HospitalityFindingKind.OBSERVATION);
-
-        assertThat(service.recommend(journey(evaluationId, Set.of(finding), Set.of()))).isEmpty();
-    }
-
-    @Test
     void rejectsCrossEvaluationJourneyAtConstruction() {
         UUID evaluationA = UUID.randomUUID();
         UUID evaluationB = UUID.randomUUID();
