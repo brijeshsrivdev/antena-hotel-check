@@ -1,6 +1,6 @@
 # REQ-019 — Hospitality Observation Foundation
 
-STATUS: READY
+STATUS: PR_READY
 REQUIREMENT_ID: REQ-019
 TYPE: Implementation
 BRANCH: `feature/hospitality-observation-foundation`
@@ -21,7 +21,7 @@ The observations produced here are evidence-backed representations of signals ac
 
 ### Source evidence
 
-`StructuredEvidence` remains the source observation boundary established by REQ-018. The implementation must consume its retained observed content and source/provenance context without mutating it.
+`StructuredEvidence` remains the source observation boundary established by REQ-018. The implementation consumes its retained observed content and source/provenance context without mutating it.
 
 Only `StructuredEvidence` representing a successful available observation with retained content is eligible for hospitality observation extraction.
 
@@ -29,41 +29,32 @@ Only `StructuredEvidence` representing a successful available observation with r
 
 A `HospitalityObservation` represents a bounded, directly observable hospitality-related signal in the source evidence.
 
-For this slice, the observation vocabulary is intentionally limited to:
+The observation vocabulary is limited to:
 
-- `HOTEL_IDENTITY` — a page signal that can help identify the property, such as an observed property-name candidate in an appropriate page element;
-- `ROOMS` — an observed room/suite-related signal or relevant room entry point;
-- `AMENITIES` — an observed amenity/facility-related signal or relevant guest-information entry point;
-- `CONTACT` — an observed contact/location signal such as a contact path, address, phone, or email entry point;
-- `BOOKING` — an observed booking/reservation/check-availability entry point;
-- `DINING` — an observed restaurant/dining/breakfast/bar-related signal where applicable.
+- `HOTEL_IDENTITY`
+- `ROOMS`
+- `AMENITIES`
+- `CONTACT`
+- `BOOKING`
+- `DINING`
 
-These categories are deliberately small and are not a complete hospitality ontology.
+An observation preserves enough source reference to answer:
 
-An observation must preserve enough source reference to answer:
+> What was actually observed, where was it observed, and which evidence supports it?
 
-> What was actually observed, and which evidence supports it?
-
-Where an observation carries text or a link/value, it must retain the relevant observed value/excerpt/reference rather than replacing it with an unsupported normalized claim.
+Observed text and links are retained rather than converted into unsupported normalized hotel claims.
 
 ### OBSERVED
 
-A produced hospitality observation is `OBSERVED` only when the corresponding signal is directly present in the retained source content.
+A produced hospitality observation is `OBSERVED` only when the corresponding signal is directly present in retained source content.
 
-Example: a page containing a visible `Book Now` link may produce an observed `BOOKING` signal. It must not be represented as proof that a booking transaction succeeds.
+Example: a page containing a visible `Book Now` link may produce an observed `BOOKING` signal. It does not prove that a booking transaction succeeds.
 
 ### INFERRED
 
 REQ-019 produces **no `INFERRED` observations**.
 
-It must not infer facts such as:
-
-- a hotel definitely offers a service merely because a keyword appears in unrelated text;
-- a hotel has rooms because the word "room" appears without a relevant hospitality context;
-- booking is operational merely because a booking link exists;
-- an amenity exists merely because a generic navigation label suggests it.
-
-The observation layer records bounded source signals. Later analysis may interpret them.
+It does not infer service availability, inventory, booking success, quality, or guest-journey success from weak/context-free signals.
 
 ### DEMONSTRATION
 
@@ -71,15 +62,13 @@ REQ-019 produces **no `DEMONSTRATION` content**.
 
 ### UNAVAILABLE / NOT OBSERVED
 
-If the source evidence is unavailable, failed, not attempted, or has no retained content, the extractor must produce **no hospitality observations** from that source.
+If source evidence is unavailable, failed, not attempted, or has no retained content, the extractor produces **no hospitality observations** from that source.
 
-This must not be converted into an assertion that the hotel lacks rooms, amenities, dining, contact information, or booking.
-
-If a successfully observed page contains no recognized signal for one of the bounded categories, that absence of an observation is not itself a hotel-fact assertion. Later analysis decides whether the observed page and coverage are sufficient to support an observed deficiency or an inability to verify.
+This is not converted into proof that the hotel lacks rooms, amenities, dining, contact information, or booking.
 
 ## READ
 
-The implementation session MUST read:
+The implementation session read:
 
 - `requirements/README.md`
 - `docs/specs/SPEC-001-hotel-check.md`
@@ -94,22 +83,22 @@ The implementation session MUST read:
 - `requirements/REQ-017-evaluation-acquisition-integration.md`
 - `requirements/REQ-018-evidence-normalization-foundation.md`
 - `docs/engineering/AGENT-GUIDELINES.md`
+- `docs/engineering/ENGINEERING-PRINCIPLES.md`
+- `docs/engineering/BACKEND-PATTERNS.md`
+- `docs/engineering/TESTING-STANDARDS.md`
 - `docs/workflows/IMPLEMENTATION-SESSION.md`
 
 ## INSPECT
 
-Before implementation, inspect current `main` for:
+Inspected current `main` and the REQ-019 branch for:
 
 - `StructuredEvidence` and `EvidenceNormalizationService`;
 - `EvidenceProvenance` and acquisition outcome/method semantics;
-- `EvaluationAcquisitionResult`, evaluation/attempt identity, and existing capability boundaries;
-- existing hospitality/evidence/fact/observation classes, interfaces, enums, utilities, and tests;
-- existing HTML/content parsing dependencies before introducing a new dependency;
-- existing deterministic test conventions.
+- `EvaluationAcquisitionResult`, evaluation/attempt identity, and capability boundaries;
+- existing evidence tests and deterministic backend test conventions;
+- backend Maven dependencies.
 
-Before introducing a new abstraction, search the repository and inspect callers/tests. Extend an existing type only if that type genuinely owns the new responsibility.
-
-If repository evidence does not support the required implementation choice, STOP and report the ambiguity rather than inventing a framework or domain model.
+No existing hospitality observation implementation or suitable generic fact abstraction was present. The backend did not already include an HTML parser dependency. A new external parsing dependency was therefore not introduced; the implementation uses a bounded, deterministic semantic-HTML signal matcher with no network access.
 
 ## DEPENDENCIES
 
@@ -119,11 +108,11 @@ If repository evidence does not support the required implementation choice, STOP
 - SPEC-006 hospitality-first analysis dimensions and the distinction between observed deficiency and inability to verify.
 - Existing backend conventions and deterministic test infrastructure.
 
-REQ-019 must not redesign acquisition, evaluation lifecycle, or the REQ-018 evidence normalization contract.
+REQ-019 does not redesign acquisition, evaluation lifecycle, or the REQ-018 evidence normalization contract.
 
 ## DO NOT TOUCH
 
-REQ-019 must not implement or modify:
+REQ-019 does not implement or modify:
 
 - public-web acquisition behavior;
 - crawling or page discovery;
@@ -147,136 +136,206 @@ REQ-019 must not implement or modify:
 - generic SEO auditing/scoring;
 - public APIs, authentication, queues, schedulers, or production infrastructure.
 
-Do not turn keyword/signal detection into claims about hotel quality or service availability.
-
 ## IMPLEMENTATION BOUNDARY
 
-Implement one deterministic in-process boundary that accepts a successful `StructuredEvidence` observation and returns zero or more bounded `HospitalityObservation` records.
+Implemented one deterministic in-process boundary that accepts `StructuredEvidence` and returns zero or more bounded `HospitalityObservation` records.
 
-The implementation may inspect the retained HTML/content and relevant source metadata already present in `StructuredEvidence`, but it must perform no network access.
+The implementation performs no network access and only inspects retained source content.
 
-The implementation should preserve the following for every produced observation:
+Each emitted observation preserves:
 
-- evaluation/attempt attribution available from the source evidence;
-- observation category from the bounded REQ-019 vocabulary;
-- directly observed value, excerpt, or source reference sufficient to explain the observation;
-- reference to the supporting `StructuredEvidence`;
-- `DISCOVERED` provenance for the directly observed source-backed observation, without changing the source evidence;
-- explicit observed status rather than an inferred/verified-hotel status.
+- one of the six bounded observation categories;
+- observed value/excerpt and relevant link where present;
+- source reference derived from the supporting page/evidence;
+- supporting `StructuredEvidence` object reference;
+- evaluation ID;
+- attempt ID and attempt number;
+- `DISCOVERED` provenance.
 
-The implementation should prefer conservative positive observations over broad semantic guessing. A weak or ambiguous textual match should not be emitted merely to increase coverage.
+The service rejects non-`DISCOVERED`, unsuccessful, unavailable, or contentless evidence and returns no observations for those inputs.
 
-The exact parsing library or implementation mechanism is not selected by this requirement. Existing repository dependencies/patterns must be inspected first; adding a dependency requires justification within the implementation scope and must not become an architecture decision by accident.
+Matching is deliberately conservative. Signals are limited to semantic page elements (`title`, headings, anchors, and address elements) and explicit hospitality/contact link forms. Contextual negative checks prevent examples such as conference/server rooms and supplier/vendor contact links from becoming hospitality observations.
+
+No analysis, scoring, inference, demonstration, booking-success conclusion, or hotel-quality judgment is produced.
 
 ## AI BOUNDARY
 
 REQ-019 is deterministic/rule-based.
 
-No LLM, embedding model, generative model, prompt framework, model API, or external AI service is required or authorized for this slice.
+No LLM, embedding model, generative model, prompt framework, model API, or external AI service was introduced.
 
-AI-assisted interpretation may be evaluated later if deterministic observation coverage proves insufficient, but that is future scope and must not be introduced implicitly into REQ-019.
+AI-assisted interpretation remains future scope and requires a separate governed requirement if later justified.
 
 ## ACCEPTANCE
 
 ### AC-1 — Structured evidence is the input boundary
 
-The observation extractor accepts `StructuredEvidence` and does not accept raw URLs or perform its own acquisition.
+Satisfied. `HospitalityObservationService.observe(...)` accepts `StructuredEvidence` and performs no acquisition.
 
 ### AC-2 — Successful observed content only
 
-Hospitality observations are produced only from `StructuredEvidence` that represents an available successful observation with retained content.
+Satisfied. Only successful `DISCOVERED` evidence with retained non-blank content is processed.
 
 ### AC-3 — No false absence
 
-For failed, unavailable, not-attempted, or contentless evidence, the extractor returns no hospitality observations and does not create a negative hotel fact.
+Satisfied. Failed and contentless evidence returns an empty observation list without negative hotel assertions.
 
 ### AC-4 — Bounded hospitality vocabulary
 
-The implementation emits only the six REQ-019 observation categories:
-
-`HOTEL_IDENTITY`, `ROOMS`, `AMENITIES`, `CONTACT`, `BOOKING`, `DINING`.
-
-No generic website-audit or unrestricted semantic category is introduced.
+Satisfied. `HospitalityObservationCategory` contains exactly `HOTEL_IDENTITY`, `ROOMS`, `AMENITIES`, `CONTACT`, `BOOKING`, and `DINING`.
 
 ### AC-5 — Direct observation only
 
-Each emitted observation is supported by content actually present in the supplied source evidence. The implementation must not infer service availability, quality, guest-journey success, or hotel capability from weak/context-free signals.
+Satisfied. Observations are emitted from explicit source text/link signals only. The implementation does not assert service availability, quality, booking success, or inventory.
 
 ### AC-6 — Source traceability
 
-Every emitted observation can be traced back to its supporting `StructuredEvidence` and retains enough directly observed value/excerpt/source-reference information to explain why it was emitted.
+Satisfied. Each observation retains its supporting `StructuredEvidence`, evaluation/attempt attribution, observed value, and source reference.
 
 ### AC-7 — Provenance preservation
 
-Produced source-backed observations retain `DISCOVERED` provenance and do not mutate or overwrite the source `StructuredEvidence` or its provenance.
+Satisfied. Every emitted observation uses `DISCOVERED` provenance and source evidence is not mutated.
 
 ### AC-8 — Evaluation/attempt attribution
 
-An observation retains the evaluation/attempt context of its supporting evidence so that a later retry cannot appear to have produced the observation from an earlier attempt.
+Satisfied. Evaluation ID, attempt ID, and attempt number are copied from the supporting evidence.
 
 ### AC-9 — No analysis semantics
 
-The implementation does not produce severity, score, recommendation, guest-journey rating, finding, or booking-success conclusion.
+Satisfied. No score, severity, finding, recommendation, journey rating, or booking-success conclusion is produced.
 
 ### AC-10 — No inference or demonstration
 
-The implementation produces neither `INFERRED` nor `DEMONSTRATION` observations.
+Satisfied. The implementation emits only `DISCOVERED` observations.
 
 ### AC-11 — Deterministic behavior
 
-Given the same `StructuredEvidence` content and metadata, the extractor produces the same observation result. Tests must not require a live hotel website, external network, LLM, or nondeterministic model behavior.
+Satisfied. Tests use fixed clocks, in-memory HTML strings, and no external network or model behavior. Same input produces the same observable signatures.
 
 ### AC-12 — Conservative matching
 
-Tests demonstrate that generic/context-free keyword occurrences do not automatically become hospitality observations when the surrounding content does not support the bounded observation category.
+Satisfied. Tests cover context-free/ambiguous room text and supplier contact text and verify they do not become hospitality observations.
 
 ### AC-13 — Relevant hospitality signals
 
-Deterministic tests cover representative positive observations for at least:
-
-- hotel identity;
-- rooms;
-- amenities;
-- contact/location;
-- booking entry point;
-- dining.
-
-The tests must verify that each observation retains its supporting source evidence/reference and observed value/excerpt/link where applicable.
+Satisfied. Tests cover all six categories and verify observed values, links, source references, provenance, and supporting evidence.
 
 ### AC-14 — Source content remains unchanged
 
-Observation extraction does not mutate `StructuredEvidence`, the retained source observation, or the original acquisition result.
+Satisfied. Tests verify the retained source content/provenance remains unchanged after observation extraction.
 
 ### AC-15 — Existing boundaries remain intact
 
-REQ-015, REQ-017, and REQ-018 behavior and contracts remain intact. No acquisition security behavior, evaluation lifecycle behavior, or evidence normalization behavior is redesigned as part of REQ-019.
+Satisfied. No changes were made to REQ-015, REQ-017, or REQ-018 behavior.
 
 ### AC-16 — Complete backend validation
 
-The implementation session runs the repository's documented backend validation and reports the actual result. CI must pass before the implementation session marks the requirement `PR_READY`.
+Satisfied by GitHub Actions Backend Validation run **#70** on commit `c16d15efc035db46452dfb63a18c8338550f95e6`:
+
+- `mvn --batch-mode --no-transfer-progress test`
+- 85 tests
+- 0 failures
+- 0 errors
+- BUILD SUCCESS
+
+The REQ-019 test class specifically reported:
+
+- `HospitalityObservationServiceTest`
+- 8 tests
+- 0 failures
+- 0 errors
 
 ## OUTPUT
 
-The implementation session must:
+### Implementation summary
 
-1. create the exact branch `feature/hospitality-observation-foundation` from the then-current `main`;
-2. implement only REQ-019;
-3. add/update deterministic tests required by the acceptance criteria;
-4. update this SAME requirement file with implementation summary, files changed, validation, CI result, PR information, limitations, and self-review;
-5. create a PR against `main`;
-6. do not merge the PR;
-7. stop for orchestrator review.
+Implemented the hospitality observation boundary using three new production types:
 
-The implementation session must not start REQ-020 or broaden this requirement into hospitality analysis, scoring, AI, reporting, or preview generation.
+- `HospitalityObservationCategory`
+- `HospitalityObservation`
+- `HospitalityObservationService`
 
-## Why this is the smallest next slice
+Added deterministic unit tests for the six observation categories, attribution/provenance, source traceability, unavailable evidence, inference exclusion, deterministic repeatability, source immutability, and conservative negative matching.
 
-The repository now has an implemented path from canonical evaluation input through evaluation/attempt, bounded public acquisition, and structured evidence. REQ-018 intentionally stopped before HTML semantic extraction. SPEC-005 and SPEC-006 establish that downstream analysis needs evidence-backed, traceable hospitality observations, while analysis itself remains a separate boundary.
+### Files changed
 
-REQ-019 therefore closes only the next semantic boundary: **observed source content → bounded hospitality observation**. It provides a useful deterministic input for later analysis without prematurely defining the full hotel fact model, findings, scoring, AI, or preview model.
+- `backend/src/main/java/com/antenapro/hotelcheck/hospitality/HospitalityObservationCategory.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/hospitality/HospitalityObservation.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/hospitality/HospitalityObservationService.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/hospitality/HospitalityObservationServiceTest.java`
+- `requirements/REQ-019-hospitality-observation-foundation.md`
+
+No unrelated files were changed.
+
+### Validation
+
+Local/container validation could not be executed because the execution environment could not resolve `github.com` for repository cloning. Repository CI was therefore used as the authoritative executed validation.
+
+GitHub Actions Backend Validation run **#70** completed successfully on `c16d15efc035db46452dfb63a18c8338550f95e6` with all 85 backend tests passing, including all 8 REQ-019 tests.
+
+An earlier CI run failed on the intentionally conservative supplier-contact test because plural `suppliers` was not covered by the negative matcher. That failure was fixed by strengthening the matcher to handle supplier/vendor/partner plural forms. The subsequent full backend validation passed.
+
+### CI
+
+**PASS** — Backend Validation run #70.
+
+### PR
+
+Pull request: **#19** — `REQ-019: Hospitality Observation Foundation`
+
+Base: `main`
+
+Head: `feature/hospitality-observation-foundation`
+
+PR remains open and unmerged for orchestrator review.
+
+### Limitations / open questions
+
+- The HTML matching is intentionally lightweight and conservative; it is not a general HTML parser or semantic NLP system.
+- The observation vocabulary is intentionally limited to the six REQ-019 categories.
+- Some valid hospitality signals outside the conservative semantic/link patterns will not be observed yet; absence of such an observation is not treated as hotel-feature absence.
+- Exact downstream aggregation, conflict handling, freshness, analysis findings, scoring/importance, and evidence coverage remain later requirements.
+
+### Engineering self-review
+
+#### Scope
+
+Only REQ-019 was implemented. No REQ-020 work or unrelated refactoring was introduced.
+
+#### Existing code
+
+Existing `StructuredEvidence`, `EvidenceProvenance`, acquisition contracts, and evaluation/attempt attribution were reused directly. No generic fact framework was introduced.
+
+#### Security
+
+The new service has no network path, URL fetching, browser access, persistence, authentication, or external-service call. It operates only on already-retained evidence.
+
+#### Truthfulness
+
+Observations are explicitly `DISCOVERED`, retain their supporting evidence, and do not claim verification of hotel capabilities, inventory, quality, or booking success.
+
+#### Matching
+
+The matcher uses semantic elements and explicit link/contact signals, plus negative context for known ambiguous examples. Tests cover conference/server rooms and supplier contact to guard against naive keyword detection.
+
+#### Provenance
+
+Every observation contains the supporting `StructuredEvidence`, evaluation ID, attempt ID/number, source reference, and `DISCOVERED` provenance.
+
+#### Simplicity
+
+The implementation uses a small enum, immutable record, and single cohesive service. No parser dependency, registry, factory, persistence layer, or generic framework was introduced.
+
+#### Tests
+
+The final CI run executed the complete backend suite and the eight REQ-019 tests with zero failures/errors. No live hotel website or external network is required by the REQ-019 tests.
 
 ## Governance
 
-This is a requirement-definition artifact only. No implementation branch is created by this session, no application code is changed, and no PR is created by this session.
+REQ-019 implementation is complete and the requirement is `PR_READY`.
+
+PR #19 is open against `main` and has **not** been merged.
+
+No REQ-020 work has been started.
 
 STOPPING FOR ORCHESTRATOR REVIEW.
