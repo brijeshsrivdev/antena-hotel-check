@@ -43,9 +43,30 @@ class HospitalityAnalysisCompletenessFoundationTest {
         HospitalityAnalysisResult result = service.analyze(
                 evaluation.evaluationId(), List.of(first, second), HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED);
 
-        assertTrue(result.findings().stream().anyMatch(f -> f.category() == HospitalityObservationCategory.HOTEL_IDENTITY
-                && f.findingText().startsWith("Retained public sources expose conflicting hotel identity information:")));
+        List<HospitalityFinding> identityFindings = result.findings().stream()
+                .filter(f -> f.category() == HospitalityObservationCategory.HOTEL_IDENTITY)
+                .toList();
+        assertTrue(identityFindings.stream().anyMatch(firstFinding -> identityFindings.stream()
+                .anyMatch(secondFinding -> firstFinding != secondFinding
+                        && firstFinding.isIdentityConflictWith(secondFinding))));
         assertTrue(result.coverage().assessableDimensions().contains(HospitalityAnalysisDimension.TRUST_AND_CLARITY));
+    }
+
+    @Test
+    void identityConflictDiscriminatorDoesNotDependOnFindingText() {
+        Evaluation evaluation = evaluation();
+        StructuredEvidence first = evidence(evaluation, "https://hotel.example.com/about", "<h1>Grand Hotel</h1>");
+        StructuredEvidence second = evidence(evaluation, "https://hotel.example.com/contact", "<h1>Grand Resort</h1>");
+
+        HospitalityAnalysisResult result = service.analyze(
+                evaluation.evaluationId(), List.of(first, second), HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED);
+
+        List<HospitalityFinding> identityFindings = result.findings().stream()
+                .filter(f -> f.category() == HospitalityObservationCategory.HOTEL_IDENTITY)
+                .toList();
+        assertTrue(identityFindings.stream().anyMatch(firstFinding -> identityFindings.stream()
+                .anyMatch(secondFinding -> firstFinding != secondFinding
+                        && firstFinding.isIdentityConflictWith(secondFinding))));
     }
 
     @Test
