@@ -10,13 +10,34 @@ Antena Hotel Check evaluates a hotel's publicly accessible digital presence and 
 
 > Can a guest find, understand, trust, explore, and book this hotel online?
 
-The product ultimately produces a useful hospitality analysis/report and an interactive Antena-hosted hotel preview. The preview is a core product capability, not merely a marketing add-on.
+The product is owned by the Antena ecosystem. [Antena](https://antenapro.com) is our own hospitality product. The long-term outcome of a mature Hotel Check analysis is an opportunity to provide an Antena-hosted replacement/improved hotel digital experience at `<hotel-name>.antenapro.com`, addressing problems identified by the analysis.
+
+**Important sequencing:** the current focus is the Hotel Check digital-presence analysis. The Antena-hosted hotel experience integration is intentionally downstream and must not distort or prematurely expand the analysis foundation. Integration should begin only after the analysis capability is mature enough to produce a trustworthy, useful result.
 
 ## Product Boundary
 
-Hospitality is the center of the product. SEO, performance, accessibility, structured data, and technical health may contribute evidence, but the product must not drift into a generic SEO checker, generic website audit, OTA/competitor scraping product, or generic AI website generator.
+Hospitality is the center of the product. Digital-presence concerns such as SEO, GA4/analytics readiness, performance, accessibility, structured data, discoverability, and technical health may contribute to the analysis, but the product must not drift into a generic SEO checker, generic website audit, OTA/competitor scraping product, or generic AI website generator.
 
 Avoid aggressive scraping or bypassing third-party protections. Public-web acquisition must remain bounded and truthful.
+
+## Antena Relationship
+
+Hotel Check and Antena are related but have distinct responsibilities:
+
+```text
+Hotel digital presence
+        ↓
+Antena Hotel Check
+        ↓
+Analysis of problems/opportunities
+        ↓
+Mature, trustworthy result
+        ↓
+Antena-hosted hotel experience
+<hotel-name>.antenapro.com
+```
+
+The future Antena-hosted experience is not evidence that a hotel already has a feature. It is a downstream generated/hosted opportunity and must be clearly distinguished from discovered hotel information.
 
 ## Engineering Method
 
