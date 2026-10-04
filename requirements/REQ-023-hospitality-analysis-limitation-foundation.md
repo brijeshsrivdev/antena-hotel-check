@@ -168,27 +168,29 @@ No live hotel website or external network dependency is used by the tests.
 
 Local Maven validation is not available in the session environment because direct repository cloning cannot resolve `github.com`.
 
-GitHub Actions Backend Validation run **#127** / run ID **`37176735683`** executed against implementation commit **`80f972cb6a073783b617275c47b0b660a36223a0`**:
+GitHub Actions Backend Validation run **#129** / run ID **`37176816747`** executed against final branch head **`b45662f4e9466f508652d8c9e2d68d655bf75d74`**:
 
 - Workflow: **Backend Validation**
 - Job: **Java 21 / Maven tests**
-- Result: **SUCCESS**
-- Maven test step: **SUCCESS**
+- Command: `mvn --batch-mode --no-transfer-progress test`
+- Result: **BUILD SUCCESS**
+- Tests: **117**
+- Failures: **0**
+- Errors: **0**
+- REQ-023 tests: **11**, all passing
 
-Because the final requirement-status update itself changes the branch head, a second Backend Validation run is required and will be recorded before this requirement remains `PR_READY`.
+The final-head CI run is the authoritative repository-level validation for this requirement.
 
 ### CI
 
-**PASS for implementation commit** — Backend Validation run #127 / run ID `37176735683`.
-
-**Final-head CI:** pending after the requirement completion-record update.
+**PASS** — Backend Validation run #129 / run ID `37176816747`.
 
 ### PR
 
 - **PR:** #23 — `REQ-023: Hospitality Analysis Limitation Foundation`
 - **Base:** `main`
 - **Head:** `feature/hospitality-analysis-limitation-foundation`
-- **Implementation validated head:** `80f972cb6a073783b617275c47b0b660a36223a0`
+- **Validated head:** `b45662f4e9466f508652d8c9e2d68d655bf75d74`
 - **Status:** OPEN
 - **Merged:** No
 
@@ -235,6 +237,6 @@ The new boundary performs no network access, persistence, external service calls
 
 ## Governance
 
-`STATUS: PR_READY` is provisional until Backend Validation succeeds for the final branch head containing this completion record. No merge is permitted.
+`STATUS: PR_READY` — implementation complete, final-head Backend Validation passed, PR #23 is open against `main`, and the PR remains unmerged for orchestrator review.
 
-**STOPPING FOR ORCHESTRATOR REVIEW after final-head CI.**
+**STOPPING FOR ORCHESTRATOR REVIEW.**
