@@ -16,7 +16,7 @@ Antena Hotel Check analyzes a hotel's publicly accessible digital presence and g
 
 ## Product Stage
 
-The implemented foundation now establishes a bounded path from canonical evaluation input through public-web acquisition, structured evidence, deterministic hospitality observations, qualified analysis signals, findings/limitations, coverage representation, immutable analysis-result aggregation, deterministic analysis including evidence-grounded deficiencies, guest-journey analysis, deterministic recommendations, and a structured analysis-report domain boundary.
+The implemented foundation establishes a bounded path from canonical evaluation input through public-web acquisition, structured evidence, deterministic hospitality observations, qualified analysis signals, governed coverage classification, findings/limitations, immutable analysis-result aggregation, deterministic analysis including evidence-grounded deficiencies, guest-journey analysis, deterministic recommendations, and a structured analysis-report domain boundary.
 
 ```text
 Canonical Evaluation Request
@@ -32,6 +32,8 @@ Structured Evidence
 Hospitality Observation
         ↓
 Qualified Hospitality Analysis Signal
+        ↓
+Governed Coverage Classification
         ↓
 Deterministic Hospitality Analysis
         ↓
@@ -66,14 +68,16 @@ Structured Hospitality Analysis Report
 - REQ-029 — Guest Journey Analysis Foundation — IMPLEMENTED / MERGED as PR #29.
 - REQ-030 — Hospitality Recommendation Foundation — IMPLEMENTED / MERGED as PR #30.
 - REQ-031 — Hospitality Analysis Report Foundation — IMPLEMENTED / MERGED as PR #31.
+- REQ-033 — Hospitality Analysis Coverage Classification Contract — ACCEPTED / MERGED as the governed calibration basis.
+- REQ-034 — Hospitality Analysis Coverage Classification Implementation — IMPLEMENTED / MERGED as PR #32.
 
 ## Current Architectural Boundary
 
 The latest completed product boundary is:
 
-`StructuredEvidence → Observation → Qualified Signal → Findings / Deficiencies / Limitations → Coverage → HospitalityAnalysisResult → GuestJourneyAnalysis → HospitalityRecommendations → HospitalityAnalysisReport`
+`StructuredEvidence → Observation → Qualified Signal → Governed Coverage Classification → Findings / Deficiencies / Limitations → Coverage → HospitalityAnalysisResult → GuestJourneyAnalysis → HospitalityRecommendations → HospitalityAnalysisReport`
 
-REQ-024 establishes coverage representation only. It deliberately does not classify coverage; its state is governed caller input and its exact calibration was left unspecified.
+REQ-024 establishes coverage representation only. REQ-033 establishes the product calibration for classifying that representation, and REQ-034 implements it deterministically.
 
 REQ-028 extends the deterministic analysis boundary conservatively. It makes `TRUST_AND_CLARITY` assessable only when existing typed evidence establishes a material same-evaluation cross-source hotel-identity conflict. Discoverability, mobile/technical, and SEO/structured-data dimensions remain unsupported because the current governed evidence contracts do not provide sufficient evidence for responsible claims.
 
@@ -83,33 +87,29 @@ REQ-030 adds bounded deterministic recommendations derived only from governed de
 
 REQ-031 adds a structured in-memory report representation that aggregates the existing analysis result, journey analysis, limitations, deficiencies, and recommendations without introducing a presentation layer. It deliberately does not invent strengths when no governed positive-strength contract exists.
 
+REQ-033 governs coverage classification as follows:
+
+- `SUBSTANTIALLY_ASSESSED`: all five journey stages covered; at least six of nine intended dimensions covered; at least three journey stages have assessable evidence.
+- `PARTIALLY_ASSESSED`: at least one intended journey stage or dimension is covered, but substantial criteria are not satisfied.
+- `INSUFFICIENT_COVERAGE`: zero intended journey stages and zero intended dimensions are covered.
+
+Covered means explicitly assessable or explicitly limited. Limited scope contributes to accounted-for coverage but does not count toward the assessable-stage threshold.
+
+REQ-034 implements these rules without page-count, finding-count, scoring, keyword, AI, or network heuristics.
+
 The REQ-027 booking truth boundary remains authoritative:
 
 `successful room evidence + no BOOKING signal → no booking deficiency`
 
 Missing evidence, acquisition failure, `NOT_ATTEMPTED`, unsupported dimensions, and unrecognized observations do not become hotel deficiencies or journey failures.
 
-## Current Blocker / Immediate Next Governed Step
+## Current Next Step
 
-REQ-032 — Evaluation Execution Orchestration Foundation — BLOCKED.
+REQ-032 — Evaluation Execution Orchestration Foundation — READY.
 
-Session 32 repository reconciliation identified a real contract gap: `HospitalityAnalysisService.analyze(...)` requires a caller-supplied `HospitalityAnalysisCoverageState`, while `CanonicalEvaluationRequest` does not contain one and REQ-024 intentionally does not classify coverage. The orchestrator must not invent a default or derive coverage from ungoverned heuristics.
+Session 32 previously stopped because the deterministic analysis service required a caller-supplied `HospitalityAnalysisCoverageState` and no governed source existed. REQ-033 established the missing product contract and REQ-034 implemented it. REQ-032 has now been reconciled against current `main` and restored to `READY`.
 
-REQ-033 — Hospitality Analysis Coverage Classification Contract — READY and accepted by the orchestrator.
-
-REQ-034 — Hospitality Analysis Coverage Classification Implementation — READY.
-
-REQ-034 is the next implementation slice. It implements the governed REQ-033 classifier as a small deterministic domain service. After REQ-034 is merged, REQ-032 must be reconciled against the new `main` and can then be restored to READY if no further contract gaps remain.
-
-Implementation order:
-
-```text
-REQ-033 — Coverage Classification Contract
-        ↓
-REQ-034 — Coverage Classification Implementation
-        ↓
-REQ-032 — Evaluation Execution Orchestration
-```
+REQ-032 must use the existing `HospitalityAnalysisCoverageClassifier`; it must not duplicate or invent coverage semantics.
 
 ## Product Sequence
 
@@ -118,9 +118,7 @@ Hotel public digital presence
         ↓
 Canonical Evaluation Request
         ↓
-Governed Coverage Classification
-        ↓
-End-to-End Evaluation Orchestration
+End-to-End Evaluation Orchestration  ← NEXT
         ↓
 Acquisition
         ↓
@@ -129,6 +127,8 @@ Structured Evidence
 Bounded Hospitality Observations
         ↓
 Qualified Hospitality Analysis Signals
+        ↓
+Governed Coverage Classification
         ↓
 Executable Deterministic Analysis
         ↓
@@ -157,8 +157,7 @@ Antena integration opportunity
 
 The following remain outside the completed foundation unless a merged requirement explicitly says otherwise:
 
-- governed coverage classification implementation (REQ-034 is READY, not implemented)
-- end-to-end evaluation execution/orchestration (REQ-032 is BLOCKED, not implemented)
+- end-to-end evaluation execution/orchestration (REQ-032 is READY, not implemented)
 - scoring and recommendation prioritization
 - complete nine-dimension analysis capability
 - customer-facing report API/rendering/UI
