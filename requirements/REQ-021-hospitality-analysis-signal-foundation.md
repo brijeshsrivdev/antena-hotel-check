@@ -1,6 +1,6 @@
 # REQ-021 — Hospitality Analysis Signal Foundation
 
-**STATUS:** READY  
+**STATUS:** PR_READY  
 **REQUIREMENT_ID:** REQ-021  
 **TYPE:** Implementation  
 **BRANCH:** `feature/hospitality-analysis-signal-foundation`
@@ -190,7 +190,7 @@ The current product focus is digital-presence analysis. Antena is the owning hos
 
 ## Implementation Record — Session 21
 
-**Status:** READY — CI validation pending.
+**Status:** PR_READY.
 
 ### Implementation summary
 
@@ -242,11 +242,28 @@ No live hotel website or external network dependency is used by the tests.
 
 ### Validation
 
-Local Maven validation was not available in the execution environment. Backend CI was triggered through PR #21 and is the authoritative validation required before setting `PR_READY`.
+Local Maven validation was not available in the execution environment.
+
+GitHub Actions Backend Validation run **#71** (`37174522519`) completed successfully for the implementation head `aa5ace68c78655c01128a6d19c7b2accb7e26801`.
+
+The executed command was:
+
+`mvn --batch-mode --no-transfer-progress test`
+
+Result:
+
+- **BUILD SUCCESS**
+- **94 tests**
+- **0 failures**
+- **0 errors**
+- REQ-021 `HospitalityAnalysisSignalServiceTest`: **9 tests**, all passing
+- REQ-019 `HospitalityObservationServiceTest`: **8 tests**, all passing
+
+A prior CI run on the initial test commit failed only because the test fixture used nonexistent `Evaluation#getId()` and `EvaluationAttempt#id()` accessors. The fixture was corrected to use the repository's actual `evaluationId()` and `attemptId()` contracts, and the subsequent full backend validation passed.
 
 ### CI
 
-**Pending** — Backend Validation for PR #21.
+**PASS** — Backend Validation run #71 / run ID `37174522519`.
 
 ### PR
 
@@ -287,7 +304,7 @@ The service contains no clock, network, external state, random behavior, or AI/m
 
 #### Tests
 
-The focused REQ-021 test suite covers positive mappings and conservative negative cases. Full backend CI remains the required final validation.
+The focused REQ-021 test suite covers positive mappings and conservative negative cases. Complete backend CI passed with 94 tests and zero failures/errors.
 
 #### Repository hygiene
 
@@ -295,6 +312,6 @@ The PR contains only the five production/test files for this capability plus thi
 
 ## Governance
 
-`STATUS: READY` remains intentional until actual Backend Validation CI passes. After successful CI, this section must be updated to `PR_READY` with the observed CI run details before stopping for orchestrator review.
+`STATUS: PR_READY` — implementation committed, PR #21 created against `main`, and backend CI passed.
 
-**STOPPING FOR IMPLEMENTATION SESSION after CI validation.**
+**STOPPING FOR ORCHESTRATOR REVIEW.**
