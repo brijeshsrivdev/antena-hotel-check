@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * Applies the small set of REQ-027 deficiency rules directly to retained,
@@ -18,12 +19,12 @@ import java.util.Set;
  */
 public final class HospitalityDeficiencyAnalysisService {
 
-    private static final String ROOM_DECISION_SUPPORT_PATTERN =
-            "(?i)\\b(?:bed|beds|sleep(?:s|ing)?|guest(?:s)?|occupancy|person(?:s)?|size|sqm|m²|square\\s+met(?:re|er)s?|amenities|description|view|balcony|bathroom)\\b";
-    private static final String CONTACT_DETAIL_PATTERN =
-            "(?i)(?:mailto:|tel:|<address\\b|\\b(?:phone|telephone|email|address|directions?|location|map)\\b)";
-    private static final String AMENITY_DETAIL_PATTERN =
-            "(?i)\\b(?:pool|swimming\\s+pool|spa|fitness|gym|wi[- ]?fi|parking|front\\s+desk|housekeeping|concierge|restaurant|dining|breakfast|bar|cafe|café)\\b";
+    private static final Pattern ROOM_DECISION_SUPPORT_PATTERN = Pattern.compile(
+            "(?i)\\b(?:bed|beds|sleep(?:s|ing)?|guest(?:s)?|occupancy|person(?:s)?|size|sqm|m²|square\\s+met(?:re|er)s?|amenities|description|view|balcony|bathroom)\\b");
+    private static final Pattern CONTACT_DETAIL_PATTERN = Pattern.compile(
+            "(?i)(?:mailto:|tel:|<address\\b|\\b(?:phone|telephone|email|address|directions?|location|map)\\b)");
+    private static final Pattern AMENITY_DETAIL_PATTERN = Pattern.compile(
+            "(?i)\\b(?:pool|swimming\\s+pool|spa|fitness|gym|wi[- ]?fi|parking|front\\s+desk|housekeeping|concierge|restaurant|dining|breakfast|bar|cafe|café)\\b");
 
     public Set<HospitalityFinding> analyze(
             List<StructuredEvidence> evidenceItems,
@@ -34,7 +35,7 @@ public final class HospitalityDeficiencyAnalysisService {
 
         Set<HospitalityFinding> findings = new LinkedHashSet<>();
         List<HospitalityAnalysisSignal> validSignals = qualifiedSignals.stream()
-                .filter(this::isValidSignal)
+                .filter(HospitalityDeficiencyAnalysisService::isValidSignal)
                 .toList();
 
         for (StructuredEvidence evidence : evidenceItems) {
@@ -234,6 +235,6 @@ public final class HospitalityDeficiencyAnalysisService {
     }
 
     private static boolean containsRoomDecisionSupport(String content) {
-        return content != null && content.matches("(?s).*" + ROOM_DECISION_SUPPORT_PATTERN + ".*");
+        return content != null && ROOM_DECISION_SUPPORT_PATTERN.matcher(content).find();
     }
 }
