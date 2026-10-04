@@ -2,21 +2,25 @@
 
 ## Current Position
 
-REQ-026 — Deterministic Hospitality Analysis Engine is merged into `main` as PR #26.
+REQ-027 — Hospitality Deficiency Analysis Foundation is merged as PR #27.
+
+REQ-028 — Hospitality Analysis Completeness Foundation is merged as PR #28.
+
+REQ-029 — Guest Journey Analysis Foundation is merged as PR #29.
 
 REQ-020 — Orchestrator Durable Context Foundation is merged and establishes the durable handoff/context mechanism.
 
 ## Immediate Next Slice
 
-REQ-027 — Hospitality Deficiency Analysis Foundation — READY.
+REQ-030 — Hospitality Recommendation Foundation — READY.
 
 Implementation branch:
 
-`feature/hospitality-deficiency-analysis-foundation`
+`feature/hospitality-recommendation-foundation`
 
-REQ-027 is the next larger vertical analysis slice. It extends the deterministic analysis pipeline from primarily positive/observed signals to **evidence-grounded observed deficiencies and meaningful evidence gaps**.
+REQ-030 is the next bounded vertical slice. It moves the system from explaining observed problems and guest-journey impact toward **evidence-grounded actionable recommendations**.
 
-The implementation must inspect the actual current `main` before coding and reuse existing observation, signal, finding, limitation, coverage, and result contracts rather than duplicating their rules.
+The implementation must consume existing analysis and journey outputs. It must not redesign acquisition, evidence, observations, signals, findings, deficiencies, limitations, coverage, result, or journey contracts.
 
 ## Completed Analysis Foundation
 
@@ -29,11 +33,15 @@ Hospitality Observation
   ↓
 Qualified Analysis Signal
   ↓
-Hospitality Finding / Unable-to-Verify Limitation
+Hospitality Finding / Deficiency / Unable-to-Verify Limitation
   ↓
 Hospitality Analysis Coverage
   ↓
 Hospitality Analysis Result
+  ↓
+Guest Journey Analysis
+  ↓
+Actionable Recommendations  ← REQ-030
 ```
 
 REQ-023 establishes the truthful distinction between **unable to verify** and an observed hotel deficiency.
@@ -44,36 +52,53 @@ REQ-025 establishes the immutable aggregation boundary for findings, limitations
 
 REQ-026 establishes the first executable deterministic analysis pipeline over already-retained evidence and explicitly separates the full nine-dimension intended scope from the currently assessable scope.
 
-## REQ-027 Direction
+REQ-027 establishes conservative evidence-grounded observed deficiencies.
 
-REQ-027 should make the analysis materially useful by detecting problems only when the retained evidence establishes an observed guest-facing deficiency or meaningful observed evidence gap.
+REQ-028 establishes the first conservative completeness expansion and makes `TRUST_AND_CLARITY` assessable only where existing typed evidence establishes a material same-evaluation cross-source identity conflict.
+
+REQ-029 establishes the first explicit guest-journey representation:
 
 ```text
-StructuredEvidence[]
-      ↓
-ObservationService
-      ↓
-SignalService
-      ↓
-Deterministic deficiency rules
-      ↓
-Observed deficiencies / insufficient evidence / truthful limitations
-      ↓
-Coverage representation
-      ↓
-HospitalityAnalysisResult
+DISCOVER → UNDERSTAND → EXPLORE → TRUST → BOOK
 ```
 
-Initial rule families are deliberately conservative:
+## REQ-030 Direction
 
-- booking discoverability deficiencies where the relevant context explicitly establishes the expected booking action;
-- materially insufficient observed room information;
-- materially missing observed contact/location paths;
-- materially insufficient guest-facing information;
-- material cross-source conflicts relevant to trust/clarity;
-- explicitly observed broken guest-facing paths.
+REQ-030 should make the analysis actionable without turning recommendations into a generic AI or scoring system.
 
-Do not turn missing evidence, failed acquisition, `NOT_ATTEMPTED`, unsupported dimensions, or context-free keyword absence into hotel deficiencies.
+```text
+Existing findings / deficiencies / governed limitations
+                    ↓
+          deterministic mapping
+                    ↓
+      bounded hospitality recommendation
+                    ↓
+      source finding + journey traceability
+```
+
+Initial recommendation families should remain small and evidence-grounded, for example:
+
+- improve booking discoverability;
+- improve room information;
+- improve guest-facing information;
+- improve contact/location information;
+- resolve conflicting hotel identity information;
+- improve trust/clarity.
+
+Do not create recommendations from missing evidence alone. Do not create a booking recommendation merely because a BOOKING observation is absent. Do not rank recommendations or estimate ROI/conversion impact.
+
+## Future Sequence
+
+After REQ-030, the orchestrator should reassess the actual repository state before defining the next slice. Likely future areas include:
+
+- recommendation quality/completeness expansion;
+- connected digital-performance signals such as Google Business Profile, Search Console, GA4, or similar plan-gated capabilities;
+- customer-facing report generation;
+- persistence and evaluation history;
+- analysis maturity/calibration;
+- eventually Antena integration and `<hotel-name>.antenapro.com` experience generation.
+
+These are **not yet implementation requirements** unless separately specified and marked READY.
 
 ## Product Sequence
 
@@ -90,20 +115,24 @@ Qualified Hospitality Analysis Signals
         ↓
 Executable Deterministic Analysis
         ↓
-Evidence-grounded deficiencies + truthful limitations  ← REQ-027
+Evidence-grounded deficiencies + truthful limitations
         ↓
 Coverage representation
         ↓
 Hospitality Analysis Result
         ↓
+Guest Journey Analysis
+        ↓
+Actionable Recommendations
+        ↓
 Mature, trustworthy analysis
+        ↓
+Connected Digital Performance (optional paid capability)
         ↓
 Antena integration opportunity
         ↓
 <hotel-name>.antenapro.com
 ```
-
-Current focus remains the digital-presence analysis portion. Antena-hosted integration is downstream and must not be implemented as part of REQ-027.
 
 ## Standard Continuation Lifecycle
 
@@ -133,6 +162,6 @@ After every merged agent PR, update durable orchestrator context before starting
 
 ## Guardrails
 
-Do not jump directly to a complete scoring engine, arbitrary coverage classifier, generic AI analysis, full hospitality ontology, recommendation engine, report generation, interactive Antena-hosted experience, broad crawling infrastructure, or generic SEO auditing. Each requires an explicit bounded requirement.
+Do not jump directly to a complete scoring engine, arbitrary coverage classifier, generic AI analysis, full hospitality ontology, recommendation prioritization, report generation, interactive Antena-hosted experience, broad crawling infrastructure, or generic SEO auditing. Each requires an explicit bounded requirement.
 
-REQ-027 is intentionally larger than the foundation slices, but remains bounded to deterministic deficiency analysis over already-retained evidence. It must not expand into acquisition, reporting, preview generation, or Antena integration.
+REQ-030 is intentionally bounded to deterministic recommendations derived from already-retained evidence-grounded analysis. It must not expand into acquisition, reporting, connected integrations, preview generation, or Antena integration.
