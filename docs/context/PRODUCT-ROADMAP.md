@@ -35,13 +35,17 @@ Deterministic Hospitality Analysis
         ↓
 Evidence-grounded Deficiencies + Truthful Limitations
         ↓
-Coverage
+Coverage Classification
         ↓
 Hospitality Analysis Result
         ↓
-Mature, trustworthy analysis
+Guest Journey Analysis
         ↓
 Actionable Recommendations
+        ↓
+Structured Analysis Report
+        ↓
+Mature, trustworthy analysis
         ↓
 Connected Digital Performance (optional paid capability)
         ↓
@@ -54,32 +58,48 @@ Improved hotel experience
 
 ## Current Position
 
-The repository has completed the acquisition/evidence/analysis foundation through REQ-026.
+The repository has completed the core deterministic analysis/report domain foundation through REQ-031.
 
-Current active work:
+Current blocker:
 
-- **REQ-027 — Hospitality Deficiency Analysis Foundation** — implementation in progress.
+- **REQ-032 — Evaluation Execution Orchestration Foundation — BLOCKED.**
 
-The current product focus remains **digital presence analysis**. Antena-hosted website generation is downstream and must not be pulled forward prematurely.
+Session 32 correctly stopped because the existing analysis service requires a caller-supplied `HospitalityAnalysisCoverageState`, while the canonical evaluation request does not provide one and REQ-024 intentionally established representation without classification/calibration rules.
+
+The orchestrator has created:
+
+- **REQ-033 — Hospitality Analysis Coverage Classification Contract — READY.**
+
+The immediate sequence is therefore:
+
+```text
+REQ-033 contract
+      ↓
+coverage classification implementation
+      ↓
+REQ-032 orchestration
+```
 
 ## Phase 1 — Trustworthy Hospitality Analysis
 
-### REQ-027 — Hospitality Deficiency Analysis Foundation
+### Completed foundation
 
-**Status:** IN PROGRESS
+The repository now contains merged deterministic foundations for:
 
-Extend the deterministic analysis pipeline so it can identify guest-facing deficiencies only when retained evidence establishes them.
+- public-web acquisition;
+- evaluation/acquisition integration;
+- structured evidence normalization;
+- hospitality observations;
+- analysis signals;
+- findings and deficiencies;
+- limitations;
+- coverage representation;
+- deterministic analysis;
+- guest-journey analysis;
+- recommendations;
+- structured report aggregation.
 
-Initial rule families include:
-
-- booking discoverability deficiencies;
-- materially insufficient room information;
-- materially missing contact/location paths;
-- materially insufficient guest-facing information;
-- material cross-source conflicts;
-- explicitly observed broken guest-facing paths.
-
-Core rule:
+The important truth boundary remains:
 
 ```text
 Missing evidence ≠ hotel deficiency
@@ -88,100 +108,59 @@ NOT_ATTEMPTED ≠ hotel deficiency
 Unsupported dimension ≠ hotel deficiency
 ```
 
-### Next likely slice — Hospitality Analysis Completeness
+### REQ-033 — Coverage Classification Contract
 
-Expand deterministic analysis coverage across the nine intended SPEC-006 dimensions, one capability at a time.
+**Status:** READY
 
-The nine intended dimensions are:
+Define and calibrate the three existing coverage states so the execution layer has a governed source of `HospitalityAnalysisCoverageState`.
 
-1. Hotel identity / property understanding
-2. Discoverability / navigation
-3. Rooms / room information
-4. Amenities / guest-facing information
-5. Contact / location
-6. Booking / booking journey
-7. Trust / clarity
-8. Mobile / technical guest experience
-9. SEO / structured-data supporting signals
+Initial calibration:
 
-Important: the existence of a dimension in the intended scope does not mean it is currently assessable. Each capability must have an explicit evidence-backed implementation.
+- `SUBSTANTIALLY_ASSESSED`: all five journey stages covered; at least six of nine intended dimensions covered; at least three journey stages have assessable evidence.
+- `PARTIALLY_ASSESSED`: at least one intended journey stage or dimension is covered, but substantial criteria are not satisfied.
+- `INSUFFICIENT_COVERAGE`: zero intended journey stages and zero intended dimensions are covered.
 
-### Guest Journey Model
+These are analysis-capability classifications, not hotel-quality scores.
 
-Introduce a first-class hospitality guest-journey representation once the underlying analysis signals are mature enough:
+### Coverage Classification Implementation
 
-```text
-DISCOVER
-   ↓
-UNDERSTAND
-   ↓
-EXPLORE
-   ↓
-TRUST
-   ↓
-CHOOSE
-   ↓
-BOOK
-```
+**Status:** NOT YET SPECIFIED
 
-The goal is to explain **where the guest journey breaks**, rather than merely reporting a count of findings.
+Implement the deterministic classifier defined by REQ-033 after the contract is reviewed and accepted.
 
-### Finding Prioritization
+The implementation must remain separate from the end-to-end orchestrator so the orchestration layer does not become the owner of product calibration.
 
-After findings are reliable, introduce explainable deterministic prioritization based on governed concepts such as:
+### REQ-032 — Evaluation Execution Orchestration
 
-- guest journey impact;
-- evidence confidence;
-- business relevance.
+**Status:** BLOCKED
 
-Avoid opaque or unexplained scores.
-
-### Hospitality Recommendations
-
-Transform evidence-grounded findings into actionable recommendations.
-
-Every recommendation should be traceable to the finding/evidence that caused it.
-
-Avoid generic advice such as undifferentiated "improve SEO" recommendations.
-
-## Phase 2 — Customer-Facing Analysis Product
-
-### Hospitality Analysis Report Model
-
-Create a structured report model containing concepts such as:
+After coverage classification exists, introduce one thin end-to-end execution boundary:
 
 ```text
-Hotel Overview
-      ↓
-Executive Summary
-      ↓
+Canonical Evaluation Request
+        ↓
+Evaluation / Attempt
+        ↓
+Acquisition
+        ↓
+Evidence
+        ↓
+Coverage Classification
+        ↓
+Analysis
+        ↓
 Guest Journey
-      ↓
-Strengths
-      ↓
-Problems
-      ↓
-Limitations
-      ↓
-Priorities
-      ↓
+        ↓
 Recommendations
+        ↓
+Report
 ```
 
-Keep the report model separate from presentation/UI concerns.
-
-### Report API / Rendering Boundary
-
-Expose the mature analysis/report through a stable API suitable for:
-
-- Antena Admin;
-- future public reports;
-- internal tooling;
-- automated hotel evaluation workflows.
+The orchestrator must coordinate existing contracts rather than absorb their responsibilities.
 
 ### Real Hotel Evaluation
 
-Run the complete analysis pipeline against a real publicly accessible hotel:
+After REQ-032 is implemented, run the complete analysis pipeline against controlled real publicly accessible hotels:
 
 ```text
 Hotel name + city OR hotel URL
@@ -199,7 +178,38 @@ Find deficiencies
 Generate report
 ```
 
-This is a major product milestone: the system should produce a trustworthy result for a real hotel without requiring manual intervention inside the analysis layer.
+This is a major product milestone: the system should produce a trustworthy result for a real hotel without manual intervention inside the analysis layer.
+
+### Analysis Quality / Calibration
+
+Use controlled real-hotel evaluations to determine where the deterministic model is genuinely useful and where additional evidence-backed capabilities are needed.
+
+Prioritize hospitality dimensions that materially improve the guest journey. Do not expand into generic SEO auditing simply to increase the number of checks.
+
+## Phase 2 — Customer-Facing Analysis Product
+
+### Report API / Rendering Boundary
+
+Expose the mature analysis/report through a stable API suitable for:
+
+- Antena Admin;
+- future public reports;
+- internal tooling;
+- automated hotel evaluation workflows.
+
+### Customer-Facing Report
+
+Render the structured analysis into a useful hotel-owner experience only after the underlying report semantics are sufficiently mature.
+
+The report should distinguish:
+
+- verified/discovered information;
+- observed problems;
+- limitations;
+- recommendations;
+- unavailable/unsupported areas.
+
+Do not turn absence of evidence into negative hotel claims.
 
 ## Phase 3 — Connected Digital Performance (Paid / Plan-Gated)
 
@@ -254,27 +264,7 @@ Connected First-Party Performance Data
 Richer Hospitality Analysis
 ```
 
-Examples of future insights:
-
-```text
-High Google visibility
-        ↓
-Low website click-through
-        ↓
-Discovery-to-website opportunity
-```
-
-or:
-
-```text
-Strong room-page traffic
-        ↓
-Low booking-journey progression
-        ↓
-Potential booking-friction opportunity
-```
-
-These conclusions must remain grounded in the actual connected metrics and configured measurement context. Do not infer conversion problems when the required analytics events are not configured or available.
+These conclusions must remain grounded in actual connected metrics and configured measurement context. Do not infer conversion problems when required analytics events are not configured or available.
 
 ### Pricing / entitlement boundary
 
@@ -293,7 +283,7 @@ Paid / Connected plan
     → richer performance analysis
 ```
 
-Exact pricing, limits, and plan names are intentionally **not decided here** and require a separate product/pricing decision before implementation.
+Exact pricing, limits, and plan names remain undecided and require a separate product/pricing decision before implementation.
 
 ### Privacy / authorization boundary
 
@@ -317,21 +307,9 @@ poor performance
 
 ### Evaluation Orchestration
 
-Introduce production-grade evaluation orchestration after the analysis contracts are mature:
+REQ-032 is the first foundation for production-grade execution, but production concerns should be added only after the deterministic end-to-end path is proven.
 
-```text
-REQUESTED
-   ↓
-ACQUIRING
-   ↓
-NORMALIZING
-   ↓
-ANALYZING
-   ↓
-REPORT_READY
-```
-
-Consider:
+Potential later concerns include:
 
 - idempotency;
 - retries;
@@ -395,8 +373,6 @@ Examples:
 | Weak contact/location journey | Antena hotel website |
 | Poor mobile experience | Antena responsive experience |
 | Weak information architecture | Antena hotel website |
-
-This creates the bridge from analysis to commercial value.
 
 ### Hotel Preview Generation
 
@@ -463,7 +439,7 @@ AI must not replace the evidence/provenance model or become an opaque source of 
 Do not jump directly to:
 
 - a complete scoring engine;
-- arbitrary coverage classifiers;
+- arbitrary coverage classification hidden inside orchestration;
 - generic AI analysis;
 - a giant hospitality ontology;
 - a generic recommendation engine;
