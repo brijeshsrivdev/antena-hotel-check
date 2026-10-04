@@ -16,7 +16,7 @@ Antena Hotel Check analyzes a hotel's publicly accessible digital presence and g
 
 ## Product Stage
 
-The implemented foundation now establishes a bounded path from canonical evaluation input through public-web acquisition, structured evidence, deterministic hospitality observations, qualified analysis signals, findings/limitations, coverage representation, an immutable analysis-result aggregation boundary, deterministic analysis including evidence-grounded deficiencies, and guest-journey analysis.
+The implemented foundation now establishes a bounded path from canonical evaluation input through public-web acquisition, structured evidence, deterministic hospitality observations, qualified analysis signals, findings/limitations, coverage representation, an immutable analysis-result aggregation boundary, deterministic analysis including evidence-grounded deficiencies, guest-journey analysis, and deterministic actionable recommendations.
 
 ```text
 Canonical Evaluation Request
@@ -42,6 +42,8 @@ Hospitality Analysis Coverage
 Hospitality Analysis Result
         ↓
 Guest Journey Analysis
+        ↓
+Hospitality Recommendations
 ```
 
 ## Completed / Merged Foundation
@@ -60,16 +62,19 @@ Guest Journey Analysis
 - REQ-027 — Hospitality Deficiency Analysis Foundation — IMPLEMENTED / MERGED as PR #27.
 - REQ-028 — Hospitality Analysis Completeness Foundation — IMPLEMENTED / MERGED as PR #28.
 - REQ-029 — Guest Journey Analysis Foundation — IMPLEMENTED / MERGED as PR #29.
+- REQ-030 — Hospitality Recommendation Foundation — IMPLEMENTED / MERGED as PR #30.
 
 ## Current Architectural Boundary
 
 The latest completed product boundary is:
 
-`StructuredEvidence → Observation → Qualified Signal → Findings / Deficiencies / Limitations → Coverage → HospitalityAnalysisResult → GuestJourneyAnalysis`
+`StructuredEvidence → Observation → Qualified Signal → Findings / Deficiencies / Limitations → Coverage → HospitalityAnalysisResult → GuestJourneyAnalysis → HospitalityRecommendations`
 
 REQ-028 extends the deterministic analysis boundary conservatively. It makes `TRUST_AND_CLARITY` assessable only when existing typed evidence establishes a material same-evaluation cross-source hotel-identity conflict. Discoverability, mobile/technical, and SEO/structured-data dimensions remain unsupported because the current governed evidence contracts do not provide sufficient evidence for responsible claims.
 
 REQ-029 adds a deterministic guest-journey lens over the existing result using `DISCOVER → UNDERSTAND → EXPLORE → TRUST → BOOK`. It preserves limitations and unsupported stages and does not introduce scoring or positive claims from missing deficiencies.
+
+REQ-030 adds bounded deterministic recommendations derived only from governed deficiencies/semantics. It preserves provenance and journey-stage impact and does not convert missing evidence, acquisition failure, unsupported dimensions, or current `UNABLE_TO_VERIFY` limitations into hotel-feature recommendations.
 
 The REQ-027 booking truth boundary remains authoritative:
 
@@ -79,13 +84,13 @@ Missing evidence, acquisition failure, `NOT_ATTEMPTED`, unsupported dimensions, 
 
 ## Immediate Next Governed Step
 
-REQ-030 — Hospitality Recommendation Foundation — READY.
+REQ-031 — Hospitality Analysis Report Foundation — READY.
 
-Implementation branch: `feature/hospitality-recommendation-foundation`.
+Implementation branch: `feature/hospitality-analysis-report-foundation`.
 
-REQ-030 is the next bounded slice toward making the analysis actionable. It derives small deterministic hospitality recommendations from existing evidence-grounded deficiencies and governed limitations, while preserving source provenance and guest-journey impact.
+REQ-031 is the next bounded slice toward turning the mature analysis chain into a structured customer-facing report model. It should aggregate existing analysis, journey, recommendation, and limitation outputs without introducing presentation/UI concerns.
 
-REQ-030 must not introduce scoring, prioritization, AI, Google integrations, report UI, preview generation, or Antena integration.
+REQ-031 must not introduce scoring, recommendation prioritization, AI, Google integrations, report rendering, persistence, preview generation, or Antena integration.
 
 ## Product Sequence
 
@@ -112,7 +117,9 @@ Guest Journey Analysis
         ↓
 Actionable Recommendations
         ↓
-Mature, trustworthy analysis
+Structured Analysis Report
+        ↓
+Mature, trustworthy analysis product
         ↓
 Connected Digital Performance (optional paid capability)
         ↓
@@ -128,7 +135,7 @@ The following remain outside the completed foundation unless a merged requiremen
 - governed coverage classification/calibration rules beyond existing semantics
 - scoring and recommendation prioritization
 - complete nine-dimension analysis capability
-- full customer-facing report generation
+- customer-facing report rendering/UI
 - Google Business Profile / Search Console / GA4 connected performance integrations
 - AI/LLM analysis or recommendation generation
 - interactive Antena-hosted hotel preview integration
