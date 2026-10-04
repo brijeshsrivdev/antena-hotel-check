@@ -311,11 +311,14 @@ class HospitalityAnalysisCoverageTest {
     }
 
     private StructuredEvidence evidence(AcquisitionOutcome outcome, String body, String limitation) {
+        Integer statusCode = outcome == AcquisitionOutcome.HTTP_ERROR
+                ? 503
+                : outcome == AcquisitionOutcome.SUCCESS ? 200 : null;
         AcquisitionResult acquisition = new AcquisitionResult(
                 outcome,
                 WEBSITE,
                 WEBSITE,
-                outcome == AcquisitionOutcome.HTTP_ERROR ? 503 : outcome == AcquisitionOutcome.SUCCESS ? 200 : null,
+                statusCode,
                 body == null ? null : "text/html",
                 CLOCK.instant(),
                 outcome == AcquisitionOutcome.TIMEOUT || outcome == AcquisitionOutcome.NETWORK_ERROR
