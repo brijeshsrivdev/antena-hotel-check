@@ -11,13 +11,11 @@ Establish the smallest deterministic boundary for representing meaningful analys
 
 REQ-022 established the finding boundary but intentionally did not fabricate `LIMITATION`, `INSUFFICIENT_EVIDENCE`, or `NOT_APPLICABLE` states because REQ-021 currently produces only successful, content-backed qualified signals. REQ-023 introduces only the missing limitation signal needed to make the existing SPEC-006 truthfulness contract operational.
 
-The current focus remains trustworthy digital-presence analysis. Antena-hosted hotel experience integration remains downstream and is not part of this requirement.
-
 ## Scope
 
 Consume only already-produced acquisition/evidence lifecycle information. Produce a small immutable deterministic analysis-limitation representation that can be consumed by the existing finding boundary later.
 
-The limitation must preserve:
+The limitation preserves:
 
 - relevant hospitality dimension/category where deterministically known;
 - relevant guest-journey stage(s) where deterministically known;
@@ -28,15 +26,14 @@ The limitation must preserve:
 
 ## Truthfulness Boundary
 
-A limitation means the analyzer could not reliably establish a condition.
+A limitation means the analyzer could not reliably establish a condition. It does **not** mean the hotel lacks the capability.
 
 Examples:
 
 - booking engine could not be observed because access failed → limitation;
-- source was unavailable or blocked → limitation;
-- evidence was insufficient for a conclusion → insufficient evidence where justified;
-- no evidence was attempted → must not become proof of absence;
-- failed acquisition must not become a negative hotel capability finding.
+- room page/source could not be observed → limitation;
+- failed acquisition must not become a negative hotel capability finding;
+- no evidence was attempted must not become proof of absence.
 
 REQ-023 must never create an observed deficiency merely because acquisition/evidence was unavailable.
 
@@ -56,26 +53,7 @@ REQ-023 must never create an observed deficiency merely because acquisition/evid
 
 ## Explicit Non-Scope
 
-Do not implement:
-
-- generic error taxonomy;
-- crawler/browser behavior;
-- new acquisition mechanisms;
-- severity;
-- scoring;
-- recommendations;
-- analysis coverage;
-- report generation;
-- persistence;
-- public API;
-- UI;
-- AI/LLM;
-- preview;
-- Antena integration;
-- booking or OTA integrations;
-- generic SEO auditing;
-- competitor analysis;
-- NOT_APPLICABLE decision logic unless existing repository evidence already provides an explicit deterministic contract for it.
+Do not implement generic error taxonomy, acquisition mechanisms, crawler/browser behavior, severity, scoring, recommendations, coverage, reports, persistence, public API, UI, AI/LLM, preview, Antena integration, booking/OTA integrations, generic SEO auditing, competitor analysis, or unsupported `NOT_APPLICABLE` decision logic.
 
 ## Dependencies
 
@@ -101,7 +79,8 @@ At minimum:
 - successful evidence does not become limitation;
 - deterministic repeatability;
 - source objects are not mutated;
-- null/invalid input follows existing repository conventions.
+- null/invalid input follows existing repository conventions;
+- `sourceCondition()` is derived from `supportingEvidence().acquisitionOutcome()` and cannot diverge as independently stored state.
 
 No live hotel website or external network dependency is permitted.
 
@@ -111,29 +90,40 @@ Prefer the smallest local immutable/value-oriented types and deterministic mappi
 
 Do not create a generic `ErrorEngine`, `LimitationEngine`, `AnalysisEngine`, or framework abstraction unless repository evidence demonstrates that it is required.
 
-Reuse existing acquisition/evidence status types where appropriate. Do not duplicate status vocabularies unnecessarily.
+Reuse existing acquisition/evidence status types where appropriate. Do not duplicate status vocabularies or upstream state unnecessarily.
 
 If the repository does not provide enough information to distinguish an inability to verify from a condition that must remain unresolved, STOP and report the ambiguity rather than inventing semantics.
 
-## Implementation Record — Session 23
+## Implementation Record — Session 23 / Review Correction
 
 ### Implementation summary
 
-Implemented a small deterministic limitation boundary directly from `StructuredEvidence` to an immutable `HospitalityAnalysisLimitation`.
+Implemented a small deterministic limitation boundary directly from existing `StructuredEvidence` to an immutable `HospitalityAnalysisLimitation`.
 
 The boundary:
 
 - accepts only existing normalized evidence and performs no acquisition or network access;
 - represents only `UNABLE_TO_VERIFY` at this slice;
-- preserves the exact originating `AcquisitionOutcome` as the source condition instead of creating a duplicate acquisition-status vocabulary;
+- uses the existing `AcquisitionOutcome` from the supporting evidence as the single source of truth;
+- exposes `sourceCondition()` as a derived accessor over `supportingEvidence().acquisitionOutcome()` rather than storing a second acquisition-outcome field;
+- retains `StructuredEvidence` by reference, preserving source observation, evaluation/attempt attribution, acquisition provenance, URLs, and limitation detail;
 - supports hospitality categories and guest-journey stages when the caller can deterministically associate them with the inaccessible source/flow;
-- retains the complete `StructuredEvidence` by reference, preserving source observation, evaluation/attempt attribution, acquisition provenance, URLs, and limitation detail;
 - supports only repository acquisition outcomes that unambiguously mean the requested source could not be reliably observed: `HTTP_ERROR`, `TIMEOUT`, `REDIRECT_LIMIT_EXCEEDED`, `RESPONSE_TOO_LARGE`, and `NETWORK_ERROR`;
 - deliberately rejects `SUCCESS`, including successful evidence without retained content, so successful evidence is never converted into a limitation;
 - deliberately rejects `INVALID_TARGET` and `UNSUPPORTED_SCHEME` because the current contracts do not establish those request-validation conditions as hotel-source inability-to-verify semantics;
 - requires `DISCOVERED` source provenance so inferred/derived representations cannot manufacture a source limitation.
 
 No finding behavior, acquisition behavior, evidence normalization behavior, signal behavior, scoring, severity, recommendation, coverage, report, persistence, API, UI, AI, or preview behavior was changed.
+
+### Review correction
+
+Orchestrator review identified that storing both `supportingEvidence` and an independent `sourceCondition` duplicated upstream acquisition state and could permit future divergence.
+
+The correction removes the stored `AcquisitionOutcome` field from `HospitalityAnalysisLimitation`. The limitation now has one source of truth:
+
+`HospitalityAnalysisLimitation → supportingEvidence → acquisitionOutcome`
+
+`sourceCondition()` is a derived accessor only. This preserves traceability without copying acquisition state.
 
 ### Files changed
 
@@ -145,14 +135,15 @@ No finding behavior, acquisition behavior, evidence normalization behavior, sign
 
 ### Tests
 
-Added deterministic unit coverage for:
+The deterministic test suite covers:
 
 - timeout → `UNABLE_TO_VERIFY` limitation;
-- HTTP error → limitation with exact source condition;
+- HTTP error → limitation;
 - network failure → limitation;
 - booking category / `BOOK` journey context preservation;
 - evaluation/attempt attribution;
 - supporting evidence and source-observation traceability;
+- `sourceCondition()` exactly reflects `supportingEvidence().acquisitionOutcome()`;
 - deterministic repeatability;
 - successful evidence not becoming limitation;
 - successful evidence with no retained content not becoming limitation;
@@ -166,32 +157,19 @@ No live hotel website or external network dependency is used by the tests.
 
 ### Validation
 
+The corrected implementation was pushed to the existing PR branch. Backend Validation is required against the corrected head before this record is considered final.
+
 Local Maven validation is not available in the session environment because direct repository cloning cannot resolve `github.com`.
-
-GitHub Actions Backend Validation run **#133** / run ID **`37176975881`** executed for branch head **`e93e1de639fe5a72bb6cb398bb25e7e5157cea84`** (the PR validation checkout used merge ref `e441cdfee2d9493104eccc95c5e68fbd5ad78d96`):
-
-- Workflow: **Backend Validation**
-- Job: **Java 21 / Maven tests**
-- Command: `mvn --batch-mode --no-transfer-progress test`
-- Result: **BUILD SUCCESS**
-- Tests: **117**
-- Failures: **0**
-- Errors: **0**
-- REQ-023 tests: **11**, all passing
-
-The CI run also exercised the existing persistence integration test with Testcontainers PostgreSQL successfully. Repository tooling emitted only non-blocking deprecation/warning messages.
 
 ### CI
 
-**PASS** — Backend Validation run #133 / run ID `37176975881`.
+**PENDING FINAL CORRECTED-HEAD RUN** — the prior successful run validated the pre-correction implementation and is not treated as sufficient for this review correction.
 
 ### PR
 
 - **PR:** #23 — `REQ-023: Hospitality Analysis Limitation Foundation`
 - **Base:** `main`
 - **Head:** `feature/hospitality-analysis-limitation-foundation`
-- **Validated branch head:** `e93e1de639fe5a72bb6cb398bb25e7e5157cea84`
-- **PR validation merge ref:** `e441cdfee2d9493104eccc95c5e68fbd5ad78d96`
 - **Status:** OPEN
 - **Merged:** No
 
@@ -204,7 +182,13 @@ The CI run also exercised the existing persistence integration test with Testcon
 
 ### Material architectural decision
 
-The limitation retains `StructuredEvidence` by reference rather than copying the acquisition/evidence graph. This preserves traceability through `StructuredEvidence → EvaluationAcquisitionResult → EvaluationAttempt → AcquisitionResult` while avoiding duplicated mutable state. The exact `AcquisitionOutcome` is retained as the limitation source condition instead of introducing a parallel failure taxonomy.
+`StructuredEvidence` is the single upstream evidence/acquisition reference retained by the limitation. Acquisition outcome is not copied into the limitation as independent state. The exact outcome is exposed through `sourceCondition()` by delegation to `supportingEvidence.acquisitionOutcome()`.
+
+This preserves the chain:
+
+`HospitalityAnalysisLimitation → StructuredEvidence → EvaluationAcquisitionResult → EvaluationAttempt → AcquisitionResult`
+
+without duplicating acquisition state.
 
 ### Self-review
 
@@ -222,11 +206,11 @@ The repository does not provide a `NOT_ATTEMPTED` acquisition outcome, so no inv
 
 #### Traceability
 
-Every created limitation retains the complete supporting `StructuredEvidence`, including source observation, acquisition outcome, URLs, provenance, evaluation ID, attempt ID/number, and limitation detail.
+Every created limitation retains the complete supporting `StructuredEvidence`, including source observation, acquisition outcome, URLs, provenance, evaluation ID, attempt ID/number, and limitation detail. The acquisition outcome is exposed from that evidence rather than duplicated.
 
 #### Architecture
 
-No generic limitation engine, error framework, rule engine, factory, persistence model, or acquisition infrastructure was introduced.
+No generic limitation engine, error framework, rule engine, factory, persistence model, or acquisition infrastructure was introduced. The review correction explicitly removes the duplicated acquisition state.
 
 #### Determinism
 
@@ -238,6 +222,6 @@ The new boundary performs no network access, persistence, external service calls
 
 ## Governance
 
-`STATUS: PR_READY` — implementation complete, Backend Validation passed, PR #23 is open against `main`, and the PR remains unmerged for orchestrator review.
+`STATUS: PR_READY` — implementation and review correction complete, pending final corrected-head Backend Validation confirmation, PR #23 remains open against `main`, and the PR remains unmerged for orchestrator review.
 
 **STOPPING FOR ORCHESTRATOR REVIEW.**
