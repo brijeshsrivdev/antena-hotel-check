@@ -8,19 +8,21 @@ REQ-028 — Hospitality Analysis Completeness Foundation is merged as PR #28.
 
 REQ-029 — Guest Journey Analysis Foundation is merged as PR #29.
 
+REQ-030 — Hospitality Recommendation Foundation is merged as PR #30.
+
 REQ-020 — Orchestrator Durable Context Foundation is merged and establishes the durable handoff/context mechanism.
 
 ## Immediate Next Slice
 
-REQ-030 — Hospitality Recommendation Foundation — READY.
+REQ-031 — Hospitality Analysis Report Foundation — READY.
 
 Implementation branch:
 
-`feature/hospitality-recommendation-foundation`
+`feature/hospitality-analysis-report-foundation`
 
-REQ-030 is the next bounded vertical slice. It moves the system from explaining observed problems and guest-journey impact toward **evidence-grounded actionable recommendations**.
+REQ-031 is the next bounded vertical slice. It moves the system from internal analysis outputs toward a stable structured report model that can later support APIs, UI, PDFs, or public reports.
 
-The implementation must consume existing analysis and journey outputs. It must not redesign acquisition, evidence, observations, signals, findings, deficiencies, limitations, coverage, result, or journey contracts.
+The implementation must consume existing analysis, journey, recommendation, coverage, and limitation outputs. It must not redesign those contracts.
 
 ## Completed Analysis Foundation
 
@@ -41,7 +43,9 @@ Hospitality Analysis Result
   ↓
 Guest Journey Analysis
   ↓
-Actionable Recommendations  ← REQ-030
+Actionable Recommendations
+  ↓
+Structured Analysis Report  ← REQ-031
 ```
 
 REQ-023 establishes the truthful distinction between **unable to verify** and an observed hotel deficiency.
@@ -62,40 +66,44 @@ REQ-029 establishes the first explicit guest-journey representation:
 DISCOVER → UNDERSTAND → EXPLORE → TRUST → BOOK
 ```
 
-## REQ-030 Direction
+REQ-030 establishes deterministic bounded recommendations derived from governed deficiencies/semantics without scoring, prioritization, AI, or speculative advice.
 
-REQ-030 should make the analysis actionable without turning recommendations into a generic AI or scoring system.
+## REQ-031 Direction
+
+REQ-031 should create a stable domain-level report representation, not a presentation layer.
 
 ```text
-Existing findings / deficiencies / governed limitations
-                    ↓
-          deterministic mapping
-                    ↓
-      bounded hospitality recommendation
-                    ↓
-      source finding + journey traceability
+Hospitality Analysis Result
+        +
+Guest Journey Analysis
+        +
+Hospitality Recommendations
+        ↓
+Structured Hospitality Analysis Report
 ```
 
-Initial recommendation families should remain small and evidence-grounded, for example:
+The report should make it possible to represent, at minimum:
 
-- improve booking discoverability;
-- improve room information;
-- improve guest-facing information;
-- improve contact/location information;
-- resolve conflicting hotel identity information;
-- improve trust/clarity.
+- hotel/evaluation identity;
+- analysis coverage and truthful limitations;
+- executive-level analysis summary derived from existing governed outputs;
+- guest journey stages and their governed impacts;
+- observed strengths only where existing evidence supports them;
+- deficiencies/problems;
+- recommendations;
+- provenance/evaluation attribution where required by existing contracts.
 
-Do not create recommendations from missing evidence alone. Do not create a booking recommendation merely because a BOOKING observation is absent. Do not rank recommendations or estimate ROI/conversion impact.
+Do not invent positive hotel facts merely because a report section expects content.
 
 ## Future Sequence
 
-After REQ-030, the orchestrator should reassess the actual repository state before defining the next slice. Likely future areas include:
+After REQ-031, reassess the actual repository state before defining the next slice. Likely future areas include:
 
-- recommendation quality/completeness expansion;
-- connected digital-performance signals such as Google Business Profile, Search Console, GA4, or similar plan-gated capabilities;
-- customer-facing report generation;
+- report API/rendering boundary;
+- real-hotel end-to-end evaluation orchestration;
+- analysis quality/calibration and additional supported dimensions;
 - persistence and evaluation history;
-- analysis maturity/calibration;
+- connected digital-performance signals such as Google Business Profile, Search Console, GA4, or similar plan-gated capabilities;
 - eventually Antena integration and `<hotel-name>.antenapro.com` experience generation.
 
 These are **not yet implementation requirements** unless separately specified and marked READY.
@@ -124,6 +132,8 @@ Hospitality Analysis Result
 Guest Journey Analysis
         ↓
 Actionable Recommendations
+        ↓
+Structured Analysis Report
         ↓
 Mature, trustworthy analysis
         ↓
@@ -162,6 +172,6 @@ After every merged agent PR, update durable orchestrator context before starting
 
 ## Guardrails
 
-Do not jump directly to a complete scoring engine, arbitrary coverage classifier, generic AI analysis, full hospitality ontology, recommendation prioritization, report generation, interactive Antena-hosted experience, broad crawling infrastructure, or generic SEO auditing. Each requires an explicit bounded requirement.
+Do not jump directly to a complete scoring engine, arbitrary coverage classifier, generic AI analysis, full hospitality ontology, recommendation prioritization, report rendering/UI, interactive Antena-hosted experience, broad crawling infrastructure, or generic SEO auditing. Each requires an explicit bounded requirement.
 
-REQ-030 is intentionally bounded to deterministic recommendations derived from already-retained evidence-grounded analysis. It must not expand into acquisition, reporting, connected integrations, preview generation, or Antena integration.
+REQ-031 is intentionally bounded to a structured domain report assembled from existing trustworthy analysis outputs. It must not expand into UI, rendering, persistence, connected integrations, preview generation, or Antena integration.
