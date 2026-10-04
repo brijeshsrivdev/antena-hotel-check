@@ -168,7 +168,7 @@ No live hotel website or external network dependency is used by the tests.
 
 Local Maven validation is not available in the session environment because direct repository cloning cannot resolve `github.com`.
 
-GitHub Actions Backend Validation run **#131** / run ID **`37176902621`** executed against final branch head **`d0cbdb578edcf285e650e55db584f2506ec99606`**:
+GitHub Actions Backend Validation run **#133** / run ID **`37176975881`** executed for branch head **`e93e1de639fe5a72bb6cb398bb25e7e5157cea84`** (the PR validation checkout used merge ref `e441cdfee2d9493104eccc95c5e68fbd5ad78d96`):
 
 - Workflow: **Backend Validation**
 - Job: **Java 21 / Maven tests**
@@ -179,18 +179,19 @@ GitHub Actions Backend Validation run **#131** / run ID **`37176902621`** execut
 - Errors: **0**
 - REQ-023 tests: **11**, all passing
 
-The final-head CI run is the authoritative repository-level validation for this requirement.
+The CI run also exercised the existing persistence integration test with Testcontainers PostgreSQL successfully. Repository tooling emitted only non-blocking deprecation/warning messages.
 
 ### CI
 
-**PASS** — Backend Validation run #131 / run ID `37176902621`.
+**PASS** — Backend Validation run #133 / run ID `37176975881`.
 
 ### PR
 
 - **PR:** #23 — `REQ-023: Hospitality Analysis Limitation Foundation`
 - **Base:** `main`
 - **Head:** `feature/hospitality-analysis-limitation-foundation`
-- **Validated head:** `d0cbdb578edcf285e650e55db584f2506ec99606`
+- **Validated branch head:** `e93e1de639fe5a72bb6cb398bb25e7e5157cea84`
+- **PR validation merge ref:** `e441cdfee2d9493104eccc95c5e68fbd5ad78d96`
 - **Status:** OPEN
 - **Merged:** No
 
@@ -237,6 +238,6 @@ The new boundary performs no network access, persistence, external service calls
 
 ## Governance
 
-`STATUS: PR_READY` — implementation complete, final-head Backend Validation passed, PR #23 is open against `main`, and the PR remains unmerged for orchestrator review.
+`STATUS: PR_READY` — implementation complete, Backend Validation passed, PR #23 is open against `main`, and the PR remains unmerged for orchestrator review.
 
 **STOPPING FOR ORCHESTRATOR REVIEW.**
