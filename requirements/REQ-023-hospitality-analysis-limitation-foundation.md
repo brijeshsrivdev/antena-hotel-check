@@ -1,6 +1,6 @@
 # REQ-023 — Hospitality Analysis Limitation Foundation
 
-**STATUS:** IN_PROGRESS  
+**STATUS:** PR_READY  
 **REQUIREMENT_ID:** REQ-023  
 **TYPE:** Implementation  
 **BRANCH:** `feature/hospitality-analysis-limitation-foundation`
@@ -166,15 +166,31 @@ No live hotel website or external network dependency is used by the tests.
 
 ### Validation
 
-Local Maven validation is not available in the session environment because direct repository cloning cannot resolve `github.com`. GitHub Actions Backend Validation is therefore required and will be treated as the authoritative executed backend validation.
+Local Maven validation is not available in the session environment because direct repository cloning cannot resolve `github.com`.
+
+GitHub Actions Backend Validation run **#127** / run ID **`37176735683`** executed against implementation commit **`80f972cb6a073783b617275c47b0b660a36223a0`**:
+
+- Workflow: **Backend Validation**
+- Job: **Java 21 / Maven tests**
+- Result: **SUCCESS**
+- Maven test step: **SUCCESS**
+
+Because the final requirement-status update itself changes the branch head, a second Backend Validation run is required and will be recorded before this requirement remains `PR_READY`.
 
 ### CI
 
-**PENDING** — PR CI has not yet been executed for this implementation.
+**PASS for implementation commit** — Backend Validation run #127 / run ID `37176735683`.
+
+**Final-head CI:** pending after the requirement completion-record update.
 
 ### PR
 
-**PENDING** — PR will be created against `main` after the implementation commit.
+- **PR:** #23 — `REQ-023: Hospitality Analysis Limitation Foundation`
+- **Base:** `main`
+- **Head:** `feature/hospitality-analysis-limitation-foundation`
+- **Implementation validated head:** `80f972cb6a073783b617275c47b0b660a36223a0`
+- **Status:** OPEN
+- **Merged:** No
 
 ### Limitations / open questions
 
@@ -219,6 +235,6 @@ The new boundary performs no network access, persistence, external service calls
 
 ## Governance
 
-REQ-023 will be set to `PR_READY` only after the PR is created and actual Backend Validation CI succeeds.
+`STATUS: PR_READY` is provisional until Backend Validation succeeds for the final branch head containing this completion record. No merge is permitted.
 
-**STOPPING FOR CI / PR completion before orchestrator review.**
+**STOPPING FOR ORCHESTRATOR REVIEW after final-head CI.**
