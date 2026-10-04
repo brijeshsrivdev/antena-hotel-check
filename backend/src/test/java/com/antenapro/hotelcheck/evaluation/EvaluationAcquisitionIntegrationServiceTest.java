@@ -2,6 +2,7 @@ package com.antenapro.hotelcheck.evaluation;
 
 import com.antenapro.hotelcheck.acquisition.AcquisitionMethod;
 import com.antenapro.hotelcheck.acquisition.AcquisitionOutcome;
+import com.antenapro.hotelcheck.acquisition.AcquisitionRequest;
 import com.antenapro.hotelcheck.acquisition.AcquisitionResult;
 import com.antenapro.hotelcheck.acquisition.PublicWebAcquisitionService;
 import com.antenapro.hotelcheck.input.CanonicalEvaluationRequest;
@@ -55,6 +56,20 @@ class EvaluationAcquisitionIntegrationServiceTest {
     }
 
     @Test
+    void canonicalWebsiteTargetUsesExistingAcquisitionRequestConversion() {
+        CapturingAcquisitionService acquisitionService = new CapturingAcquisitionService();
+        CanonicalEvaluationRequest request = request(WEBSITE);
+        AcquisitionResult acquisitionResult = result(AcquisitionOutcome.SUCCESS, 200, "body", Map.of());
+        acquisitionService.result = acquisitionResult;
+
+        EvaluationAcquisitionResult integrationResult = service(acquisitionService).execute(request);
+
+        assertEquals(1, acquisitionService.invocationCount);
+        assertEquals(WEBSITE, acquisitionService.capturedRequest.targetUrl());
+        assertSame(acquisitionResult, integrationResult.acquisitionResult());
+    }
+
+    @Test
     void timeoutRemainsTypedFailureAndDoesNotFailEvaluation() {
         assertFailureRemainsRunning(AcquisitionOutcome.TIMEOUT, "request timed out");
     }
@@ -62,6 +77,12 @@ class EvaluationAcquisitionIntegrationServiceTest {
     @Test
     void httpErrorRemainsTypedFailureAndDoesNotFailEvaluation() {
         assertFailureRemainsRunning(AcquisitionOutcome.HTTP_ERROR, "HTTP request failed with status 503");
+    }
+
+    @Test
+    void responseTooLargeAndNetworkFailureRemainDistinguishable() {
+        assertFailureRemainsRunning(AcquisitionOutcome.RESPONSE_TOO_LARGE, "response too large");
+        assertFailureRemainsRunning(AcquisitionOutcome.NETWORK_ERROR, "network failure");
     }
 
     @Test
@@ -172,5 +193,18 @@ class EvaluationAcquisitionIntegrationServiceTest {
                 outcome == AcquisitionOutcome.REDIRECT_LIMIT_EXCEEDED ? List.of(WEBSITE) : List.of(),
                 success ? null : bodyOrError
         );
+    }
+
+    private static final class CapturingAcquisitionService implements PublicWebAcquisitionService {
+        private AcquisitionRequest capturedRequest;
+        private AcquisitionResult result;
+        private int invocationCount;
+
+        @Override
+        public AcquisitionResult acquire(AcquisitionRequest request) {
+            invocationCount++;
+            capturedRequest = request;
+            return result;
+        }
     }
 }
