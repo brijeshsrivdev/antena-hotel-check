@@ -9,7 +9,7 @@ BRANCH: `feature/deterministic-hospitality-analysis-engine`
 
 Move from isolated hospitality-analysis domain foundations to the first **usable deterministic analysis pipeline**.
 
-REQ-026 consumes already-retained `StructuredEvidence` for one evaluation and deterministically produces the analysis artifacts that can be assembled into a `HospitalityAnalysisResult`:
+REQ-026 consumes already-retained `StructuredEvidence` for one evaluation and deterministically produces analysis artifacts that can be assembled into a `HospitalityAnalysisResult`:
 
 ```text
 Structured Evidence
@@ -46,7 +46,7 @@ Implement a deterministic analysis application/service that:
 3. qualifies observations through the existing `HospitalityAnalysisSignalService`;
 4. converts supported qualified signals into verified hospitality findings;
 5. converts supported unavailable/failed evidence conditions into truthful unable-to-verify limitations where existing REQ-023 rules permit it;
-6. derives the coverage **representation inputs** from what was actually assessable;
+6. derives factual coverage representation inputs from what was actually assessable;
 7. assembles the existing `HospitalityAnalysisResult`;
 8. preserves evaluation identity and evidence/provenance traceability throughout.
 
@@ -59,7 +59,7 @@ The service supports the currently implemented hospitality observation categorie
 - BOOKING
 - DINING
 
-Do not invent additional observation categories in this requirement merely to match all nine SPEC-006 dimensions.
+These six observation categories are **not** the complete hospitality analysis ontology. They are the currently implemented observation capabilities.
 
 ## Finding Semantics
 
@@ -87,7 +87,26 @@ REQ-024 intentionally established **representation**, not classification.
 
 REQ-026 does not invent a classifier or thresholds.
 
-The engine constructs factual coverage inputs including intended journey scope, intended dimensions supported by current deterministic checks, assessable journey stages/dimensions, limited journey stages/dimensions, and supporting findings/limitations.
+The engine distinguishes two separate concepts:
+
+1. **Full intended hospitality analysis scope** — the complete nine-dimension scope governed by SPEC-006.
+2. **Currently assessable scope** — the subset of those dimensions supported by findings and limitations produced by the currently implemented REQ-026 observation/signal capabilities.
+
+The full intended dimension set is explicit and independent of `DIMENSION_BY_CATEGORY`:
+
+- `HOTEL_IDENTITY_AND_PROPERTY_UNDERSTANDING`
+- `DISCOVERABILITY_AND_NAVIGATION`
+- `ROOMS_AND_ROOM_INFORMATION`
+- `AMENITIES_AND_GUEST_FACING_INFORMATION`
+- `CONTACT_AND_LOCATION`
+- `BOOKING_DISCOVERABILITY_AND_JOURNEY_SIGNALS`
+- `TRUST_AND_CLARITY`
+- `MOBILE_AND_TECHNICAL_GUEST_EXPERIENCE`
+- `SEO_AND_STRUCTURED_DATA_SUPPORTING_SIGNALS`
+
+The current observation categories contribute only to dimensions they genuinely support. In particular, `DINING` contributes to the existing `AMENITIES_AND_GUEST_FACING_INFORMATION` dimension and does not create a separate analysis dimension.
+
+Unsupported dimensions remain part of the intended scope but are not marked assessable merely because the intended ontology contains them. They are not hotel deficiencies.
 
 The final `HospitalityAnalysisCoverageState` remains a governed caller-supplied input. The engine does not derive it from page counts, finding counts, percentages, or thresholds.
 
@@ -125,7 +144,7 @@ Deduplication occurs through deterministic generated-artifact equality so equiva
 
 ## Explicit Non-Scope
 
-Do NOT implement browser/crawler acquisition, scraping infrastructure, search APIs, AI/LLM/model confidence, numerical scoring, hotel quality score, severity calibration, ranking/grading, recommendation generation, report generation/UI/PDF/dashboard, persistence/database schema, REST API, interactive preview, booking/OTA integration, competitor analysis, generic SEO auditing, universal source hierarchy, full nine-dimension ontology expansion, arbitrary coverage thresholds, or arbitrary coverage classification.
+Do NOT implement browser/crawler acquisition, scraping infrastructure, search APIs, AI/LLM/model confidence, numerical scoring, hotel quality score, severity calibration, ranking/grading, recommendation generation, report generation/UI/PDF/dashboard, persistence/database schema, REST API, interactive preview, booking/OTA integration, competitor analysis, generic SEO auditing, universal source hierarchy, full nine-dimension analysis capability, arbitrary coverage thresholds, arbitrary coverage classification, or new observation categories solely to populate unsupported analysis dimensions.
 
 ## Dependencies
 
@@ -154,12 +173,15 @@ Do NOT implement browser/crawler acquisition, scraping infrastructure, search AP
 10. Multiple distinct evidence sources remain traceable; conflicts are not silently overwritten.
 11. Equivalent duplicate signals are handled deterministically without losing distinct source context.
 12. Zero findings is valid and does not imply absence of hotel capabilities.
-13. Coverage inputs are derived only from actual assessable evidence and existing artifacts.
-14. No arbitrary coverage threshold or classification rule is invented.
-15. The existing `HospitalityAnalysisResult` is the final aggregation boundary.
-16. The complete pipeline is deterministic and has no external/network/AI dependency.
-17. Existing upstream contracts remain intact.
-18. Focused REQ-026 coverage and complete backend CI pass.
+13. The coverage's `intendedDimensions` contains the complete nine-dimension SPEC-006 hospitality scope independently of the currently implemented observation categories.
+14. `assessableDimensions` contains only dimensions genuinely supported by current findings.
+15. Unsupported dimensions remain in the intended scope and are not falsely marked assessable.
+16. `DINING` does not create a new analysis dimension and only contributes to an existing governed dimension where supported by the current specification/domain semantics.
+17. No arbitrary coverage threshold or classification rule is invented.
+18. The existing `HospitalityAnalysisResult` is the final aggregation boundary.
+19. The complete pipeline is deterministic and has no external/network/AI dependency.
+20. Existing upstream contracts remain intact.
+21. Focused REQ-026 coverage and complete backend CI pass.
 
 ## Engineering Expectations
 
@@ -181,82 +203,79 @@ Coverage representation
 HospitalityAnalysisResult
 ```
 
-Do not create a generic rule engine, plugin framework, strategy hierarchy, or reflection-based pipeline. Reuse existing services rather than duplicating their rules.
+Do not create a generic rule engine, plugin framework, strategy hierarchy, reflection-based pipeline, configuration registry, or metadata framework. Reuse existing services rather than duplicating their rules. The complete intended dimension scope should remain a small explicit governed constant/set.
 
 ## Testing Requirements
 
 Tests cover the end-to-end deterministic pipeline, multiple evidence, mixed successful/failed evidence, zero eligible observations, repeated equivalent evidence, deterministic repeat execution, truthfulness of limitations, cross-evaluation rejection, output evaluation integrity, provenance, source conflicts, coverage representation, and regression of the existing suite.
 
+The coverage tests additionally prove:
+
+1. the intended dimension set contains all nine SPEC-006 dimensions;
+2. assessable dimensions are derived only from currently supported findings;
+3. discoverability/navigation, trust/clarity, mobile/technical, and SEO/structured-data remain intended but are not falsely assessed by unrelated current findings;
+4. dining maps only to an existing governed dimension and does not redefine the analysis ontology;
+5. the caller-supplied coverage state remains unchanged and no threshold/classifier is introduced.
+
 No live hotel website or external network dependency is permitted.
 
 ## Validation
 
-The final PR head was validated by GitHub Actions Backend Validation run **#183** (`37181319818`) with the complete backend Maven suite passing: **146 tests, 0 failures, 0 errors**. The new `HospitalityAnalysisServiceTest` executed as part of that suite with **11 tests, 0 failures, 0 errors**.
+The implementation correction was validated through focused REQ-026 tests and the complete backend Maven suite. GitHub Actions Backend Validation must run against the final PR head; an earlier successful commit does not constitute final validation.
 
-A local Maven run was not available in the execution environment because Maven was not installed and the environment could not clone GitHub directly; GitHub Actions provided the authoritative full-suite validation.
+### Implementation Record — P1 Correction
 
-## Implementation Record
+#### Correction
 
-### Context reconciliation
+The original implementation derived `intendedDimensions` from `DIMENSION_BY_CATEGORY.values()`. That incorrectly reduced the intended analysis scope to the six currently implemented observation categories.
 
-Current `main` was inspected before implementation. REQ-025 is merged on `main`. Existing observation, signal, finding, limitation, coverage, result, structured-evidence, evaluation, and attempt contracts were reused. No upstream contract was modified.
+The correction introduces an explicit `FULL_INTENDED_DIMENSIONS` set containing all nine dimensions governed by SPEC-006. `DIMENSION_BY_CATEGORY` remains only the mapping used to determine currently assessable/limited dimensions from actual observation artifacts.
 
-### Implementation summary
+This preserves the architectural distinction:
 
-Added `HospitalityAnalysisService` as the bounded deterministic orchestration boundary. The service validates evaluation/attempt identity, processes evidence through the existing observation and signal services, creates findings through the existing finding service, creates supported unable-to-verify limitations through the existing limitation service, derives factual coverage representation inputs, and assembles `HospitalityAnalysisResult`.
+```text
+SPEC-006 full intended dimensions
+        │
+        ├── dimensions supported by current findings
+        │       ↓
+        │   assessable dimensions
+        │
+        └── dimensions not yet supported
+                ↓
+            intended but not currently assessable
+```
 
-The implementation intentionally does not classify coverage. `HospitalityAnalysisCoverageState` is a governed caller input. The engine derives assessable/limited scope only from actual findings and limitations.
+No new observation categories were added. `DINING` remains an observation category mapped to `AMENITIES_AND_GUEST_FACING_INFORMATION`.
 
-### Files changed
+#### Files changed for correction
 
 - `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisService.java`
 - `backend/src/test/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisServiceTest.java`
 - `requirements/REQ-026-deterministic-hospitality-analysis-engine.md`
 
-### Tests
+#### Coverage-scope tests
 
-- `HospitalityAnalysisServiceTest`: 11 end-to-end tests covering success, multiple evidence, failed evidence, unsupported outcomes, no positive signal, duplicates, conflicts, cross-evaluation rejection, evaluation integrity, coverage boundary, and determinism.
-- Complete backend Maven suite: 146 tests passed.
+Added tests proving:
 
-### CI
+- full nine-dimension intended scope;
+- currently assessable dimensions are limited to supported findings;
+- unsupported dimensions remain intended but not assessable;
+- dining contributes to amenities without creating an invented dimension;
+- existing caller-supplied coverage-state behavior remains intact.
 
-GitHub Actions Backend Validation run #183 passed against final PR head `9ed23bb56d5b93419bdb4f6b65bbd74a9d57cfe3`.
+#### Self-review
 
-### PR
-
-PR #26 — `REQ-026: Deterministic Hospitality Analysis Engine` — open against `main`; not merged.
-
-### Coverage classification decision/gap
-
-No classifier was invented. The final coverage state is explicitly supplied by the governed caller. This preserves the REQ-024 representation boundary until a future requirement defines deterministic classification rules.
-
-### Architectural decisions
-
-- Keep one small `HospitalityAnalysisService` orchestration boundary.
-- Reuse existing observation, signal, finding, limitation, and result contracts.
-- Use deterministic ordered-set accumulation for duplicate suppression while retaining distinct evidence context.
-- Reject mixed evaluation/attempt identity rather than discarding or reassigning evidence.
-- Keep coverage classification outside this engine.
-
-### Limitations
-
-The current observation contracts provide only six deterministic hospitality categories; no additional categories or full nine-dimension ontology were added. Coverage limitations caused by failed acquisition remain truthful but are only mapped to dimensions/stages when the existing limitation artifact itself carries that scope.
-
-### Self-review
-
-- Scope: REQ-026 only.
-- Pipeline: StructuredEvidence → Observation → Signal → Finding/Limitation → Coverage → AnalysisResult.
-- Reuse: existing upstream services/contracts reused.
-- Truthfulness: no negative finding is created from absence alone.
-- Provenance: findings and limitations retain existing supporting artifacts.
-- Evaluation integrity: mixed evaluation and attempt attribution is rejected.
-- Coverage: no thresholds, percentages, page-count scoring, or hidden classifier.
-- Conflicts: distinct evidence is retained.
-- Determinism: no network, clock-dependent classification, randomness, or mutable global state.
-- Simplicity: no generic engine/framework introduced.
+- Scope: only the P1 intended-vs-assessable coverage dimension issue was corrected.
+- Specification: full intended dimension set matches SPEC-006.
+- Current capability: only dimensions supported by current findings/limitations are assessable/limited.
+- Dining: remains an observation category and does not redefine the analysis ontology.
+- Truthfulness: unsupported dimensions are not represented as hotel deficiencies.
+- Coverage: no thresholds, percentages, scoring, or automatic classification introduced.
+- Regression: existing REQ-026 pipeline behavior remains covered by the complete test suite.
+- Simplicity: one explicit dimension set; no framework or abstraction layer added.
 
 ## Requirement Governance
 
-`STATUS: PR_READY` is set only after implementation, test validation, CI validation, this requirement update, and PR creation against `main`.
+`STATUS: PR_READY` is set only after implementation, focused tests, complete backend validation, final-PR-head CI validation, and this requirement update.
 
 **STOPPING FOR ORCHESTRATOR REVIEW.**
