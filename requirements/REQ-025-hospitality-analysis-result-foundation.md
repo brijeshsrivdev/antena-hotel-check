@@ -1,6 +1,6 @@
 # REQ-025 — Hospitality Analysis Result Foundation
 
-STATUS: READY
+STATUS: PR_READY
 REQUIREMENT_ID: REQ-025
 TYPE: Implementation
 BRANCH: `feature/hospitality-analysis-result-foundation`
@@ -111,29 +111,153 @@ Do not implement:
 11. Existing upstream contracts remain unchanged.
 12. Backend Maven validation and GitHub Actions Backend Validation pass.
 
-## Implementation Guidance
+## Implementation Record — Session 25
 
-Inspect the actual merged implementations on `main` before coding.
+### Context reconciliation
 
-Prefer a small immutable value object over a service or framework.
+The actual current `main` was inspected before implementation. The current `main` head is:
 
-Do not create a generic `AnalysisResult` abstraction unless existing repository evidence requires one.
+`b424d4e977af06d6ffe88aebcf5eeeb889406829` — `docs: advance orchestrator next step to REQ-025`.
 
-Do not introduce a new status lifecycle for the analysis result unless an existing specification explicitly requires it.
+Repository evidence confirms REQ-024 is already merged into `main` as PR #24, merge commit `4d5db31f20c0022dcf18f95532a3fbee4a033c04`. This reconciles the earlier temporary session context that still described PR #24 as pending. The repository's current state was treated as authoritative.
 
-If a result-level status is not already governed, do not invent one. The result may simply be the immutable aggregation boundary.
+The implemented REQ-022/023/024 contracts were inspected directly on `main`, including their evaluation identity and immutable collection conventions. `HospitalityFinding` and `HospitalityAnalysisLimitation` expose `evaluationId()` through their existing provenance/evidence chains, while `HospitalityAnalysisCoverage` already retains `evaluationId()` and defensively copies its own collections. No upstream behavior was changed.
+
+### Existing conventions inspected
+
+Inspected:
+
+- `Evaluation.evaluationId()` as the UUID evaluation identity convention;
+- `HospitalityFinding` and its traceable originating signal/evidence;
+- `HospitalityAnalysisLimitation` and its traceable supporting evidence;
+- `HospitalityAnalysisCoverage` and its explicit coverage representation;
+- existing analysis tests and immutable record/value-object conventions;
+- `SPEC-005` evidence/provenance rules;
+- `SPEC-006` hospitality analysis contract;
+- backend engineering and testing standards.
+
+No governed result lifecycle/status exists, so no result status was introduced.
+
+### Implementation summary
+
+Added:
+
+- `HospitalityAnalysisResult` — a small immutable Java record containing exactly one evaluation identity, findings, limitations, and coverage.
+
+The constructor:
+
+- requires all four top-level inputs;
+- requires coverage to belong to the supplied evaluation;
+- rejects any cross-evaluation finding;
+- rejects any cross-evaluation limitation;
+- defensively copies finding and limitation collections with `Set.copyOf`;
+- preserves supplied finding, limitation, and coverage objects by reference.
+
+The result contains no score, severity, recommendation, coverage classifier, result status, report semantics, persistence, network, AI, or Antena integration behavior.
+
+### Tests
+
+Added `HospitalityAnalysisResultTest` with 8 deterministic tests covering:
+
+- aggregation of findings, limitations, and coverage;
+- preservation of supplied domain objects by reference;
+- valid zero-finding result;
+- cross-evaluation finding rejection;
+- cross-evaluation limitation rejection;
+- cross-evaluation coverage rejection;
+- preservation of unable-to-verify limitation semantics and explicit coverage;
+- defensive copying and immutable exposed collections;
+- deterministic/equivalent results for the same inputs.
+
+The tests use fixed clocks and in-memory domain fixtures only. No live hotel website or external network is used.
+
+### Validation
+
+Local Maven execution was attempted through the available execution environment, but repository cloning failed because the environment could not resolve `github.com`. Therefore local Maven success is not claimed.
+
+GitHub Actions Backend Validation was run against the final PR merge head and passed:
+
+- Workflow: `Backend Validation`
+- Run: **#171**
+- Run ID: `37179359962`
+- Final merge-test head: `457798f93030e59f4646bef31fa83dfbcdff3a04`
+- Command: `mvn --batch-mode --no-transfer-progress test`
+- Result: **BUILD SUCCESS**
+- Tests: **135**, **0 failures**, **0 errors**, **0 skipped**
+- Focused `HospitalityAnalysisResultTest`: **8 tests**, all passing.
+
+The CI log also confirms Java 21 compilation and the complete backend Maven suite. Non-blocking runner/tooling/deprecation warnings were present but did not affect the build result.
+
+### CI
+
+**PASS** — GitHub Actions Backend Validation run #171 / run ID `37179359962`.
+
+### PR
+
+- **PR:** #25 — `REQ-025: Hospitality Analysis Result Foundation`
+- **Base:** `main`
+- **Head:** `feature/hospitality-analysis-result-foundation`
+- **Validated branch head:** `1886d23a9384b36ce6ec3e114ebebe7edac1e890`
+- **Validated PR merge-test head:** `457798f93030e59f4646bef31fa83dfbcdff3a04`
+- **Status:** OPEN
+- **Merged:** No
+
+### Limitations
+
+- The result currently exists only as an in-memory immutable domain boundary.
+- No result lifecycle/status is represented because no governed result status exists.
+- Coverage remains the explicit representation supplied by REQ-024; REQ-025 does not classify or recalculate it.
+- Report assembly, persistence, APIs, recommendations, scoring, AI, and Antena integration remain downstream requirements.
+- Local Maven execution could not be completed because the execution environment cannot resolve `github.com`; repository-level validation is therefore evidenced by GitHub Actions rather than local execution.
+
+### Material architectural decisions
+
+1. **Result owns aggregation, not interpretation.** `HospitalityAnalysisResult` only validates evaluation ownership and preserves existing artifacts.
+2. **Evaluation identity is UUID-based and reused from existing domain conventions.** No new evaluation identifier abstraction was introduced.
+3. **Existing artifacts are referenced rather than copied.** This preserves the existing evidence/provenance chain without duplicating it.
+4. **No result status was invented.** Lifecycle semantics remain outside REQ-025.
+5. **No generic aggregation framework was introduced.** A single immutable record is sufficient for the current boundary.
+
+### Self-review
+
+#### Scope
+
+Only REQ-025 was implemented. No upstream acquisition, evaluation, evidence, observation, signal, finding, limitation, or coverage behavior was modified.
+
+#### Ownership
+
+Every top-level artifact supplied to the result is checked against exactly one `evaluationId`. Cross-evaluation findings, limitations, and coverage are rejected rather than discarded or reassigned.
+
+#### Truthfulness
+
+The result does not reinterpret findings or limitations. A limitation remains a limitation, coverage remains coverage, and zero findings remains an empty finding collection rather than a claim of no hotel deficiency.
+
+#### No invention
+
+No result status, score, severity, recommendation, classification algorithm, threshold, percentage, or hotel-capability conclusion was introduced.
+
+#### No duplication
+
+The result retains the existing finding, limitation, and coverage objects by reference. Their evidence/provenance chains are not flattened or duplicated.
+
+#### Simplicity
+
+The implementation is one immutable record with constructor validation and one focused test class. No service, engine, factory, framework, or speculative abstraction was added.
+
+#### Immutability
+
+Input finding/limitation collections are defensively copied and exposed as immutable sets. The supplied domain objects themselves are not mutated.
+
+#### Determinism
+
+The result has no clock, random, network, persistence, or AI dependency. Record equality is deterministic for equivalent inputs.
+
+#### Validation
+
+The focused REQ-025 test class passed as part of the complete GitHub Actions backend suite, with 8/8 tests passing and the full suite at 135/135 passing.
 
 ## Governance
 
-REQ-025 is intentionally an aggregation boundary. Future requirements may add:
+`STATUS: PR_READY` — implementation is complete, the same requirement file contains the implementation/validation record, GitHub Actions Backend Validation run #171 passed for the final PR merge-test head, and PR #25 remains open for orchestrator review.
 
-- governed coverage classification;
-- scoring/severity;
-- recommendations;
-- report presentation;
-- persistence/API;
-- Antena integration.
-
-Those capabilities must be separately specified.
-
-**STOPPING FOR IMPLEMENTATION SESSION REVIEW.**
+**STOPPING FOR ORCHESTRATOR REVIEW.**
