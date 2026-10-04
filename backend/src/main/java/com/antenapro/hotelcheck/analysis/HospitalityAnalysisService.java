@@ -135,7 +135,13 @@ public final class HospitalityAnalysisService {
         Set<HospitalityAnalysisDimension> assessableDimensions = new LinkedHashSet<>();
         for (HospitalityFinding finding : findings) {
             assessableJourneyStages.addAll(finding.journeyStages());
-            assessableDimensions.addAll(dimensionsFor(finding));
+            HospitalityAnalysisDimension dimension = DIMENSION_BY_CATEGORY.get(finding.category());
+            if (dimension != null) {
+                assessableDimensions.add(dimension);
+            }
+            if (isTrustConflictFinding(finding)) {
+                assessableDimensions.add(HospitalityAnalysisDimension.TRUST_AND_CLARITY);
+            }
         }
 
         Set<GuestJourneyStage> limitedJourneyStages = new LinkedHashSet<>();
@@ -163,37 +169,6 @@ public final class HospitalityAnalysisService {
                 state,
                 "Coverage state is supplied by the governed caller; this engine derives only factual assessable and limited scope from generated analysis artifacts."
         );
-    }
-
-    private static Set<HospitalityAnalysisDimension> dimensionsFor(HospitalityFinding finding) {
-        Set<HospitalityAnalysisDimension> dimensions = new LinkedHashSet<>();
-        HospitalityAnalysisDimension primary = DIMENSION_BY_CATEGORY.get(finding.category());
-        if (primary != null) {
-            dimensions.add(primary);
-        }
-
-        if (isObservedGuestFacingEntryPoint(finding)) {
-            dimensions.add(HospitalityAnalysisDimension.DISCOVERABILITY_AND_NAVIGATION);
-        }
-
-        if (isTrustConflictFinding(finding)) {
-            dimensions.add(HospitalityAnalysisDimension.TRUST_AND_CLARITY);
-        }
-
-        return dimensions;
-    }
-
-    private static boolean isObservedGuestFacingEntryPoint(HospitalityFinding finding) {
-        HospitalityObservationCategory category = finding.category();
-        if (category != HospitalityObservationCategory.ROOMS
-                && category != HospitalityObservationCategory.AMENITIES
-                && category != HospitalityObservationCategory.CONTACT
-                && category != HospitalityObservationCategory.BOOKING
-                && category != HospitalityObservationCategory.DINING) {
-            return false;
-        }
-        String sourceReference = finding.observation().sourceReference();
-        return sourceReference != null && sourceReference.contains(" href=");
     }
 
     private static boolean isTrustConflictFinding(HospitalityFinding finding) {
