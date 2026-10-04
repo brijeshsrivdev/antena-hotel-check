@@ -16,7 +16,7 @@ Antena Hotel Check analyzes a hotel's publicly accessible digital presence and g
 
 ## Product Stage
 
-The implemented foundation now establishes a bounded path from canonical evaluation input through public-web acquisition, structured evidence, deterministic hospitality observations, qualified analysis signals, findings/limitations, coverage representation, and an immutable analysis-result aggregation boundary.
+The implemented foundation now establishes a bounded path from canonical evaluation input through public-web acquisition, structured evidence, deterministic hospitality observations, qualified analysis signals, findings/limitations, coverage representation, an immutable analysis-result aggregation boundary, and the first executable deterministic analysis pipeline.
 
 ```text
 Canonical Evaluation Request
@@ -32,6 +32,8 @@ Structured Evidence
 Hospitality Observation
         ↓
 Qualified Hospitality Analysis Signal
+        ↓
+Deterministic Hospitality Analysis
         ↓
 Hospitality Finding / Unable-to-Verify Limitation
         ↓
@@ -51,26 +53,35 @@ Hospitality Analysis Result
 - REQ-022 — Hospitality Finding Foundation — IMPLEMENTED / MERGED.
 - REQ-023 — Hospitality Analysis Limitation Foundation — IMPLEMENTED / MERGED.
 - REQ-024 — Hospitality Analysis Coverage Foundation — IMPLEMENTED / MERGED.
+- REQ-025 — Hospitality Analysis Result Foundation — IMPLEMENTED / MERGED.
+- REQ-026 — Deterministic Hospitality Analysis Engine — IMPLEMENTED / MERGED as PR #26.
 
 ## Current Architectural Boundary
 
 The latest completed product boundary is:
 
-`Qualified HospitalityAnalysisSignal → Findings / Limitations → Coverage → HospitalityAnalysisResult`
+`StructuredEvidence → Observation → Qualified Signal → Findings / Limitations → Coverage → HospitalityAnalysisResult`
 
-REQ-024 establishes coverage representation only. Coverage state is an explicit already-governed classification; it does not invent thresholds or classify from page/finding counts.
+REQ-026 is the first executable deterministic analysis service. It processes multiple evidence items for one evaluation, reuses the existing observation/signal/limitation/result contracts, preserves provenance and evaluation identity, and explicitly separates the full nine-dimension intended analysis scope from the currently assessable scope.
 
-REQ-025 is the next READY implementation boundary and will only aggregate the existing findings, limitations, and coverage into an immutable hospitality analysis result. It must not introduce scoring, recommendations, classification, reporting, persistence, AI, or Antena integration.
-
-REQ-020 establishes the durable orchestration context and handoff mechanism; it does not add Hotel Check runtime behavior.
+REQ-026 does not invent coverage thresholds or classification. Coverage state remains governed by an explicit caller-supplied input.
 
 ## Immediate Next Governed Step
 
-REQ-025 — Hospitality Analysis Result Foundation — READY.
+REQ-027 — Hospitality Deficiency Analysis Foundation — READY.
 
-Implementation branch: `feature/hospitality-analysis-result-foundation`.
+Implementation branch: `feature/hospitality-deficiency-analysis-foundation`.
 
-The implementation session must inspect actual `main` and existing contracts before coding, reuse the existing finding/limitation/coverage objects by reference, preserve evaluation identity, and avoid inventing a result lifecycle/status.
+REQ-027 is the next larger vertical analysis slice. It will extend the deterministic pipeline from positive/observed signals to evidence-grounded observed deficiencies and meaningful evidence gaps.
+
+The implementation must distinguish:
+
+- observed deficiency;
+- insufficient evidence;
+- unable-to-verify limitation;
+- unsupported analysis capability.
+
+Missing evidence, failed acquisition, `NOT_ATTEMPTED`, unsupported dimensions, and context-free keyword absence must never become hotel deficiencies.
 
 ## Product Sequence
 
@@ -85,7 +96,9 @@ Bounded Hospitality Observations
         ↓
 Qualified Hospitality Analysis Signals
         ↓
-Hospitality Findings + truthful limitations
+Executable Deterministic Analysis
+        ↓
+Evidence-grounded deficiencies + truthful limitations
         ↓
 Coverage representation
         ↓
@@ -102,11 +115,10 @@ Antena integration opportunity
 
 The following remain outside the completed foundation unless a merged requirement explicitly says otherwise:
 
-- coverage classification/calibration rules
+- governed coverage classification/calibration rules
 - scoring and recommendations
-- guest-journey scoring
+- complete nine-dimension analysis capability
 - AI/LLM analysis
-- complete hotel ontology
 - report generation
 - interactive Antena-hosted hotel preview integration
 - booking/OTA analysis beyond bounded observed entry-point signals
@@ -114,6 +126,7 @@ The following remain outside the completed foundation unless a merged requiremen
 - unrestricted crawling/browser acquisition
 - generic SEO auditing as the product center
 - competitor analysis
+- Antena integration
 
 ## Operating Rule
 
