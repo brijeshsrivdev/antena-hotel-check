@@ -445,7 +445,9 @@ Focused REQ-029 coverage was added in `GuestJourneyAnalysisServiceTest`, includi
 
 ### Validation
 
-- GitHub Actions Backend Validation run `37208791707` passed for the implementation head `0de2dd92d889959f167d0cc149cb7caa5cfeb121`.
+- GitHub Actions Backend Validation run `37208928038` passed against the exact PR head `76cdcc1fa0295f8396f3559620994ce92197e69a`.
+- The workflow completed successfully, including the `Java 21 / Maven tests` job and its `Run backend Maven tests` step.
+- The validated PR head already contains the REQ-029 requirement file update that records the earlier validation discrepancy; the requirement file is therefore included in this successful validation.
 - The workflow executes the complete backend Maven test suite (`mvn --batch-mode --no-transfer-progress test`), including the focused REQ-029 test class.
 - The PR diff was inspected for unrelated application changes; the change set is confined to the REQ-029 journey/domain/test scope.
 
@@ -472,7 +474,12 @@ Focused REQ-029 coverage was added in `GuestJourneyAnalysisServiceTest`, includi
 
 ### Final-head CI result
 
-The requirement update itself is part of the PR head. Final-head Backend Validation must pass against the resulting PR head before this requirement is considered complete for orchestrator review.
+- Final PR head at validation: `76cdcc1fa0295f8396f3559620994ce92197e69a`.
+- Backend Validation run: `37208928038` (`Backend Validation`, run #264).
+- Result: `success`.
+- `Java 21 / Maven tests`: `success`.
+- `Run backend Maven tests`: `success`.
+- The requirement file update is included in the validated PR head.
 
 ## Required Validation
 
@@ -484,7 +491,7 @@ Before marking `PR_READY`:
 4. Verify no unrelated application changes were introduced.
 5. Verify the requirement file contains the final validation result.
 
-The implementation/test head passed Backend Validation before this requirement completion update. The PR-ready head is `0de2dd92d889959f167d0cc149cb7caa5cfeb121` before the requirement-file update; the final requirement-file update must be validated again by CI before orchestrator review.
+All five checks are satisfied for the current PR-ready head. No implementation changes were made in response to the validation issue; the correction was limited to recording the exact-head successful CI validation.
 
 ## Expected Session Outcome
 
