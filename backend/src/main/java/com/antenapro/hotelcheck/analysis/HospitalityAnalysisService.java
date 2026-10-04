@@ -140,6 +140,9 @@ public final class HospitalityAnalysisService {
                 assessableDimensions.add(dimension);
             }
         }
+        if (hasIdentityConflict(findings)) {
+            assessableDimensions.add(HospitalityAnalysisDimension.TRUST_AND_CLARITY);
+        }
 
         Set<GuestJourneyStage> limitedJourneyStages = new LinkedHashSet<>();
         Set<HospitalityAnalysisDimension> limitedDimensions = new LinkedHashSet<>();
@@ -166,6 +169,20 @@ public final class HospitalityAnalysisService {
                 state,
                 "Coverage state is supplied by the governed caller; this engine derives only factual assessable and limited scope from generated analysis artifacts."
         );
+    }
+
+    private static boolean hasIdentityConflict(Set<HospitalityFinding> findings) {
+        List<HospitalityFinding> identityFindings = findings.stream()
+                .filter(finding -> finding.category() == HospitalityObservationCategory.HOTEL_IDENTITY)
+                .toList();
+        for (int i = 0; i < identityFindings.size(); i++) {
+            for (int j = i + 1; j < identityFindings.size(); j++) {
+                if (identityFindings.get(i).isIdentityConflictWith(identityFindings.get(j))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static void validateEvaluationIntegrity(UUID evaluationId, List<StructuredEvidence> evidenceItems) {

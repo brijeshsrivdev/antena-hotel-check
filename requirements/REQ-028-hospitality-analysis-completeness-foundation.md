@@ -45,7 +45,7 @@ Coverage
 HospitalityAnalysisResult
 ```
 
-REQ-028 must build on these existing contracts.
+REQ-028 builds on these existing contracts.
 
 ## Intended Dimensions
 
@@ -61,7 +61,7 @@ SPEC-006 defines these nine semantic dimensions:
 8. `MOBILE_AND_TECHNICAL_GUEST_EXPERIENCE`
 9. `SEO_AND_STRUCTURED_DATA`
 
-The implementation must explicitly distinguish dimensions that are intended from dimensions that are currently assessable and dimensions actually assessed for an evaluation.
+The implementation explicitly distinguishes dimensions that are intended from dimensions that are currently assessable and dimensions actually assessed for an evaluation.
 
 ## Scope
 
@@ -75,7 +75,7 @@ A dimension must remain unsupported when its required evidence is not available 
 
 ## Assessment Semantics
 
-For each newly supported dimension, the implementation must preserve the distinction between:
+For each newly supported dimension, the implementation preserves the distinction between:
 
 ### Positive/observed evidence
 
@@ -119,11 +119,11 @@ REQ-027's booking correction remains authoritative:
 successful room evidence + no BOOKING signal → no booking deficiency
 ```
 
-REQ-028 must not reintroduce that inference through another rule.
+REQ-028 does not reintroduce that inference through another rule.
 
 ## Evidence and Provenance
 
-Every new assessment/finding must remain traceable through the existing provenance chain:
+Every new assessment/finding remains traceable through the existing provenance chain:
 
 ```text
 Assessment / Finding
@@ -137,39 +137,132 @@ StructuredEvidence
 Evaluation / Attempt
 ```
 
-Do not create a new provenance model.
-
-Do not mutate source evidence or acquisition results.
-
-Do not mix evidence from different evaluations.
+No new provenance model was introduced. Source evidence and acquisition results are not mutated, and evidence from different evaluations is not mixed.
 
 ## Coverage
 
-REQ-028 may provide richer inputs to the existing analysis coverage semantics, but must not redesign the coverage contract.
+REQ-028 provides richer inputs to the existing analysis coverage semantics without redesigning the coverage contract.
 
-Do not introduce new coverage formulas, arbitrary thresholds, or numerical scores.
+No new coverage formula, arbitrary threshold, or numerical score was introduced.
 
-Do not claim exhaustive verification merely because multiple dimensions are assessed.
-
-Existing coverage states remain governed by the established analysis contract, including substantially assessed, partially assessed, and insufficient coverage semantics.
+`TRUST_AND_CLARITY` becomes assessable only when the retained identity findings contain a deterministic, same-evaluation, cross-source material identity conflict. Coverage determines this from typed finding/observation data, not from human-readable finding text.
 
 ## Findings
 
-Reuse the existing `HospitalityFinding` model and existing analysis contracts.
+The existing `HospitalityFinding` model and analysis contracts are reused.
 
-Do not introduce a second finding hierarchy, generic rule engine, or scoring framework.
+A small explicit domain helper, `HospitalityFinding.isIdentityConflictWith(...)`, determines a material identity conflict from the existing typed observation category, evaluation attribution, source reference, and observed identity value. This avoids using presentation-oriented finding text as a domain discriminator and does not introduce a generic rule engine or new finding hierarchy.
 
-Any new finding must preserve its affected dimension, guest-facing relevance where already supported, evidence basis, provenance, and evaluation attribution.
-
-Do not create a finding solely because an expected observation is absent.
+No upstream acquisition or observation contract was expanded.
 
 ## Hospitality-First Boundary
 
 The analysis remains organized around the hospitality guest journey and SPEC-006 dimensions.
 
-Technical, SEO, structured-data, mobile, accessibility, or performance observations may be used only where existing evidence supports a meaningful guest-facing analysis.
+Technical, SEO, structured-data, mobile, accessibility, or performance observations are used only where existing evidence supports a meaningful guest-facing analysis.
 
-Do not turn REQ-028 into a generic SEO or website auditing engine.
+REQ-028 is not a generic SEO or website auditing engine.
+
+## Context Reconciliation
+
+Before correction, PR #28 contained the REQ-028 service and test changes but did not update this requirement file. The repository review also identified a P1 implementation issue: coverage used the human-readable identity-conflict finding text as its discriminator.
+
+The correction keeps REQ-027 behavior intact and addresses both P1 issues before PR readiness.
+
+## Dimensions Inspected
+
+All nine SPEC-006 dimensions were inspected against the existing observation, signal, finding, limitation, and coverage contracts:
+
+- `HOTEL_IDENTITY_AND_PROPERTY_UNDERSTANDING` — assessable through existing hotel identity observations.
+- `DISCOVERABILITY_AND_NAVIGATION` — inspected; unsupported because the current governed observation contracts do not provide sufficient evidence.
+- `ROOMS_AND_ROOM_INFORMATION` — already assessable through existing room observations and retained REQ-027 deficiency behavior.
+- `AMENITIES_AND_GUEST_FACING_INFORMATION` — already assessable through existing amenities/dining observations.
+- `CONTACT_AND_LOCATION` — already assessable through existing contact observations.
+- `BOOKING_DISCOVERABILITY_AND_JOURNEY_SIGNALS` — existing booking observation support remains unchanged and conservative.
+- `TRUST_AND_CLARITY` — newly supported when a material cross-source hotel identity conflict is deterministically established.
+- `MOBILE_AND_TECHNICAL_GUEST_EXPERIENCE` — inspected; intentionally unsupported because sufficient governed evidence is not available.
+- `SEO_AND_STRUCTURED_DATA_SUPPORTING_SIGNALS` — inspected; intentionally unsupported because sufficient governed evidence is not available.
+
+## Newly Supported Dimensions
+
+### `TRUST_AND_CLARITY`
+
+The dimension is assessable when two retained `HOTEL_IDENTITY` findings from the same evaluation represent materially different identity values from different sources. The discriminator is typed and deterministic:
+
+1. both findings are `HOTEL_IDENTITY`;
+2. both belong to the same evaluation;
+3. their source references differ;
+4. their normalized observed identity values are materially different.
+
+This reuses the existing REQ-027 identity-conflict behavior rather than creating a second conflict rule.
+
+## Intentionally Unsupported Dimensions
+
+The following remain unsupported because the current repository does not expose sufficient governed evidence to make responsible guest-facing claims:
+
+- `DISCOVERABILITY_AND_NAVIGATION`
+- `MOBILE_AND_TECHNICAL_GUEST_EXPERIENCE`
+- `SEO_AND_STRUCTURED_DATA_SUPPORTING_SIGNALS`
+
+No new acquisition, crawler, browser, SEO, mobile, or technical observation contract was added merely to make these dimensions appear assessable.
+
+## Implementation Summary
+
+1. Added a typed `HospitalityFinding.isIdentityConflictWith(...)` helper based on existing observation/category, evaluation, source, and observed-value data.
+2. Changed `HospitalityAnalysisService` coverage derivation to use that typed helper instead of `findingText().startsWith(...)`.
+3. Added/retained REQ-028 regression coverage for cross-source identity conflict and unsupported dimensions.
+4. Preserved the REQ-027 booking truth boundary: room evidence without a BOOKING observation does not create a booking deficiency.
+5. Added no AI, scoring, network access, acquisition expansion, persistence changes, or generic rule engine.
+
+## Files Changed
+
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisService.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityFinding.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisCompletenessFoundationTest.java`
+- `requirements/REQ-028-hospitality-analysis-completeness-foundation.md`
+
+## Tests
+
+The REQ-028 focused test class covers:
+
+- cross-source identity conflict makes `TRUST_AND_CLARITY` assessable;
+- identity conflict discrimination is based on typed finding/observation data rather than finding text;
+- trust remains unsupported without governed conflict evidence;
+- mobile and SEO remain unsupported;
+- room evidence without a BOOKING observation does not create a booking deficiency.
+
+The complete backend Maven suite is the repository's CI validation gate and includes these focused tests.
+
+## Architectural Decisions
+
+- Reuse the existing `HospitalityFinding` domain model rather than introducing a second finding hierarchy.
+- Keep identity-conflict semantics deterministic and local to the existing domain model.
+- Use typed observation/category, evaluation, source, and observed-value information for the conflict discriminator.
+- Do not infer trust problems from generic identity findings or from finding presentation text.
+- Do not expand upstream evidence/acquisition/observation contracts for unsupported dimensions.
+- Keep coverage as factual derived scope; do not introduce scoring or new coverage formulas.
+
+## Limitations
+
+- `TRUST_AND_CLARITY` currently gains only the identity-conflict assessment supported by existing evidence; it is not a general trust audit.
+- Discoverability, mobile/technical, and SEO/structured-data dimensions remain unsupported until future requirements provide governed evidence sufficient for those assessments.
+- No browser rendering, performance measurement, structured-data parser, or external platform integration was introduced.
+- Focused test execution is represented by the REQ-028 test class and is covered by the complete Maven validation; the available repository tooling does not provide a separate local Maven execution environment in this session.
+
+## Self-Review
+
+- P1 requirement-update gap: corrected by updating this requirement on the PR branch.
+- P1 finding-text discriminator: corrected; `HospitalityAnalysisService` no longer uses human-readable finding text to determine trust coverage.
+- REQ-027 booking regression: explicitly retained and tested.
+- Provenance/evaluation isolation: preserved through the existing finding and observation contracts.
+- Scope: no REQ-029 work, no unrelated architecture, AI, acquisition, or integration changes.
+- Final CI must pass against the exact final PR head before changing `STATUS` to `PR_READY`.
+
+## Validation State
+
+Current validation is **in progress** against final implementation head `a36538b7c3357d3bc62707d8f35a503a9a8eefa9`.
+
+GitHub Actions Backend Validation has started for that exact head. `STATUS` remains `READY` until the final-head CI run completes successfully.
 
 ## Explicit Non-Scope
 
@@ -244,25 +337,6 @@ Before marking `PR_READY`:
 - record the final validation result in this requirement.
 
 Do not claim final CI success until it has passed for the final PR head.
-
-## Requirement Update
-
-The implementation agent must update this same requirement file before `PR_READY` with:
-
-- context reconciliation;
-- dimensions inspected;
-- newly supported dimensions;
-- intentionally unsupported dimensions;
-- implementation summary;
-- files changed;
-- tests and validation;
-- truth-boundary decisions;
-- architectural decisions;
-- limitations;
-- self-review;
-- final CI/head information.
-
-Only then may the requirement status change from `READY` to `PR_READY`.
 
 ## Expected Session Outcome
 
