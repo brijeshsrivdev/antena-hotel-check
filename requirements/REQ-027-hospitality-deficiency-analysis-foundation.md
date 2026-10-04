@@ -205,7 +205,7 @@ No keyword-based booking detection, booking-success inference, new observation c
 
 Pre-correction PR head: `8dde63e0465c46b448d13473a553b31baae03ef8`.
 
-Corrected implementation commit: `50418aaba93acc3dd7c7a876b8bb4cb9ed136ca9`.
+Corrected implementation commit: `a67a7f0c47a51ba00ff46d0cac0abe0ab8da9e46`.
 
 The final PR head must be recorded here after GitHub Actions Backend Validation passes on the corrected branch head.
 
