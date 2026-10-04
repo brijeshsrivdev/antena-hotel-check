@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 public final class HospitalityObservationService {
 
     private static final Pattern SEMANTIC_ELEMENT = Pattern.compile(
-            "(?is)<(title|h1|h2|h3|nav|a|address)\\b([^>]*)>(.*?)</\\1\\s*>"
+            "(?is)<(title|h1|h2|h3|a|address)\\b([^>]*)>(.*?)</\\1\\s*>"
     );
     private static final Pattern HREF = Pattern.compile("(?is)\\bhref\\s*=\\s*([\\\"'])(.*?)\\1");
     private static final Pattern HOTEL_IDENTITY = Pattern.compile(
@@ -39,11 +39,14 @@ public final class HospitalityObservationService {
     private static final Pattern BOOKING = Pattern.compile(
             "(?i)\\b(?:book(?:\\s+now)?|reserve|reservation|reservations|check\\s+availability|book\\s+your\\s+stay)\\b"
     );
+    private static final Pattern BOOKING_HREF = Pattern.compile(
+            "(?i)(?:/|\\b)(?:book|booking|reserve|reservation|availability)(?:/|\\b)"
+    );
     private static final Pattern DINING = Pattern.compile(
             "(?i)\\b(?:restaurant|dining|breakfast|bar|cafe|café)\\b"
     );
-    private static final Pattern LINK_SIGNAL = Pattern.compile(
-            "(?i)(?:rooms?|suites?|accommodations?|amenities|facilities|contact|booking|book|reserve|reservation|availability|dining|restaurant)"
+    private static final Pattern DINING_HREF = Pattern.compile(
+            "(?i)(?:/|\\b)(?:dining|restaurant|breakfast)(?:/|\\b)"
     );
 
     public List<HospitalityObservation> observe(StructuredEvidence evidence) {
@@ -70,6 +73,7 @@ public final class HospitalityObservationService {
 
             String href = extractHref(attributes);
             String sourceReference = sourceReference(evidence, tag, href);
+
             addObservation(observations, emitted, evidence, HospitalityObservationCategory.HOTEL_IDENTITY,
                     hotelIdentityValue(tag, text), sourceReference);
 
@@ -108,8 +112,7 @@ public final class HospitalityObservationService {
         if (ROOM_NEGATIVE.matcher(text).find()) {
             return false;
         }
-        return ROOMS.matcher(text).find() || LINK_SIGNAL.matcher(nullToEmpty(href)).find()
-                && ROOMS.matcher(nullToEmpty(href)).find();
+        return ROOMS.matcher(text).find() || ROOMS.matcher(nullToEmpty(href)).find();
     }
 
     private static boolean isAmenitySignal(String text) {
@@ -128,18 +131,11 @@ public final class HospitalityObservationService {
     }
 
     private static boolean isBookingSignal(String text, String href) {
-        String normalizedHref = nullToEmpty(href);
-        return BOOKING.matcher(text).find()
-                || Pattern.compile("(?i)(?:/|\\b)(?:book|booking|reserve|reservation|availability)(?:/|\\b)")
-                .matcher(normalizedHref)
-                .find();
+        return BOOKING.matcher(text).find() || BOOKING_HREF.matcher(nullToEmpty(href)).find();
     }
 
     private static boolean isDiningSignal(String text, String href) {
-        return DINING.matcher(text).find()
-                || Pattern.compile("(?i)(?:/|\\b)(?:dining|restaurant|breakfast)(?:/|\\b)")
-                .matcher(nullToEmpty(href))
-                .find();
+        return DINING.matcher(text).find() || DINING_HREF.matcher(nullToEmpty(href)).find();
     }
 
     private static void addObservation(
