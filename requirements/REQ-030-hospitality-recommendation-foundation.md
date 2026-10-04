@@ -1,6 +1,6 @@
 # REQ-030 — Hospitality Recommendation Foundation
 
-STATUS: READY
+STATUS: IMPLEMENTED_PENDING_VALIDATION
 REQUIREMENT_ID: REQ-030
 TYPE: Implementation
 BRANCH: `feature/hospitality-recommendation-foundation`
@@ -346,3 +346,134 @@ Before marking this requirement `PR_READY`:
 
 Do not merge.
 Do not start REQ-031.
+
+## Implementation Record — Session 30
+
+### Repository/context reconciliation
+
+Current `main` at session start: `d0bdb0fa62e331a2be9f8a72efb94f1df5e0471b`.
+
+Confirmed from repository state:
+
+- REQ-027 is merged as PR #27.
+- REQ-028 is merged as PR #28.
+- REQ-029 is merged as PR #29.
+- REQ-030 exists on `main` with READY status and requirement commit `8014f57a5f6844e4da33c2d13fa6c8dc5f6c995a`.
+- The current analysis code exposes typed findings/deficiencies, `HospitalityAnalysisResult`, `GuestJourneyAnalysis`, typed journey stages, and evaluation-boundary validation required by REQ-030.
+
+The roadmap contains an older stale statement describing REQ-027 as in progress, but the current-state/next-steps records and actual merged PRs establish the newer repository state. No product decision was inferred from that stale roadmap text.
+
+### Inspected contracts
+
+Inspected the REQ-030 requirement, orchestrator/current-state/next-step/decision/handoff context, evidence and hospitality-analysis specifications, engineering/testing guidance, and the implemented finding, limitation, analysis-result, deficiency, and guest-journey contracts on `main`.
+
+The relevant implemented semantics are:
+
+- only `DEFICIENCY` findings are guest-journey observed impacts;
+- finding provenance reaches observation/evidence/evaluation through the retained source chain;
+- identity conflicts are typed by existing `HospitalityFinding.isIdentityConflictWith(...)` semantics;
+- `GuestJourneyAnalysis` enforces a single evaluation boundary and retains stage-specific observed impacts/limitations;
+- `UNABLE_TO_VERIFY` is the only current limitation type and has no explicit recommendation-supporting subtype.
+
+### Implementation summary
+
+Implemented a small deterministic recommendation domain:
+
+- `RecommendationCategory` — explicit six-category bounded vocabulary from REQ-030;
+- `HospitalityRecommendation` — immutable recommendation record retaining evaluation identity, category, bounded action, journey stages, and exactly one source finding/limitation;
+- `HospitalityRecommendationService` — deterministic typed mapping over one `GuestJourneyAnalysis` boundary.
+
+Current mappings:
+
+- `BOOKING` deficiency → `IMPROVE_BOOKING_DISCOVERABILITY`;
+- `ROOMS` deficiency → `IMPROVE_ROOM_INFORMATION`;
+- `AMENITIES` / `DINING` deficiency → `IMPROVE_GUEST_FACING_INFORMATION`;
+- `CONTACT` deficiency → `IMPROVE_CONTACT_LOCATION_INFORMATION`;
+- typed cross-source `HOTEL_IDENTITY` conflict → `RESOLVE_INFORMATION_CONFLICT`;
+- unsupported/non-conflict deficiency families → no recommendation;
+- current `UNABLE_TO_VERIFY` limitations → no recommendation because the repository has no explicit bounded limitation semantic authorizing one.
+
+No human-readable finding text is parsed. Identity-conflict mapping uses the existing typed conflict method. Journey stages are taken from existing `GuestJourneyAnalysis` stage impacts, including any governed multi-stage impact already represented there.
+
+### Truth-boundary decisions
+
+- No recommendation is created from missing evidence, absent findings, unsupported stages, or limitations alone.
+- No booking recommendation is created from absence of a BOOKING observation; only an existing governed BOOKING deficiency could map to the booking category.
+- Acquisition failure is represented only through existing journey limitations and produces no hotel-feature recommendation.
+- No `NOT_ATTEMPTED` semantics were invented.
+- Unable-to-verify limitations remain limitations because the current limitation contract does not explicitly authorize a bounded improvement recommendation.
+- Recommendations contain source finding/limitation references rather than duplicating evidence.
+- No recommendation text claims completion, conversion, revenue, or other unsupported business outcomes.
+
+### Architectural decisions
+
+The implementation follows the requirement's preferred shape: one immutable recommendation record, one explicit enum, and one small deterministic mapping service. It does not introduce a generic rule engine, registry, reflection, scoring, AI abstraction, network access, persistence, API, UI, or Antena integration.
+
+The service accepts a single `GuestJourneyAnalysis` rather than combining independent evaluations. This uses the existing evaluation-bound journey boundary and prevents cross-evaluation leakage by construction. Source findings remain the existing finding objects, so provenance continues through the existing `finding → signal → observation → StructuredEvidence → evaluation/attempt` chain.
+
+### Files changed
+
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/RecommendationCategory.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityRecommendation.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityRecommendationService.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/analysis/HospitalityRecommendationServiceTest.java`
+- `requirements/REQ-030-hospitality-recommendation-foundation.md`
+
+### Tests added
+
+Focused deterministic tests cover:
+
+- each currently supported typed deficiency family;
+- typed identity-conflict mapping without finding-text parsing;
+- unsupported deficiency → no speculative recommendation;
+- no BOOKING observation → no booking recommendation;
+- limitation-only input → no recommendation;
+- preservation of existing journey-stage impact and source finding provenance;
+- evaluation A/B isolation;
+- deterministic repeatability;
+- non-deficiency findings → no recommendation;
+- existing `GuestJourneyAnalysis` cross-evaluation guard.
+
+### Validation
+
+Local Maven execution is not available in this environment because direct repository cloning cannot resolve `github.com`; this limitation was observed before claiming local test execution. Backend Validation on the exact final PR head is required before changing this record to `PR_READY`.
+
+### CI
+
+Pending final PR head validation.
+
+### PR
+
+Branch created from current `main` as required:
+
+`feature/hospitality-recommendation-foundation`
+
+PR will target `main` and will remain unmerged for orchestrator review.
+
+### Limitations
+
+- The current repository has no explicit limitation subtype that authorizes a recommendation, so `UNABLE_TO_VERIFY` limitations are conservatively preserved without recommendations.
+- `IMPROVE_TRUST_CLARITY` remains part of the bounded category vocabulary but is not emitted because no current typed deficiency semantics justify a separate trust-clarity action beyond the existing identity-conflict mapping.
+- The current merged analysis foundation does not produce a governed BOOKING deficiency from a missing BOOKING signal; the booking mapping therefore remains a guarded downstream capability for any future explicit governed booking deficiency.
+
+### Self-review
+
+#### Scope
+Only REQ-030 recommendation-domain behavior and focused tests were added. No acquisition, evidence, observation, signal, finding, limitation, coverage, journey, UI, integration, or Antena behavior was changed.
+
+#### Correctness
+Mapping is based on typed observation category/finding kind/status and existing identity-conflict semantics, never on human-readable text. Journey impact is read from the existing journey analysis.
+
+#### Determinism
+No clock, randomness, mutable global state, AI, or network dependency is introduced. Identical input produces equal recommendation sets.
+
+#### Provenance / isolation
+Each recommendation retains the source finding or limitation and evaluation identity. The service consumes one evaluation-bound `GuestJourneyAnalysis` and rejects out-of-bound findings through the existing journey contract.
+
+#### Security / production
+The implementation performs no network access, persistence, external calls, or unbounded processing. It operates only on already-produced in-memory analysis objects.
+
+#### Testing
+Focused tests were added for the material truth boundaries and evaluation isolation. Repository-level CI is still required before PR_READY.
+
+STATUS remains `IMPLEMENTED_PENDING_VALIDATION` until the exact final PR head has passed Backend Validation.
