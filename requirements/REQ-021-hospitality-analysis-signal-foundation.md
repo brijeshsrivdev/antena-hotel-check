@@ -188,4 +188,113 @@ The session must not merge the PR or begin REQ-022.
 
 The current product focus is digital-presence analysis. Antena is the owning hospitality product and the eventual downstream opportunity is an Antena-hosted improved hotel experience at `<hotel-name>.antenapro.com`. That integration must remain deferred until the Hotel Check analysis capability is mature enough to produce a trustworthy result.
 
-**STOPPING FOR IMPLEMENTATION SESSION.**
+## Implementation Record — Session 21
+
+**Status:** READY — CI validation pending.
+
+### Implementation summary
+
+Implemented the smallest deterministic in-memory boundary from `HospitalityObservation` to a qualified `HospitalityAnalysisSignal`.
+
+The signal preserves the originating observation by reference, so the existing observation retains its supporting evidence, provenance, evaluation identity, and attempt attribution without duplicating the complete evidence object.
+
+Explicit deterministic mappings cover the current six REQ-019 observation categories:
+
+- `HOTEL_IDENTITY` → `DISCOVER`, `UNDERSTAND`
+- `ROOMS` → `EXPLORE`
+- `AMENITIES` → `UNDERSTAND`, `EXPLORE`
+- `CONTACT` → `DISCOVER`, `TRUST`
+- `BOOKING` → `BOOK`
+- `DINING` → `UNDERSTAND`, `EXPLORE`
+
+The interpretation text remains observation-level and does not assert hotel capability, booking success, room availability, quality, or absence.
+
+The signal service accepts only `DISCOVERED` observations backed by successful evidence with retained content. Failed/unavailable evidence and inferred observations produce no signal.
+
+No network, AI/LLM, persistence, finding, scoring, recommendation, coverage, report, preview, booking, OTA, or Antena integration behavior was added.
+
+### Files changed
+
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/GuestJourneyStage.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisSignal.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisSignalService.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisSignalStatus.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisSignalServiceTest.java`
+- `requirements/REQ-021-hospitality-analysis-signal-foundation.md`
+
+### Tests
+
+Added deterministic unit coverage for:
+
+- booking entry-point → `BOOK` signal;
+- room observation without availability/inventory inference;
+- all six current observation-category journey mappings;
+- originating observation and evidence traceability;
+- evaluation/attempt attribution preservation;
+- failed evidence rejection;
+- inferred observation rejection;
+- ambiguous room observation conservative interpretation;
+- repeatability/determinism;
+- source observation immutability;
+- null input not becoming a negative signal.
+
+No live hotel website or external network dependency is used by the tests.
+
+### Validation
+
+Local Maven validation was not available in the execution environment. Backend CI was triggered through PR #21 and is the authoritative validation required before setting `PR_READY`.
+
+### CI
+
+**Pending** — Backend Validation for PR #21.
+
+### PR
+
+- **PR:** #21 — `REQ-021: Hospitality Analysis Signal Foundation`
+- **Base:** `main`
+- **Head:** `feature/hospitality-analysis-signal-foundation`
+- **Status:** OPEN
+- **Merged:** No
+
+### Limitations
+
+- The signal vocabulary is intentionally limited to the current six REQ-019 observation categories.
+- Journey mappings are explicit deterministic mappings from SPEC-006 semantics; they are not scores or completeness judgments.
+- The signal layer does not produce findings, severity, scores, recommendations, conflict resolution, freshness decisions, or coverage conclusions.
+- Unsupported future observation categories should remain unmapped rather than being interpreted implicitly; the current enum contains only the six governed REQ-019 categories.
+
+### Self-review
+
+#### Scope
+
+Only REQ-021 behavior was added. REQ-015/017/018/019 runtime behavior was not modified.
+
+#### Architecture
+
+The implementation uses one immutable signal record, two small enums, and one cohesive deterministic service. No generic analysis/rule/finding framework was introduced.
+
+#### Truthfulness
+
+`BOOKING` is interpreted only as a booking entry point being observed. `ROOMS` is interpreted only as room-related information/entry point being observed. Missing or failed evidence is not converted into absence or deficiency.
+
+#### Traceability
+
+The signal retains the originating `HospitalityObservation` by reference, which retains the supporting `StructuredEvidence`, provenance, source reference, evaluation ID, attempt ID, and attempt number.
+
+#### Determinism
+
+The service contains no clock, network, external state, random behavior, or AI/model dependency. Identical observations produce identical signals.
+
+#### Tests
+
+The focused REQ-021 test suite covers positive mappings and conservative negative cases. Full backend CI remains the required final validation.
+
+#### Repository hygiene
+
+The PR contains only the five production/test files for this capability plus this requirement completion record. No generated artifacts or unrelated refactoring were added.
+
+## Governance
+
+`STATUS: READY` remains intentional until actual Backend Validation CI passes. After successful CI, this section must be updated to `PR_READY` with the observed CI run details before stopping for orchestrator review.
+
+**STOPPING FOR IMPLEMENTATION SESSION after CI validation.**
