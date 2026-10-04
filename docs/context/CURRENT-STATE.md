@@ -6,7 +6,7 @@ Last updated: 2026-10-04
 
 Repository: `brijeshsrivdev/antena-hotel-check`
 
-Current `main`: `ad0a4e9dc06e38ccb544e6b648f040930b65c64d`
+Current `main`: `0bfd78fdc823ef31111b0302a732cf43ad5dc26a`
 
 The repository's `main` branch is the source of truth. This file is a compact operational snapshot and must not replace detailed requirements/specifications.
 
@@ -18,7 +18,7 @@ Antena Hotel Check analyzes a hotel's publicly accessible digital presence and g
 
 ## Product Stage
 
-The implemented foundation currently establishes a bounded path from canonical evaluation input through public-web acquisition, structured evidence, and deterministic hospitality observations.
+The implemented foundation currently establishes a bounded path from canonical evaluation input through public-web acquisition, structured evidence, deterministic hospitality observations, and qualified hospitality analysis signals.
 
 ```text
 Canonical Evaluation Request
@@ -32,6 +32,8 @@ Acquisition Result
 Structured Evidence
         ↓
 Hospitality Observation
+        ↓
+Qualified Hospitality Analysis Signal
 ```
 
 ## Completed / Merged Foundation
@@ -41,14 +43,15 @@ Hospitality Observation
 - REQ-018 — Evidence Normalization Foundation — IMPLEMENTED / MERGED.
 - REQ-019 — Hospitality Observation Foundation — IMPLEMENTED / MERGED.
 - REQ-020 — Orchestrator Durable Context Foundation — IMPLEMENTED / MERGED.
+- REQ-021 — Hospitality Analysis Signal Foundation — IMPLEMENTED / MERGED.
 
 ## Current Architectural Boundary
 
 The latest completed product boundary is:
 
-`StructuredEvidence → bounded HospitalityObservation`
+`HospitalityObservation → Qualified HospitalityAnalysisSignal`
 
-REQ-019 deliberately stops before findings, scoring, recommendations, AI interpretation, reporting, preview generation, booking conclusions, persistence, or generic SEO analysis.
+REQ-021 deliberately stops before findings, severity, scoring, recommendations, AI interpretation, reporting, preview generation, booking-success conclusions, persistence, or generic SEO analysis.
 
 REQ-020 establishes the durable orchestration context and handoff mechanism; it does not add Hotel Check runtime behavior.
 
