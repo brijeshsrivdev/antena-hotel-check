@@ -2,7 +2,7 @@
 
 ## Current Position
 
-REQ-019 — Hospitality Observation Foundation is the latest completed product capability.
+REQ-021 — Hospitality Analysis Signal Foundation is the latest completed product capability.
 
 REQ-020 — Orchestrator Durable Context Foundation is merged and establishes the durable handoff/context mechanism.
 
@@ -22,6 +22,8 @@ Acquisition
 Structured Evidence
         ↓
 Bounded Hospitality Observations
+        ↓
+Qualified Hospitality Analysis Signals
         ↓
 Digital-presence / hospitality analysis
         ↓
