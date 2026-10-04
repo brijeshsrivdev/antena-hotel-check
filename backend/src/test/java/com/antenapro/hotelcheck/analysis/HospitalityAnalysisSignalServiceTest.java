@@ -70,6 +70,18 @@ class HospitalityAnalysisSignalServiceTest {
     }
 
     @Test
+    void contactObservationMapsOnlyToDiscoverNotTrust() {
+        StructuredEvidence evidence = evidence(successfulAcquisition("<a href=\"/contact\">Contact Us</a>"));
+        HospitalityObservation observation = observation(HospitalityObservationCategory.CONTACT, "Contact Us", evidence);
+
+        HospitalityAnalysisSignal signal = service.qualify(observation).orElseThrow();
+
+        assertEquals(Set.of(GuestJourneyStage.DISCOVER), signal.journeyStages());
+        assertFalse(signal.journeyStages().contains(GuestJourneyStage.TRUST));
+        assertEquals("A guest contact or location path was observed.", signal.interpretation());
+    }
+
+    @Test
     void mapsEachCurrentObservationCategoryOnlyToExplicitJourneyStages() {
         StructuredEvidence evidence = evidence(successfulAcquisition("<h1>Sunrise Hotel</h1>"));
 
@@ -77,7 +89,7 @@ class HospitalityAnalysisSignalServiceTest {
                 service.qualify(observation(HospitalityObservationCategory.HOTEL_IDENTITY, "Sunrise Hotel", evidence)).orElseThrow().journeyStages());
         assertEquals(Set.of(GuestJourneyStage.UNDERSTAND, GuestJourneyStage.EXPLORE),
                 service.qualify(observation(HospitalityObservationCategory.AMENITIES, "Amenities", evidence)).orElseThrow().journeyStages());
-        assertEquals(Set.of(GuestJourneyStage.DISCOVER, GuestJourneyStage.TRUST),
+        assertEquals(Set.of(GuestJourneyStage.DISCOVER),
                 service.qualify(observation(HospitalityObservationCategory.CONTACT, "Contact Us", evidence)).orElseThrow().journeyStages());
         assertEquals(Set.of(GuestJourneyStage.UNDERSTAND, GuestJourneyStage.EXPLORE),
                 service.qualify(observation(HospitalityObservationCategory.DINING, "Dining", evidence)).orElseThrow().journeyStages());
