@@ -139,9 +139,9 @@ public final class HospitalityAnalysisService {
             if (dimension != null) {
                 assessableDimensions.add(dimension);
             }
-            if (isTrustConflictFinding(finding)) {
-                assessableDimensions.add(HospitalityAnalysisDimension.TRUST_AND_CLARITY);
-            }
+        }
+        if (hasIdentityConflict(findings)) {
+            assessableDimensions.add(HospitalityAnalysisDimension.TRUST_AND_CLARITY);
         }
 
         Set<GuestJourneyStage> limitedJourneyStages = new LinkedHashSet<>();
@@ -171,9 +171,18 @@ public final class HospitalityAnalysisService {
         );
     }
 
-    private static boolean isTrustConflictFinding(HospitalityFinding finding) {
-        return finding.category() == HospitalityObservationCategory.HOTEL_IDENTITY
-                && finding.findingText().startsWith("Retained public sources expose conflicting hotel identity information:");
+    private static boolean hasIdentityConflict(Set<HospitalityFinding> findings) {
+        List<HospitalityFinding> identityFindings = findings.stream()
+                .filter(finding -> finding.category() == HospitalityObservationCategory.HOTEL_IDENTITY)
+                .toList();
+        for (int i = 0; i < identityFindings.size(); i++) {
+            for (int j = i + 1; j < identityFindings.size(); j++) {
+                if (identityFindings.get(i).isIdentityConflictWith(identityFindings.get(j))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static void validateEvaluationIntegrity(UUID evaluationId, List<StructuredEvidence> evidenceItems) {
