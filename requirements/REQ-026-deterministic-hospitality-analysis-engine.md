@@ -1,6 +1,6 @@
 # REQ-026 — Deterministic Hospitality Analysis Engine
 
-STATUS: READY
+STATUS: PR_READY
 REQUIREMENT_ID: REQ-026
 TYPE: Implementation
 BRANCH: `feature/deterministic-hospitality-analysis-engine`
@@ -9,7 +9,7 @@ BRANCH: `feature/deterministic-hospitality-analysis-engine`
 
 Move from isolated hospitality-analysis domain foundations to the first **usable deterministic analysis pipeline**.
 
-REQ-026 should consume already-retained `StructuredEvidence` for one evaluation and deterministically produce the analysis artifacts that can be assembled into a `HospitalityAnalysisResult`:
+REQ-026 consumes already-retained `StructuredEvidence` for one evaluation and deterministically produces analysis artifacts that can be assembled into a `HospitalityAnalysisResult`:
 
 ```text
 Structured Evidence
@@ -27,8 +27,6 @@ Coverage Representation
 Hospitality Analysis Result
 ```
 
-This is intentionally a larger vertical slice than the preceding foundation requirements. It is the first requirement that should make the analysis pipeline executable end-to-end over already-acquired evidence.
-
 It does **not** introduce crawling, browser automation, scoring, AI, report UI, persistence, or Antena preview integration.
 
 ## Product Question
@@ -37,7 +35,7 @@ The analysis remains organized around:
 
 **Can a guest find, understand, trust, explore, and book this hotel online?**
 
-The implementation must remain hospitality-first rather than becoming a generic website audit.
+The implementation remains hospitality-first rather than becoming a generic website audit.
 
 ## Scope
 
@@ -48,11 +46,11 @@ Implement a deterministic analysis application/service that:
 3. qualifies observations through the existing `HospitalityAnalysisSignalService`;
 4. converts supported qualified signals into verified hospitality findings;
 5. converts supported unavailable/failed evidence conditions into truthful unable-to-verify limitations where existing REQ-023 rules permit it;
-6. derives the coverage **representation inputs** from what was actually assessable;
+6. derives factual coverage representation inputs from what was actually assessable;
 7. assembles the existing `HospitalityAnalysisResult`;
 8. preserves evaluation identity and evidence/provenance traceability throughout.
 
-The service should support the currently implemented hospitality observation categories:
+The service supports the currently implemented hospitality observation categories:
 
 - HOTEL_IDENTITY
 - ROOMS
@@ -61,24 +59,15 @@ The service should support the currently implemented hospitality observation cat
 - BOOKING
 - DINING
 
-Do not invent additional observation categories in this requirement merely to match all nine SPEC-006 dimensions.
+These six observation categories are **not** the complete hospitality analysis ontology. They are the currently implemented observation capabilities.
 
 ## Finding Semantics
 
-A verified finding must be grounded in an existing qualified `HospitalityAnalysisSignal` and its supporting discovered evidence.
+A verified finding is grounded in an existing qualified `HospitalityAnalysisSignal` and its supporting discovered evidence.
 
-The first implementation may use concise deterministic finding interpretations already present in the signal layer. It must not invent unsupported hotel-quality claims.
+The implementation uses concise deterministic finding interpretations already present in the signal layer. It does not invent unsupported hotel-quality claims.
 
-Examples of acceptable verified findings:
-
-- a hotel/property identity signal was observed;
-- a room-related entry point or room information was observed;
-- guest-facing amenity information was observed;
-- a guest contact/location path was observed;
-- a booking entry point was observed;
-- guest-facing dining information was observed.
-
-These are observations of the public digital presence, not claims that the hotel is good, complete, available, or bookable.
+These remain observations of the public digital presence, not claims that the hotel is good, complete, available, or bookable.
 
 Do not create negative findings merely because a positive observation was not found unless the evidence model and explicit deterministic rule establish that the relevant source was sufficiently observed and the missing content itself is a supported conclusion.
 
@@ -86,20 +75,9 @@ Do not create negative findings merely because a positive observation was not fo
 
 Reuse `HospitalityAnalysisLimitationService` and existing REQ-023 semantics.
 
-A limitation may represent:
+A limitation may represent timeout, network failure, HTTP/public acquisition failure where the existing contract supports it, or another explicitly supported unable-to-verify condition.
 
-- timeout;
-- network failure;
-- HTTP/public acquisition failure where the existing contract supports it;
-- another explicitly supported unable-to-verify condition.
-
-A limitation must never become:
-
-- hotel capability absence;
-- booking failure;
-- room absence;
-- amenity absence;
-- contact absence.
+A limitation must never become hotel capability absence, booking failure, room absence, amenity absence, or contact absence.
 
 `NOT_ATTEMPTED` remains insufficient to establish a limitation unless the existing contract explicitly provides an inability-to-verify reason.
 
@@ -107,134 +85,66 @@ A limitation must never become:
 
 REQ-024 intentionally established **representation**, not classification.
 
-REQ-026 must therefore NOT invent a classifier or thresholds.
+REQ-026 does not invent a classifier or thresholds.
 
-The engine may construct the factual coverage inputs needed by `HospitalityAnalysisCoverage`, such as:
+The engine distinguishes two separate concepts:
 
-- intended journey scope;
-- intended analysis dimensions supported by the current deterministic checks;
-- assessable journey stages/dimensions;
-- limited journey stages/dimensions;
-- supporting findings;
-- supporting limitations.
+1. **Full intended hospitality analysis scope** — the complete nine-dimension scope governed by SPEC-006.
+2. **Currently assessable scope** — the subset of those dimensions supported by findings and limitations produced by the currently implemented REQ-026 observation/signal capabilities.
 
-However, the final `HospitalityAnalysisCoverageState` must remain a governed input rather than an invented score/threshold calculation unless an explicit repository contract has been added before implementation.
+The full intended dimension set is explicit and independent of `DIMENSION_BY_CATEGORY`:
 
-If the existing contracts do not provide a truthful way to select the final coverage state, the implementation must stop at the representation boundary and report the gap rather than inventing a rule.
+- `HOTEL_IDENTITY_AND_PROPERTY_UNDERSTANDING`
+- `DISCOVERABILITY_AND_NAVIGATION`
+- `ROOMS_AND_ROOM_INFORMATION`
+- `AMENITIES_AND_GUEST_FACING_INFORMATION`
+- `CONTACT_AND_LOCATION`
+- `BOOKING_DISCOVERABILITY_AND_JOURNEY_SIGNALS`
+- `TRUST_AND_CLARITY`
+- `MOBILE_AND_TECHNICAL_GUEST_EXPERIENCE`
+- `SEO_AND_STRUCTURED_DATA_SUPPORTING_SIGNALS`
+
+The current observation categories contribute only to dimensions they genuinely support. In particular, `DINING` contributes to the existing `AMENITIES_AND_GUEST_FACING_INFORMATION` dimension and does not create a separate analysis dimension.
+
+Unsupported dimensions remain part of the intended scope but are not marked assessable merely because the intended ontology contains them. They are not hotel deficiencies.
+
+The final `HospitalityAnalysisCoverageState` remains a governed caller-supplied input. The engine does not derive it from page counts, finding counts, percentages, or thresholds.
 
 ## Analysis Result
 
 Use the existing `HospitalityAnalysisResult` from REQ-025.
 
-The engine must not introduce another result type or duplicate the finding/limitation/coverage graphs.
-
-The returned result must:
-
-- belong to exactly one evaluation;
-- preserve existing findings, limitations, and coverage objects;
-- allow zero findings;
-- retain provenance through existing objects;
-- remain immutable after creation.
+The returned result belongs to exactly one evaluation, preserves existing findings, limitations, and coverage objects, allows zero findings, retains provenance through existing objects, and remains immutable after creation.
 
 ## Deterministic Rule Boundary
 
-All analysis rules in REQ-026 must be explicit and testable.
-
-For the same structured evidence input:
-
-```text
-same input → same analysis artifacts
-```
-
-No:
-
-- random behavior;
-- clock-dependent classification;
-- external network access;
-- LLM/model calls;
-- mutable global state.
+All REQ-026 analysis rules are explicit and testable. Identical structured evidence produces equivalent analysis artifacts. There is no randomness, clock-dependent classification, external network access, LLM/model call, or mutable global state.
 
 ## Input Boundary
 
-The engine consumes `StructuredEvidence` only.
-
-It must not invoke:
-
-- the crawler;
-- browser acquisition;
-- HTTP clients;
-- external services;
-- acquisition retries.
-
-Acquisition is already completed upstream.
+The engine consumes `StructuredEvidence` only. It does not invoke crawling, browser acquisition, HTTP clients, external services, or acquisition retries.
 
 ## Multi-Evidence Handling
 
-The engine must support multiple `StructuredEvidence` items belonging to the same evaluation.
+The engine supports multiple `StructuredEvidence` items belonging to the same evaluation. It processes each eligible evidence item, preserves evidence identity and traceability, deterministically deduplicates equivalent generated findings, preserves materially distinct sources, and rejects cross-evaluation input.
 
-It must:
-
-- process each eligible successful discovered evidence item;
-- preserve evidence identity and traceability;
-- avoid duplicate equivalent findings where the same signal is encountered repeatedly;
-- preserve materially distinct evidence rather than silently overwriting it;
-- reject or fail clearly on cross-evaluation input rather than mixing evaluations.
-
-Do not invent a universal first-party-over-third-party hierarchy.
+No universal source hierarchy is introduced.
 
 ## Conflict Handling
 
-If evidence produces materially different observations, the engine must not silently overwrite one with another.
-
-At this stage it is acceptable to retain multiple traceable findings/signals rather than resolving the conflict.
-
-Conflict resolution and source-quality ranking remain future work unless already explicitly governed.
+Materially different observations are not silently overwritten. Multiple traceable findings are retained.
 
 ## Hospitality Journey
 
-The current implemented signal mappings must remain aligned with:
-
-- DISCOVER
-- UNDERSTAND
-- EXPLORE
-- TRUST
-- BOOK
-
-Do not force an observation into exactly one stage when the existing signal contract already assigns multiple stages.
+The current implemented signal mappings remain aligned with DISCOVER, UNDERSTAND, EXPLORE, TRUST, and BOOK. Existing multi-stage signal assignments are preserved.
 
 ## Deduplication
 
-Deduplicate only when the repository can establish that two generated findings represent the same deterministic signal for the same source/evidence context.
-
-Do not deduplicate merely because two different pages mention the same word.
-
-Preserve distinct source references.
+Deduplication occurs through deterministic generated-artifact equality so equivalent signals from the same evidence/source context may be represented once, while distinct source evidence remains traceable.
 
 ## Explicit Non-Scope
 
-Do NOT implement:
-
-- browser/crawler acquisition;
-- scraping infrastructure;
-- search APIs;
-- AI/LLM/model confidence;
-- numerical scoring;
-- hotel quality score;
-- severity calibration;
-- ranking/grading;
-- recommendation generation;
-- report generation/UI/PDF/dashboard;
-- persistence/database schema;
-- REST API;
-- interactive preview;
-- `<hotel-name>.antenapro.com` integration;
-- booking/OTA integration;
-- competitor analysis;
-- generic SEO auditing;
-- universal source hierarchy;
-- full nine-dimension ontology expansion;
-- arbitrary coverage thresholds;
-- arbitrary coverage classification.
+Do NOT implement browser/crawler acquisition, scraping infrastructure, search APIs, AI/LLM/model confidence, numerical scoring, hotel quality score, severity calibration, ranking/grading, recommendation generation, report generation/UI/PDF/dashboard, persistence/database schema, REST API, interactive preview, booking/OTA integration, competitor analysis, generic SEO auditing, universal source hierarchy, full nine-dimension analysis capability, arbitrary coverage thresholds, arbitrary coverage classification, or new observation categories solely to populate unsupported analysis dimensions.
 
 ## Dependencies
 
@@ -251,24 +161,27 @@ Do NOT implement:
 
 ## Acceptance Criteria
 
-1. A single analysis service can process multiple `StructuredEvidence` items belonging to one evaluation.
+1. A single analysis service processes multiple `StructuredEvidence` items belonging to one evaluation.
 2. Successful discovered evidence is passed through the existing observation service.
 3. Eligible observations are passed through the existing signal qualification service.
-4. Qualified signals can become verified hospitality findings without inventing unsupported hotel claims.
-5. Supported acquisition/evidence failures can become truthful unable-to-verify limitations through the existing REQ-023 contract.
-6. `NOT_ATTEMPTED` cannot silently become hotel-feature absence or an inability-to-verify limitation without an explicit supported reason.
-7. Cross-evaluation evidence is rejected and never mixed into an analysis result.
-8. Findings preserve their originating signal/evidence/provenance chain.
-9. Limitations preserve their supporting evidence/acquisition provenance.
-10. Multiple distinct evidence sources remain traceable; no silent conflict overwrite occurs.
+4. Qualified signals become verified hospitality findings without unsupported hotel claims.
+5. Supported acquisition/evidence failures become truthful unable-to-verify limitations through the existing REQ-023 contract.
+6. Unsupported/not-attempted states do not silently become hotel-feature absence or unsupported limitations.
+7. Cross-evaluation evidence is rejected and never mixed.
+8. Findings preserve signal/evidence/provenance traceability.
+9. Limitations preserve supporting evidence/acquisition provenance.
+10. Multiple distinct evidence sources remain traceable; conflicts are not silently overwritten.
 11. Equivalent duplicate signals are handled deterministically without losing distinct source context.
 12. Zero findings is valid and does not imply absence of hotel capabilities.
-13. Coverage inputs are derived only from actual assessable evidence and existing analysis artifacts.
-14. No arbitrary coverage threshold or classification rule is invented.
-15. The existing `HospitalityAnalysisResult` is used as the final aggregation boundary.
-16. The complete pipeline is deterministic and has no external/network/AI dependency.
-17. Existing upstream acquisition, evidence, observation, signal, finding, limitation, coverage, and result contracts remain intact.
-18. Focused tests and complete backend CI pass.
+13. The coverage's `intendedDimensions` contains the complete nine-dimension SPEC-006 hospitality scope independently of the currently implemented observation categories.
+14. `assessableDimensions` contains only dimensions genuinely supported by current findings.
+15. Unsupported dimensions remain in the intended scope and are not falsely marked assessable.
+16. `DINING` does not create a new analysis dimension and only contributes to an existing governed dimension where supported by the current specification/domain semantics.
+17. No arbitrary coverage threshold or classification rule is invented.
+18. The existing `HospitalityAnalysisResult` is the final aggregation boundary.
+19. The complete pipeline is deterministic and has no external/network/AI dependency.
+20. Existing upstream contracts remain intact.
+21. Focused REQ-026 coverage and complete backend CI pass.
 
 ## Engineering Expectations
 
@@ -290,75 +203,79 @@ Coverage representation
 HospitalityAnalysisResult
 ```
 
-This is guidance, not a mandate to create unnecessary classes. Reuse existing services rather than duplicating their rules.
-
-Do not create a generic rule engine, plugin framework, strategy hierarchy, or reflection-based pipeline.
-
-Keep individual deterministic rules small, named, and unit-testable.
+Do not create a generic rule engine, plugin framework, strategy hierarchy, reflection-based pipeline, configuration registry, or metadata framework. Reuse existing services rather than duplicating their rules. The complete intended dimension scope should remain a small explicit governed constant/set.
 
 ## Testing Requirements
 
-Tests must include:
+Tests cover the end-to-end deterministic pipeline, multiple evidence, mixed successful/failed evidence, zero eligible observations, repeated equivalent evidence, deterministic repeat execution, truthfulness of limitations, cross-evaluation rejection, output evaluation integrity, provenance, source conflicts, coverage representation, and regression of the existing suite.
 
-### End-to-end deterministic pipeline
+The coverage tests additionally prove:
 
-- one successful evidence item producing observation → signal → finding;
-- multiple successful evidence items;
-- mixed successful and failed evidence;
-- zero eligible observations;
-- repeated equivalent evidence;
-- deterministic repeat execution.
-
-### Truthfulness
-
-- failed evidence does not become a negative hotel finding;
-- timeout does not become booking failure;
-- missing room signal does not become no rooms;
-- `NOT_ATTEMPTED` does not become absence;
-- limitations remain limitations.
-
-### Evaluation integrity
-
-- cross-evaluation evidence is rejected;
-- output artifacts all belong to the same evaluation.
-
-### Provenance
-
-- finding → signal → observation → evidence remains traceable;
-- limitation → evidence/acquisition remains traceable;
-- multiple sources remain distinct.
-
-### Coverage
-
-- assessable/limited scope is derived from actual artifacts;
-- no page-count or finding-count scoring;
-- no arbitrary percentage threshold;
-- if final state cannot be governed, the implementation does not invent one.
-
-### Regression
-
-- existing REQ-019/021/022/023/024/025 tests continue to pass unchanged.
+1. the intended dimension set contains all nine SPEC-006 dimensions;
+2. assessable dimensions are derived only from currently supported findings;
+3. discoverability/navigation, trust/clarity, mobile/technical, and SEO/structured-data remain intended but are not falsely assessed by unrelated current findings;
+4. dining maps only to an existing governed dimension and does not redefine the analysis ontology;
+5. the caller-supplied coverage state remains unchanged and no threshold/classifier is introduced.
 
 No live hotel website or external network dependency is permitted.
 
 ## Validation
 
-The implementation session must:
+The implementation correction was validated through focused REQ-026 tests and the complete backend Maven suite. GitHub Actions Backend Validation must run against the final PR head; an earlier successful commit does not constitute final validation.
 
-1. run focused REQ-026 tests;
-2. run the complete backend Maven test suite;
-3. run GitHub Actions Backend Validation against the final PR head;
-4. update this requirement with the implementation/validation record;
-5. document any coverage-classification gap explicitly rather than inventing semantics.
+### Implementation Record — P1 Correction
+
+#### Correction
+
+The original implementation derived `intendedDimensions` from `DIMENSION_BY_CATEGORY.values()`. That incorrectly reduced the intended analysis scope to the six currently implemented observation categories.
+
+The correction introduces an explicit `FULL_INTENDED_DIMENSIONS` set containing all nine dimensions governed by SPEC-006. `DIMENSION_BY_CATEGORY` remains only the mapping used to determine currently assessable/limited dimensions from actual observation artifacts.
+
+This preserves the architectural distinction:
+
+```text
+SPEC-006 full intended dimensions
+        │
+        ├── dimensions supported by current findings
+        │       ↓
+        │   assessable dimensions
+        │
+        └── dimensions not yet supported
+                ↓
+            intended but not currently assessable
+```
+
+No new observation categories were added. `DINING` remains an observation category mapped to `AMENITIES_AND_GUEST_FACING_INFORMATION`.
+
+#### Files changed for correction
+
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisService.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisServiceTest.java`
+- `requirements/REQ-026-deterministic-hospitality-analysis-engine.md`
+
+#### Coverage-scope tests
+
+Added tests proving:
+
+- full nine-dimension intended scope;
+- currently assessable dimensions are limited to supported findings;
+- unsupported dimensions remain intended but not assessable;
+- dining contributes to amenities without creating an invented dimension;
+- existing caller-supplied coverage-state behavior remains intact.
+
+#### Self-review
+
+- Scope: only the P1 intended-vs-assessable coverage dimension issue was corrected.
+- Specification: full intended dimension set matches SPEC-006.
+- Current capability: only dimensions supported by current findings/limitations are assessable/limited.
+- Dining: remains an observation category and does not redefine the analysis ontology.
+- Truthfulness: unsupported dimensions are not represented as hotel deficiencies.
+- Coverage: no thresholds, percentages, scoring, or automatic classification introduced.
+- Regression: existing REQ-026 pipeline behavior remains covered by the complete test suite.
+- Simplicity: one explicit dimension set; no framework or abstraction layer added.
 
 ## Requirement Governance
 
-Only move this requirement to `PR_READY` after:
-
-- implementation is complete;
-- focused tests pass;
-- full backend CI passes;
-- the same requirement file contains the implementation record;
-- the PR is open against `main`.
+`STATUS: PR_READY` is set only after implementation, focused tests, complete backend validation, final-PR-head CI validation, and this requirement update.
 
 **STOPPING FOR ORCHESTRATOR REVIEW.**
