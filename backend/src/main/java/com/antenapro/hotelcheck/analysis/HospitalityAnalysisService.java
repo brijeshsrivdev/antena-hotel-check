@@ -5,6 +5,7 @@ import com.antenapro.hotelcheck.hospitality.HospitalityObservation;
 import com.antenapro.hotelcheck.hospitality.HospitalityObservationCategory;
 import com.antenapro.hotelcheck.hospitality.HospitalityObservationService;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -50,24 +51,29 @@ public final class HospitalityAnalysisService {
     private final HospitalityAnalysisSignalService signalService;
     private final HospitalityFindingService findingService;
     private final HospitalityAnalysisLimitationService limitationService;
+    private final HospitalityDeficiencyAnalysisService deficiencyAnalysisService;
 
     public HospitalityAnalysisService() {
         this(new HospitalityObservationService(),
                 new HospitalityAnalysisSignalService(),
                 new HospitalityFindingService(),
-                new HospitalityAnalysisLimitationService());
+                new HospitalityAnalysisLimitationService(),
+                new HospitalityDeficiencyAnalysisService());
     }
 
     HospitalityAnalysisService(
             HospitalityObservationService observationService,
             HospitalityAnalysisSignalService signalService,
             HospitalityFindingService findingService,
-            HospitalityAnalysisLimitationService limitationService
+            HospitalityAnalysisLimitationService limitationService,
+            HospitalityDeficiencyAnalysisService deficiencyAnalysisService
     ) {
         this.observationService = Objects.requireNonNull(observationService, "observationService must not be null");
         this.signalService = Objects.requireNonNull(signalService, "signalService must not be null");
         this.findingService = Objects.requireNonNull(findingService, "findingService must not be null");
         this.limitationService = Objects.requireNonNull(limitationService, "limitationService must not be null");
+        this.deficiencyAnalysisService = Objects.requireNonNull(
+                deficiencyAnalysisService, "deficiencyAnalysisService must not be null");
     }
 
     public HospitalityAnalysisResult analyze(
@@ -83,6 +89,7 @@ public final class HospitalityAnalysisService {
 
         Set<HospitalityFinding> findings = new LinkedHashSet<>();
         Set<HospitalityAnalysisLimitation> limitations = new LinkedHashSet<>();
+        List<HospitalityAnalysisSignal> qualifiedSignals = new ArrayList<>();
 
         for (StructuredEvidence evidence : evidenceItems) {
             if (supportsUnableToVerify(evidence)) {
@@ -92,10 +99,14 @@ public final class HospitalityAnalysisService {
 
             for (HospitalityObservation observation : observationService.observe(evidence)) {
                 signalService.qualify(observation)
-                        .flatMap(findingService::create)
-                        .ifPresent(findings::add);
+                        .ifPresent(signal -> {
+                            qualifiedSignals.add(signal);
+                            findingService.create(signal).ifPresent(findings::add);
+                        });
             }
         }
+
+        findings.addAll(deficiencyAnalysisService.analyze(evidenceItems, qualifiedSignals));
 
         HospitalityAnalysisCoverage coverage = createCoverage(
                 evaluationId,
