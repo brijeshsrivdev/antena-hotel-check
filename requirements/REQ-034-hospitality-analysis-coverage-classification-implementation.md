@@ -24,12 +24,7 @@ Use the exact semantics defined by REQ-033.
 
 ### Covered scope
 
-A journey stage or dimension is covered when it is present in either:
-
-- assessable scope; or
-- limited scope.
-
-Limited scope is accounted-for coverage but is not assessable evidence.
+A journey stage or dimension is covered when it is present in either assessable scope or limited scope. Limited scope is accounted-for coverage but is not assessable evidence.
 
 ### SUBSTANTIALLY_ASSESSED
 
@@ -41,77 +36,37 @@ Return `SUBSTANTIALLY_ASSESSED` only when all are true:
 
 ### PARTIALLY_ASSESSED
 
-Return `PARTIALLY_ASSESSED` when:
-
-- at least one intended journey stage or dimension is covered; and
-- the substantial criteria are not satisfied.
+Return `PARTIALLY_ASSESSED` when at least one intended journey stage or dimension is covered and the substantial criteria are not satisfied.
 
 ### INSUFFICIENT_COVERAGE
 
-Return `INSUFFICIENT_COVERAGE` only when:
-
-- zero intended journey stages are covered; and
-- zero intended dimensions are covered.
+Return `INSUFFICIENT_COVERAGE` only when zero intended journey stages and zero intended dimensions are covered.
 
 ## Input Boundary
 
-The classifier consumes only one existing `HospitalityAnalysisCoverage` object.
-
-It must not consume:
-
-- raw evidence;
-- acquisition results;
-- page counts;
-- URL counts;
-- finding counts;
-- recommendation counts;
-- HTTP status counts;
-- percentages;
-- raw HTML;
-- human-readable finding text.
-
-The classifier must not independently inspect or classify hotel content.
+The classifier consumes only one existing `HospitalityAnalysisCoverage` object. It does not consume raw evidence, acquisition results, page counts, URL counts, finding counts, recommendation counts, HTTP status counts, percentages, raw HTML, or human-readable finding text. It does not independently inspect or classify hotel content.
 
 ## Evaluation Isolation
 
-The classifier must validate that the coverage object is internally coherent according to existing domain identity semantics.
+The classifier validates the coverage object's existing evaluation traceability before classification. It does not combine coverage objects, and evaluation identity is not a classification signal.
 
-It must not combine coverage objects from different evaluations.
-
-If a caller supplies a coverage object with a valid evaluation identity, the classifier returns the state for that object; evaluation identity is not itself a classification signal.
+`HospitalityAnalysisCoverage` already rejects supporting findings/limitations belonging to another evaluation. REQ-034 preserves that boundary and additionally validates the same invariant at the classifier boundary.
 
 ## No Mutation
 
-The classifier must not mutate `HospitalityAnalysisCoverage` or any contained collections.
+The classifier does not mutate `HospitalityAnalysisCoverage` or any contained collections.
 
 ## Determinism
 
-For identical coverage inputs, the classifier must return the same state.
+For identical coverage inputs, the classifier returns the same state. No randomness, current time, network, AI, or mutable global state is used.
 
-No randomness, current time, network, AI, or mutable global state.
+## No New State / No Scoring
 
-## No New State
-
-Do not add new coverage states.
-
-Do not change the existing `HospitalityAnalysisCoverageState` enum.
-
-## No Scoring
-
-The thresholds are categorical product calibration rules, not a score.
-
-Do not expose:
-
-- coverage percentages;
-- points;
-- quality scores;
-- rankings;
-- severity;
-- recommendation priority.
+No new coverage states were added and the existing `HospitalityAnalysisCoverageState` enum was not changed. The thresholds are categorical product calibration rules, not a score. No percentages, points, quality scores, rankings, severity, or recommendation priority are exposed.
 
 ## Architectural Shape
 
-Prefer a small service such as:
+Implemented the small explicit service:
 
 ```text
 HospitalityAnalysisCoverage
@@ -121,69 +76,143 @@ HospitalityAnalysisCoverageClassifier
 HospitalityAnalysisCoverageState
 ```
 
-Do not introduce a generic rule engine or configurable scoring framework.
+The thresholds are represented as explicit constants and direct deterministic logic. No generic rule engine, configurable scoring framework, reflection, registry, workflow engine, or scoring abstraction was introduced.
 
-The thresholds are governed by REQ-033 and should be represented as explicit domain constants or equally simple deterministic logic.
+## Repository / Context Reconciliation — Session 34
 
-## Testing Acceptance Criteria
+The actual current `main` was inspected before implementation. The branch was created directly from the then-current `main` head:
 
-At minimum test:
+`0be7e8fa522f16043c4e2f71abc13f97c89cf2f4` — `docs: add REQ-034 to roadmap sequence`.
 
-1. all five journey stages + six dimensions + three assessable journey stages → `SUBSTANTIALLY_ASSESSED`;
-2. all five journey stages + six dimensions but fewer than three assessable journey stages → not substantial;
-3. fewer than six dimensions → not substantial;
-4. fewer than five covered journey stages → not substantial;
-5. one covered journey stage → `PARTIALLY_ASSESSED`;
-6. one covered dimension with no covered journey stages → `PARTIALLY_ASSESSED`;
-7. zero covered journey stages and zero covered dimensions → `INSUFFICIENT_COVERAGE`;
-8. limited scope counts as covered;
-9. limited scope does not count toward the three assessable journey stages;
-10. unsupported dimensions remain uncovered;
-11. finding count has no influence;
-12. page count is not an input;
-13. acquisition failure semantics remain outside the classifier;
-14. same coverage input produces same state;
-15. no mutation of input coverage;
-16. existing REQ-024 behavior remains unchanged;
-17. complete backend Maven tests pass.
+Confirmed on `main`:
 
-## Requirement Update
+- REQ-027 merged as PR #27.
+- REQ-028 merged as PR #28.
+- REQ-029 merged as PR #29.
+- REQ-030 merged as PR #30.
+- REQ-031 merged as PR #31.
+- REQ-033 exists with `STATUS: READY` and establishes the governed coverage-classification contract.
+- REQ-034 exists with `STATUS: READY` and is the assigned implementation requirement.
+- `HospitalityAnalysisCoverageState` contains exactly the three governed states.
+- `HospitalityAnalysisDimension` contains the existing nine governed dimensions.
+- `GuestJourneyStage` contains exactly `DISCOVER`, `UNDERSTAND`, `EXPLORE`, `TRUST`, and `BOOK`.
+- `HospitalityAnalysisCoverage` is immutable, defensively copies collections, restricts assessable/limited scope to intended scope, and validates supporting finding/limitation evaluation traceability.
+- The existing analysis service still receives coverage state as caller-supplied input, so REQ-032 remains correctly blocked until this classifier is merged.
 
-Update this same requirement file before `PR_READY` with:
+No material repository/specification mismatch was found, so implementation proceeded.
 
-- repository/context reconciliation;
-- REQ-033 contract verification;
-- implementation summary;
-- tests;
-- CI;
-- files changed;
-- architectural decisions;
-- limitations;
-- self-review.
+## REQ-033 Contract Verification
 
-The final requirement update must be included in the exact final PR head validated by Backend Validation.
+The implementation was checked against the authoritative REQ-033 semantics: covered scope is assessable ∪ limited; substantial requires all five journey stages, at least six of nine governed dimensions, and at least three assessable journey stages; partial requires meaningful covered scope without satisfying substantial; insufficient requires zero covered stages and zero covered dimensions; limited scope contributes to coverage but not assessable-stage count; unsupported dimensions remain uncovered; finding/page/recommendation counts and severity/scores are not inputs; booking absence is not converted into booking failure; and classification is deterministic and evaluation-local.
 
-## Non-Scope
+## Implementation Summary
 
-Do not implement:
+Added `HospitalityAnalysisCoverageClassifier` in the existing `analysis` package.
 
-- REQ-032 orchestration;
-- acquisition;
-- evidence normalization;
-- observations;
-- analysis findings;
-- journey analysis;
-- recommendations;
-- report assembly;
-- API;
-- UI;
-- persistence;
-- Google integrations;
-- AI;
-- Antena integration.
+The classifier accepts one `HospitalityAnalysisCoverage`, validates evaluation traceability, computes covered journey stages as assessable ∪ limited, computes covered dimensions as assessable ∪ limited, applies the explicit REQ-033 thresholds, returns partial when meaningful covered scope exists but substantial criteria are not met, and returns insufficient only when both covered sets are empty.
+
+The classifier does not inspect evidence, acquisition outcomes, findings, pages, URLs, finding text, recommendations, scores, severity, network state, time, or AI output.
+
+## Covered vs Assessable Semantics
+
+Assessable scope contributes to both coverage and assessable-stage counting. Limited scope contributes to coverage only. Limited journey stages do not satisfy the three-assessable-stage substantial criterion.
+
+Therefore an evaluation can explicitly account for all five stages and six dimensions through limited scope while still remaining `PARTIALLY_ASSESSED` when fewer than three journey stages have assessable evidence.
+
+`UNABLE_TO_VERIFY`, `NOT_ATTEMPTED`, and `UNSUPPORTED` are not converted into positive evidence by the classifier. Their semantics remain upstream; they can affect classification only through the existing coverage representation that explicitly places an area in limited or assessable scope.
+
+Missing evidence is not interpreted as hotel deficiency, and the classifier does not create any booking deficiency when booking evidence is absent.
+
+## Testing
+
+Added focused `HospitalityAnalysisCoverageClassifierTest` covering:
+
+- 5 stages / 6 dimensions / 3 assessable stages → `SUBSTANTIALLY_ASSESSED`;
+- 5 stages / 6 dimensions / 2 assessable stages → `PARTIALLY_ASSESSED`;
+- 5 stages / 5 dimensions / 3 assessable stages → `PARTIALLY_ASSESSED`;
+- 4 covered stages / 6 dimensions / 3 assessable stages → `PARTIALLY_ASSESSED`;
+- 1 covered stage → `PARTIALLY_ASSESSED`;
+- 1 covered dimension with no covered stages → `PARTIALLY_ASSESSED`;
+- 0 covered stages / 0 covered dimensions → `INSUFFICIENT_COVERAGE`;
+- limited scope counts as coverage but not assessable evidence;
+- unsupported dimensions remain uncovered;
+- absence of booking evidence does not create booking failure;
+- cross-evaluation supporting artifacts are rejected by the existing coverage boundary;
+- classifier does not mutate coverage input;
+- identical input produces identical classification;
+- null classifier input is rejected.
+
+Existing `HospitalityAnalysisCoverageTest` already verifies the REQ-024 state vocabulary, nine-dimension scope, traceability, cross-evaluation rejection, limitation semantics, and defensive copying. The new classifier tests build on that existing contract.
+
+## Files Changed
+
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisCoverageClassifier.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisCoverageClassifierTest.java`
+- `requirements/REQ-034-hospitality-analysis-coverage-classification-implementation.md`
+
+No REQ-032 orchestration, acquisition, API, persistence, UI, integration, AI, or network code was changed.
+
+## Architectural Decisions
+
+1. **Classification owns calibration.** Coverage calibration is implemented in a dedicated classifier so REQ-032 remains a thin orchestration layer.
+2. **Use existing domain types.** The classifier consumes `HospitalityAnalysisCoverage` and returns the existing `HospitalityAnalysisCoverageState`.
+3. **Use direct deterministic logic.** Explicit thresholds and set unions are sufficient; no generic rules/scoring framework is justified.
+4. **Keep evaluation identity out of classification semantics.** Identity validates isolation but never increases or decreases the coverage state.
+5. **Respect limited-vs-assessable distinction.** Limited scope is accounted for but cannot satisfy the assessable-stage threshold.
+6. **Preserve upstream truth boundaries.** The classifier does not reinterpret limitations, missing evidence, booking signals, or findings.
+
+## Limitations
+
+- REQ-034 classifies the existing coverage representation; it does not expand the dimensions or journey evidence that upstream analysis can produce.
+- The classifier intentionally does not interpret the semantic meaning of `UNABLE_TO_VERIFY`, `NOT_ATTEMPTED`, or `UNSUPPORTED`; those semantics remain owned by upstream analysis/coverage construction.
+- Some governed dimensions remain unsupported upstream; the classifier leaves them uncovered unless upstream coverage explicitly marks them assessable or limited.
+- REQ-032 remains outside this session and must be reconciled against `main` after this PR is merged.
+
+## Self-Review
+
+### Scope
+
+Only REQ-034 classification implementation, focused tests, and the assigned requirement completion record were changed. No REQ-032 implementation was started.
+
+### Context
+
+Current `main`, REQ-033, REQ-024 through REQ-032, required context/engineering documents, existing coverage model/state/dimension/journey contracts, and existing coverage tests were inspected before implementation.
+
+### Design
+
+The implementation is one small explicit service with direct threshold logic and existing domain types. No speculative framework or abstraction was added.
+
+### Correctness
+
+Boundary tests cover all governing thresholds, limited-vs-assessable behavior, partial/insufficient states, unsupported dimensions, booking truth, evaluation isolation, immutability, and determinism.
+
+### Testing
+
+Focused REQ-034 tests were added. Local Maven execution is not claimed because the execution environment used for previous repository sessions cannot reliably clone the GitHub repository. GitHub Actions Backend Validation is the repository-level validation gate.
+
+### Security / Production
+
+The classifier is pure in-memory logic. It performs no network access, file access, persistence, dynamic execution, external calls, or unbounded processing beyond the existing bounded enum/set collections.
+
+### Repository Hygiene
+
+Only the two implementation/test files and the assigned REQ-034 requirement record are changed relative to `main`. The PR targets `main` and is not merged.
+
+## CI / PR
+
+PR created:
+
+- **PR:** #32 — `REQ-034: Hospitality Analysis Coverage Classification Implementation`
+- **Base:** `main`
+- **Head:** `feature/hospitality-analysis-coverage-classification-implementation`
+- **Initial head:** `a1ec5f4ab507e08195c98208eab752db55cf21dc`
+- **Backend Validation run:** #318 / run ID `37222181043`
+- **Initial run status:** IN PROGRESS when this requirement update was prepared.
+
+The requirement remains `STATUS: READY` until Backend Validation passes against the exact final PR head after all requirement-file updates.
 
 ## Governance
 
 Do not merge. Do not start REQ-032 implementation.
 
-**STOPPING FOR ORCHESTRATOR REVIEW.**
+**STOPPING FOR ORCHESTRATOR REVIEW after final-head CI validation.**
