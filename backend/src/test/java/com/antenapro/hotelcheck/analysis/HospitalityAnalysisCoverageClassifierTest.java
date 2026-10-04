@@ -20,10 +20,10 @@ class HospitalityAnalysisCoverageClassifierTest {
     @Test
     void classifiesFiveStagesSixDimensionsThreeAssessableStagesAsSubstantial() {
         HospitalityAnalysisCoverage coverage = coverage(
-                ALL_STAGES,
-                firstDimensions(6),
                 Set.of(GuestJourneyStage.DISCOVER, GuestJourneyStage.UNDERSTAND, GuestJourneyStage.EXPLORE),
-                Set.of(HospitalityAnalysisDimension.values()).stream().limit(6).collect(java.util.stream.Collectors.toSet())
+                firstDimensions(6),
+                Set.of(GuestJourneyStage.TRUST, GuestJourneyStage.BOOK),
+                Set.of()
         );
 
         assertEquals(HospitalityAnalysisCoverageState.SUBSTANTIALLY_ASSESSED, classifier.classify(coverage));
@@ -32,10 +32,10 @@ class HospitalityAnalysisCoverageClassifierTest {
     @Test
     void fiveStagesSixDimensionsButOnlyTwoAssessableStagesIsNotSubstantial() {
         HospitalityAnalysisCoverage coverage = coverage(
-                ALL_STAGES,
-                firstDimensions(6),
                 Set.of(GuestJourneyStage.DISCOVER, GuestJourneyStage.UNDERSTAND),
-                firstDimensions(6)
+                firstDimensions(6),
+                Set.of(GuestJourneyStage.EXPLORE, GuestJourneyStage.TRUST, GuestJourneyStage.BOOK),
+                Set.of()
         );
 
         assertEquals(HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED, classifier.classify(coverage));
@@ -44,10 +44,10 @@ class HospitalityAnalysisCoverageClassifierTest {
     @Test
     void fiveStagesFiveDimensionsAndThreeAssessableStagesIsNotSubstantial() {
         HospitalityAnalysisCoverage coverage = coverage(
-                ALL_STAGES,
-                firstDimensions(5),
                 Set.of(GuestJourneyStage.DISCOVER, GuestJourneyStage.UNDERSTAND, GuestJourneyStage.EXPLORE),
-                firstDimensions(5)
+                firstDimensions(5),
+                Set.of(GuestJourneyStage.TRUST, GuestJourneyStage.BOOK),
+                Set.of()
         );
 
         assertEquals(HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED, classifier.classify(coverage));
@@ -56,10 +56,10 @@ class HospitalityAnalysisCoverageClassifierTest {
     @Test
     void fewerThanFiveCoveredJourneyStagesIsNotSubstantial() {
         HospitalityAnalysisCoverage coverage = coverage(
-                Set.of(GuestJourneyStage.DISCOVER, GuestJourneyStage.UNDERSTAND, GuestJourneyStage.EXPLORE, GuestJourneyStage.TRUST),
-                firstDimensions(6),
                 Set.of(GuestJourneyStage.DISCOVER, GuestJourneyStage.UNDERSTAND, GuestJourneyStage.EXPLORE),
-                firstDimensions(6)
+                firstDimensions(6),
+                Set.of(GuestJourneyStage.TRUST),
+                Set.of()
         );
 
         assertEquals(HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED, classifier.classify(coverage));
@@ -70,7 +70,7 @@ class HospitalityAnalysisCoverageClassifierTest {
         HospitalityAnalysisCoverage coverage = coverage(
                 Set.of(GuestJourneyStage.DISCOVER),
                 Set.of(),
-                Set.of(GuestJourneyStage.DISCOVER),
+                Set.of(),
                 Set.of()
         );
 
@@ -83,7 +83,7 @@ class HospitalityAnalysisCoverageClassifierTest {
                 Set.of(),
                 Set.of(HospitalityAnalysisDimension.ROOMS_AND_ROOM_INFORMATION),
                 Set.of(),
-                Set.of(HospitalityAnalysisDimension.ROOMS_AND_ROOM_INFORMATION)
+                Set.of()
         );
 
         assertEquals(HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED, classifier.classify(coverage));
@@ -118,8 +118,6 @@ class HospitalityAnalysisCoverageClassifierTest {
     @Test
     void unsupportedDimensionsRemainUncovered() {
         HospitalityAnalysisCoverage coverage = coverage(
-                ALL_STAGES,
-                ALL_DIMENSIONS,
                 Set.of(GuestJourneyStage.DISCOVER, GuestJourneyStage.UNDERSTAND, GuestJourneyStage.EXPLORE),
                 Set.of(
                         HospitalityAnalysisDimension.HOTEL_IDENTITY_AND_PROPERTY_UNDERSTANDING,
@@ -127,7 +125,9 @@ class HospitalityAnalysisCoverageClassifierTest {
                         HospitalityAnalysisDimension.AMENITIES_AND_GUEST_FACING_INFORMATION,
                         HospitalityAnalysisDimension.CONTACT_AND_LOCATION,
                         HospitalityAnalysisDimension.BOOKING_DISCOVERABILITY_AND_JOURNEY_SIGNALS
-                )
+                ),
+                Set.of(GuestJourneyStage.TRUST),
+                Set.of()
         );
 
         assertEquals(HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED, classifier.classify(coverage));
@@ -138,8 +138,8 @@ class HospitalityAnalysisCoverageClassifierTest {
         HospitalityAnalysisCoverage coverage = coverage(
                 Set.of(GuestJourneyStage.DISCOVER),
                 Set.of(HospitalityAnalysisDimension.ROOMS_AND_ROOM_INFORMATION),
-                Set.of(GuestJourneyStage.DISCOVER),
-                Set.of(HospitalityAnalysisDimension.ROOMS_AND_ROOM_INFORMATION)
+                Set.of(),
+                Set.of()
         );
 
         assertEquals(HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED, classifier.classify(coverage));
@@ -178,10 +178,10 @@ class HospitalityAnalysisCoverageClassifierTest {
         Set<GuestJourneyStage> originalStages = Set.copyOf(assessableStages);
         Set<HospitalityAnalysisDimension> originalDimensions = Set.copyOf(assessableDimensions);
 
-        HospitalityAnalysisCoverage coverage = coverage(ALL_STAGES, ALL_DIMENSIONS, assessableStages, assessableDimensions);
+        HospitalityAnalysisCoverage coverage = coverage(assessableStages, assessableDimensions, Set.of(), Set.of());
         HospitalityAnalysisCoverageState state = classifier.classify(coverage);
 
-        assertEquals(HospitalityAnalysisCoverageState.SUBSTANTIALLY_ASSESSED, state);
+        assertEquals(HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED, state);
         assertEquals(originalStages, coverage.assessableJourneyStages());
         assertEquals(originalDimensions, coverage.assessableDimensions());
     }
@@ -189,10 +189,10 @@ class HospitalityAnalysisCoverageClassifierTest {
     @Test
     void identicalCoverageProducesIdenticalClassification() {
         HospitalityAnalysisCoverage coverage = coverage(
-                ALL_STAGES,
-                firstDimensions(6),
                 Set.of(GuestJourneyStage.DISCOVER, GuestJourneyStage.UNDERSTAND, GuestJourneyStage.EXPLORE),
-                firstDimensions(6)
+                firstDimensions(6),
+                Set.of(GuestJourneyStage.TRUST, GuestJourneyStage.BOOK),
+                Set.of()
         );
 
         HospitalityAnalysisCoverageState first = classifier.classify(coverage);
