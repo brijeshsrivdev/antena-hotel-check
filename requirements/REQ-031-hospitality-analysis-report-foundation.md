@@ -1,6 +1,6 @@
 # REQ-031 — Hospitality Analysis Report Foundation
 
-STATUS: READY
+STATUS: PR_READY
 REQUIREMENT_ID: REQ-031
 TYPE: Implementation
 BRANCH: `feature/hospitality-analysis-report-foundation`
@@ -419,7 +419,21 @@ Focused REQ-031 tests were added for:
 - booking truth preservation;
 - deterministic repeat assembly.
 
-Local Maven execution is not available in this session environment because direct repository cloning cannot resolve `github.com`; local test success is therefore not claimed. GitHub Actions Backend Validation is required for the exact final PR head.
+The first final-head validation run was GitHub Actions Backend Validation **#296** / run ID **`37218759163`**, against PR head **`388520b1a48c776b1e3f4e6c4d215e7d5f7bbf54`**.
+
+Result:
+
+- Workflow: `Backend Validation`
+- Job: `Java 21 / Maven tests`
+- Command: `mvn --batch-mode --no-transfer-progress test`
+- Result: **BUILD SUCCESS**
+- Tests: **192**
+- Failures: **0**
+- Errors: **0**
+- Skipped: **0**
+- Focused `HospitalityAnalysisReportServiceTest`: **8 tests**, all passing.
+
+Local Maven execution is not available in this session environment because direct repository cloning cannot resolve `github.com`; local test success is therefore not claimed. The GitHub Actions run is the authoritative repository-level validation.
 
 ### Architectural decisions
 
@@ -455,13 +469,15 @@ Missing evidence, absent findings, unsupported dimensions, acquisition limitatio
 The assembly uses no clock, randomness, network, AI, or mutable global state. The same existing objects and inputs produce equal report values.
 
 #### Testing
-Focused REQ-031 tests were added. CI is required before changing the requirement to `PR_READY`.
+Focused REQ-031 tests were added and the complete backend suite passed in Backend Validation run #296 against the exact pre-finalization PR head. This requirement-file update changes the branch head, so a new Backend Validation run is required and will be the authoritative final-head validation.
 
 #### Repository hygiene
 The branch diff contains only the four REQ-031 implementation/test files plus this requirement update. No unrelated generated artifacts or application modules were changed.
 
-### Validation state
+### Final-head validation rule
 
-The implementation is complete, but `STATUS` intentionally remains `READY` until Backend Validation succeeds against the exact final PR head, including this requirement-file update.
+The requirement-file update containing this record changed the PR head after run #296. Therefore run #296 is intentionally **not** treated as final-head validation for `PR_READY`.
 
-**STOPPING FOR IMPLEMENTATION VALIDATION / ORCHESTRATOR REVIEW.**
+Backend Validation must pass against the exact new final PR head. Only after that run succeeds is `STATUS: PR_READY` considered final.
+
+**STOPPING FOR ORCHESTRATOR REVIEW.**
