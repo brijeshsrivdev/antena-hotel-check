@@ -1,6 +1,6 @@
 # REQ-018 — Evidence Normalization Foundation
 
-STATUS: READY
+STATUS: PR_READY
 REQUIREMENT_ID: REQ-018
 TYPE: Implementation
 BRANCH: `feature/evidence-normalization-foundation`
@@ -9,59 +9,41 @@ BRANCH: `feature/evidence-normalization-foundation`
 
 Implement the smallest governed boundary that converts the existing REQ-017 acquisition output into a structured evidence representation suitable for later hospitality analysis.
 
-The target flow is:
+Target flow:
 
-`AcquisitionResult → structured evidence`
+`EvaluationAcquisitionResult → StructuredEvidence`
 
-For the current slice, structured evidence represents **one acquisition observation/limitation**. It must preserve acquisition provenance and make the distinction between source observation and later interpretation explicit.
-
-REQ-018 does **not** extract hotel facts from HTML, perform hospitality analysis, or build a complete evidence pipeline.
-
-## Context
-
-The repository now has the following implemented flow on `main`:
-
-`CanonicalEvaluationRequest → Evaluation/Attempt → PublicWebAcquisitionService → AcquisitionResult → CapabilityOutcome`
-
-REQ-017 deliberately stopped before evidence normalization. `SPEC-005` defines the evidence model as the governed boundary between acquisition and later analysis. It requires source observations and evidence items to remain traceable, provenance states to remain distinguishable, unavailable evidence to remain distinct from absence, and derived representations to retain their supporting evidence relationships.
-
-The next smallest useful slice is therefore a **single-observation normalization boundary**: take the already available acquisition result and expose its acquisition metadata/content as a structured evidence representation without interpreting the hotel content.
+The current slice represents one acquisition observation or limitation. It preserves acquisition provenance and source traceability without interpreting hotel meaning.
 
 ## Product / Truthfulness Boundary
 
-REQ-018 must preserve these distinctions:
-
 ### Acquisition data
 
-The existing `AcquisitionResult` is acquisition-layer output. It describes what the acquisition operation requested, observed, or failed to observe, including URL, final URL, HTTP metadata, retrieval timestamp, method, body, redirect information, provenance metadata, and typed acquisition outcome.
+`AcquisitionResult` remains acquisition-layer output containing requested/final URL, HTTP metadata, retrieval timestamp, acquisition method, body, provenance metadata, redirects, and typed acquisition outcome.
 
 ### Normalized evidence
 
-REQ-018 produces a structured representation of that acquisition observation/limitation. Normalization may organize, rename, and consistently represent acquisition metadata and retained observed content, but must not add unsupported hotel meaning.
-
-A normalized evidence representation must retain a relationship to the source acquisition result/observation and its evaluation/attempt context.
+`StructuredEvidence` is a separate in-process representation that retains the source `EvaluationAcquisitionResult`, evaluation/attempt identity, acquisition metadata, observed content, outcome, and limitation.
 
 ### Verified facts
 
-REQ-018 creates **no independently verified hotel facts**.
-
-A successful public source observation may carry the product's `DISCOVERED` provenance state because the source content was directly observed. That does **not** mean that every statement in the source has been independently verified, nor does it authorize extracting or asserting hotel facts.
+REQ-018 creates no independently verified hotel facts. Directly observed public content retains `DISCOVERED` source provenance; normalization does not upgrade it to a verified hotel fact.
 
 ### Inferred information
 
-REQ-018 creates **no `INFERRED` information**.
+REQ-018 creates no `INFERRED` information.
 
 ### Demonstration information
 
-REQ-018 creates **no `DEMONSTRATION` information**.
+REQ-018 creates no `DEMONSTRATION` information.
 
 ### Future analysis
 
-Hospitality interpretation, guest-journey findings, scoring, confidence judgments, conflict resolution, recommendations, and hotel-fact extraction belong to later analysis requirements.
+Hotel-fact extraction, hospitality interpretation, guest-journey findings, scoring, confidence, conflict resolution, recommendations, reporting, and preview generation remain later work.
 
 ## READ
 
-Read completely before implementation:
+Authoritative context read before implementation:
 
 - `requirements/README.md`
 - `docs/specs/SPEC-001-hotel-check.md`
@@ -74,199 +56,173 @@ Read completely before implementation:
 - `docs/engineering/AGENT-GUIDELINES.md`
 - `docs/workflows/IMPLEMENTATION-SESSION.md`
 
-Inspect only additional directly relevant implementation/tests when required by the `INSPECT` section.
-
 ## INSPECT
 
-Before implementation, inspect the existing `main` implementation for:
+Inspected existing acquisition/evaluation contracts and tests before implementation:
 
-- `AcquisitionResult` and its outcome/method/provenance fields;
-- `EvaluationAcquisitionResult` and the evaluation/attempt context produced by REQ-017;
-- existing `CapabilityOutcome` / evaluation outcome conventions;
-- existing test conventions for acquisition/evaluation boundaries;
-- any existing evidence-related implementation or types.
+- `AcquisitionResult`
+- `AcquisitionOutcome`
+- `AcquisitionMethod`
+- `EvaluationAcquisitionResult`
+- `Evaluation`
+- `EvaluationAttempt`
+- `CapabilityOutcome`
+- existing evaluation/acquisition tests
+- repository evidence-model search
 
-Search for an existing evidence model before creating a new one. If an existing implementation already provides the required structured evidence boundary, extend/reuse it rather than introducing a duplicate abstraction.
-
-If repository evidence is insufficient to choose the smallest representation without inventing product behavior, STOP and report the ambiguity.
+No pre-existing evidence implementation was found, so REQ-018 introduced the minimal new evidence boundary rather than duplicating an existing model.
 
 ## DEPENDENCIES
 
-REQ-018 directly depends on:
+- REQ-015 bounded public-web acquisition and typed `AcquisitionResult` contract.
+- REQ-017 evaluation/acquisition integration and `EvaluationAcquisitionResult` boundary.
+- SPEC-005 evidence semantics and provenance requirements.
+- Existing evaluation/attempt identity and lifecycle contracts.
 
-- REQ-015 bounded public-web acquisition and its typed `AcquisitionResult` contract;
-- REQ-017 evaluation/acquisition integration and its `EvaluationAcquisitionResult` boundary;
-- `SPEC-005` evidence semantics and provenance requirements;
-- existing evaluation/attempt identity/context already implemented on `main`.
-
-REQ-018 must not redesign those contracts.
-
-## Scope
-
-### In scope
-
-1. Define the smallest structured evidence representation required to represent one acquisition observation/limitation.
-2. Provide a small normalization boundary/service that accepts the existing REQ-017 acquisition result and produces that structured evidence representation.
-3. Preserve the evaluation and attempt/run attribution available from the REQ-017 result.
-4. Preserve source/provenance information needed to understand what was observed, when, where, and by which acquisition method.
-5. Preserve acquisition availability/failure semantics without converting them into hotel-feature absence.
-6. Represent successful observed content as `DISCOVERED` evidence where supported by the acquisition result.
-7. Represent acquisition limitations/failures as structured evidence limitations without inventing hotel facts.
-8. Preserve the distinction between source observation and normalized representation; normalization must not mutate or overwrite the acquisition result.
-9. Add deterministic unit tests for successful normalization and important acquisition-outcome/metadata cases.
-10. Keep the boundary in-process and persistence-independent so later requirements can decide evidence storage/lifecycle.
-11. Document only the new normalization boundary if repository documentation needs an update as part of the implementation.
-
-## Normalization Contract
-
-The implementation should establish one small semantic operation:
-
-`EvaluationAcquisitionResult → StructuredEvidence`
-
-The resulting representation should contain, at minimum, the information necessary to answer:
-
-- Which evaluation/attempt produced this evidence?
-- Which source URL was requested/observed?
-- What final URL was observed, if applicable?
-- When was the observation made?
-- Which acquisition method was used?
-- What acquisition availability/outcome occurred?
-- What content type/status metadata was observed, if available?
-- What retained observed content is available, if any?
-- What provenance state applies to the representation?
-- What acquisition limitation/error information materially affects interpretation, if any?
-
-The implementation may choose different field names consistent with repository conventions, but it must not add unsupported hotel-domain semantics merely to make the representation appear richer.
-
-For a successful acquisition:
-
-- the structured evidence represents the observed source content;
-- provenance remains `DISCOVERED`;
-- acquisition metadata remains attributable to the source observation;
-- no hotel attribute is extracted or asserted.
-
-For an unavailable/failed/not-successful acquisition:
-
-- the structured evidence preserves the acquisition limitation/outcome;
-- no hotel feature is marked absent;
-- no successful source content is fabricated;
-- the representation remains useful as a limitation/observation record where appropriate.
-
-A normalized evidence item must not silently change `UNAVAILABLE`, `FAILED`, or `NOT_ATTEMPTED` into evidence that a hotel feature does not exist.
+Existing acquisition and lifecycle contracts were not redesigned.
 
 ## DO NOT TOUCH
 
-Do not implement or modify:
+REQ-018 does not implement or modify crawling, page discovery, browser acquisition, HTML hotel-fact extraction, room/amenity/contact/booking/dining extraction, hospitality analysis, scoring, AI/LLM, inference, confidence, conflict resolution, reports, Hotel Experience Model, preview generation, booking/OTA, persistence, queues, schedulers, public APIs, authentication, or REQ-015 security behavior.
 
-- multi-page crawling or page discovery;
-- browser/Playwright acquisition;
-- robots/access-policy expansion beyond existing acquisition behavior;
-- HTML parsing for hotel facts;
-- room/amenity/contact/booking/dining extraction;
-- hospitality analysis;
-- guest-journey scoring or grading;
-- AI/LLM integration;
-- inference/confidence engine;
-- conflict resolution policy;
-- report generation;
-- Hotel Experience Model;
-- interactive preview generation/hosting;
-- booking or OTA integrations;
-- persistence/database schema/migrations;
-- asynchronous queues/workflows;
-- public REST/GraphQL API;
-- authentication/authorization;
-- new acquisition implementation;
-- changes to REQ-015 SSRF, timeout, redirect, response-size, or public-web security guarantees;
-- redesign of REQ-011/REQ-012/REQ-015/REQ-017 contracts.
+No speculative evidence registry, repository, factory, persistence abstraction, or future analysis framework was introduced.
 
-Do not create speculative abstractions for future evidence types or future analysis consumers.
+## IMPLEMENTATION
+
+Implemented the single normalization boundary:
+
+`EvaluationAcquisitionResult → StructuredEvidence`
+
+`StructuredEvidence` preserves:
+
+- evaluation identity;
+- attempt identity and number;
+- traceable source `EvaluationAcquisitionResult`;
+- source provenance;
+- requested/final URL;
+- retrieval timestamp;
+- acquisition method;
+- HTTP status and content type;
+- retained observed body when available;
+- acquisition outcome;
+- acquisition limitation/error.
+
+Successful observed content remains `DISCOVERED`.
+
+Failed/limited acquisition retains its typed outcome and limitation, with no fabricated content and no representation of hotel-feature absence.
+
+No HTML semantic extraction or hotel-domain interpretation occurs.
+
+The original `AcquisitionResult` is not mutated.
 
 ## ACCEPTANCE
 
-### AC-1 — Existing acquisition output is the input boundary
+- Existing REQ-017 `EvaluationAcquisitionResult` is the normalization input boundary.
+- Structured evidence is distinct from acquisition data and traceable to its source observation.
+- Evaluation/attempt attribution is preserved.
+- Requested/final URL, retrieval timestamp, acquisition method, status, content type, content, outcome, and limitation are preserved.
+- Successful public observation retains `DISCOVERED` provenance.
+- Failure/unavailability remains distinguishable from successful observation and never becomes a negative hotel fact.
+- No room, amenity, policy, contact, booking, dining, or other hotel facts are extracted.
+- No `INFERRED` or `DEMONSTRATION` evidence is produced.
+- Source acquisition data remains unchanged.
+- No persistence or asynchronous infrastructure is introduced.
+- Existing REQ-015/REQ-017 contracts remain intact.
+- Deterministic tests contain no live website or external-network dependency.
+- Complete backend CI validation succeeds.
 
-The normalization boundary accepts the existing REQ-017 acquisition result rather than introducing a second acquisition contract or reconstructing acquisition data from raw fields elsewhere.
+## TESTS
 
-### AC-2 — Structured evidence is distinct from acquisition data
+Added deterministic unit coverage for:
 
-The implementation produces a structured evidence representation that is separate from `AcquisitionResult` while preserving a traceable relationship to the acquisition observation.
+1. successful normalization;
+2. `DISCOVERED` provenance preservation;
+3. requested/final URL and retrieval timestamp;
+4. acquisition method and HTTP/content metadata;
+5. observed-content retention without hotel semantic extraction;
+6. evaluation/attempt attribution;
+7. timeout/failure normalization as a limitation;
+8. HTTP error distinction;
+9. absence of observed content on failure;
+10. no mutation/replacement of the original acquisition result.
 
-### AC-3 — Provenance preservation
+## FILES CHANGED
 
-Successful directly observed public content remains represented as `DISCOVERED`. The implementation does not upgrade, downgrade, or silently replace provenance based on normalization alone.
+- `backend/src/main/java/com/antenapro/hotelcheck/evidence/EvidenceProvenance.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/evidence/StructuredEvidence.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/evidence/EvidenceNormalizationService.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/evidence/EvidenceNormalizationServiceTest.java`
+- this requirement file
 
-### AC-4 — Source traceability
+## VALIDATION
 
-Structured evidence preserves sufficient source and observation metadata to identify the requested/observed source, acquisition method, observation timestamp, and relevant outcome/limitation.
+### Backend CI
 
-### AC-5 — Evaluation/attempt attribution
+GitHub Actions workflow: **Backend Validation**
 
-Structured evidence remains attributable to the evaluation and attempt/run that produced the acquisition result.
+Run: `37172048369`
 
-### AC-6 — Availability semantics preserved
+Job: `Java 21 / Maven tests`
 
-`AVAILABLE`/successful acquisition and acquisition limitations/failures remain distinguishable. A failure or unavailable source is never converted into a negative hotel fact.
+Result: **SUCCESS**
 
-### AC-7 — No silent hotel-fact extraction
+The complete backend Maven test command executed successfully in CI. The job completed successfully at 2026-10-04T02:46:58Z.
 
-REQ-018 does not parse the acquired page to assert room, amenity, policy, contact, booking, dining, or other hotel facts.
+### Local validation
 
-### AC-8 — No inference or demonstration
+A local Maven execution was not performed in this session environment. CI is the observed execution of the documented complete backend validation.
 
-REQ-018 produces no `INFERRED` or `DEMONSTRATION` evidence.
+## PR
 
-### AC-9 — No mutation of source acquisition data
+PR: #18 — REQ-018: Evidence Normalization Foundation
 
-Normalization creates a related structured representation and does not rewrite or mutate the original `AcquisitionResult` provenance/content/outcome.
+Base: `main`
 
-### AC-10 — Deterministic tests
+Head: `feature/evidence-normalization-foundation`
 
-Tests cover at minimum:
+PR status: OPEN
 
-- successful acquisition normalization;
-- preservation of requested/final URL and retrieval timestamp;
-- preservation of acquisition method/content metadata where present;
-- preservation of observed content without semantic extraction;
-- acquisition failure/unavailability normalization;
-- proof that failure is not represented as hotel-feature absence;
-- evaluation/attempt attribution;
-- provenance state behavior.
+PR merge status: NOT MERGED
 
-Tests must not use live hotel websites or external network access.
+## SELF-REVIEW
 
-### AC-11 — Persistence independence
+### Scope
 
-The implementation does not introduce a database schema, repository, migration, or storage lifecycle for evidence.
+Only the REQ-018 acquisition-to-structured-evidence boundary was implemented.
 
-### AC-12 — Scope discipline
+### Existing code
 
-No analysis, scoring, AI, preview, booking, OTA, crawler, asynchronous orchestration, or public API is introduced.
+Existing acquisition/evaluation contracts were reused.
 
-### AC-13 — Existing contracts remain intact
+### Duplication
 
-REQ-015 and REQ-017 behavior and security guarantees remain intact. The normalization boundary consumes their existing outputs rather than redefining them.
+Repository search found no existing evidence implementation before the new boundary was introduced.
 
-### AC-14 — CI validation
+### Truthfulness
 
-The repository backend CI workflow executes the complete backend test suite successfully for the implementation PR.
+The output contains source observation data and provenance, not hotel-domain facts. Failure remains a limitation rather than an absence assertion.
 
-## OUTPUT
+### Provenance
 
-The implementation session must:
+The original `EvaluationAcquisitionResult` is retained as the source observation, while normalized fields preserve source metadata and acquisition outcome.
 
-1. Create the exact branch named in `BRANCH` from the current `main` at session start.
-2. Implement ONLY REQ-018.
-3. Add deterministic tests for the acceptance criteria.
-4. Run the documented backend validation and report only observed results.
-5. Perform the repository self-review defined by `docs/engineering/AGENT-GUIDELINES.md`.
-6. Update this SAME requirement file with implementation summary, changed files, validation, branch, PR information, limitations/open questions, and final status.
-7. Create/update the implementation PR against `main`.
-8. Do not merge the PR.
-9. Stop for orchestrator review.
+### Simplicity
 
-## Governance
+The implementation is an in-process record plus one normalization service and deterministic unit tests. No persistence or generic future-facing abstraction was added.
 
-REQ-018 is a bounded implementation contract. The implementation session must not expand scope because later consumers may eventually need richer evidence semantics.
+### Security / production
 
-If implementation reveals that the existing contracts do not provide enough information to create the minimal structured evidence boundary without inventing semantics, STOP and report the missing repository decision rather than extending scope unilaterally.
+REQ-018 performs no network access, does not alter acquisition security controls, and does not add unbounded processing or external-service behavior.
+
+## LIMITATIONS / OPEN QUESTIONS
+
+- Evidence persistence/lifecycle is intentionally deferred.
+- Evidence extraction from observed HTML is intentionally deferred to a later requirement.
+- Broader provenance/source taxonomy remains governed by SPEC-005 and is not expanded here.
+- Local Maven validation was unavailable in the session environment; GitHub Actions backend validation is successful.
+
+## GOVERNANCE
+
+REQ-018 is complete for implementation review. No REQ-019 work has been started.
+
+STOPPING FOR ORCHESTRATOR REVIEW.
