@@ -18,6 +18,18 @@ public final class HospitalityAnalysisService {
             Set.of(GuestJourneyStage.DISCOVER, GuestJourneyStage.UNDERSTAND,
                     GuestJourneyStage.EXPLORE, GuestJourneyStage.TRUST, GuestJourneyStage.BOOK);
 
+    private static final Set<HospitalityAnalysisDimension> FULL_INTENDED_DIMENSIONS = Set.of(
+            HospitalityAnalysisDimension.HOTEL_IDENTITY_AND_PROPERTY_UNDERSTANDING,
+            HospitalityAnalysisDimension.DISCOVERABILITY_AND_NAVIGATION,
+            HospitalityAnalysisDimension.ROOMS_AND_ROOM_INFORMATION,
+            HospitalityAnalysisDimension.AMENITIES_AND_GUEST_FACING_INFORMATION,
+            HospitalityAnalysisDimension.CONTACT_AND_LOCATION,
+            HospitalityAnalysisDimension.BOOKING_DISCOVERABILITY_AND_JOURNEY_SIGNALS,
+            HospitalityAnalysisDimension.TRUST_AND_CLARITY,
+            HospitalityAnalysisDimension.MOBILE_AND_TECHNICAL_GUEST_EXPERIENCE,
+            HospitalityAnalysisDimension.SEO_AND_STRUCTURED_DATA_SUPPORTING_SIGNALS
+    );
+
     private static final Map<HospitalityObservationCategory, HospitalityAnalysisDimension> DIMENSION_BY_CATEGORY =
             Map.of(
                     HospitalityObservationCategory.HOTEL_IDENTITY,
@@ -112,7 +124,10 @@ public final class HospitalityAnalysisService {
         Set<HospitalityAnalysisDimension> assessableDimensions = new LinkedHashSet<>();
         for (HospitalityFinding finding : findings) {
             assessableJourneyStages.addAll(finding.journeyStages());
-            assessableDimensions.add(DIMENSION_BY_CATEGORY.get(finding.category()));
+            HospitalityAnalysisDimension dimension = DIMENSION_BY_CATEGORY.get(finding.category());
+            if (dimension != null) {
+                assessableDimensions.add(dimension);
+            }
         }
 
         Set<GuestJourneyStage> limitedJourneyStages = new LinkedHashSet<>();
@@ -130,7 +145,7 @@ public final class HospitalityAnalysisService {
         return new HospitalityAnalysisCoverage(
                 evaluationId,
                 INTENDED_JOURNEY_STAGES,
-                Set.copyOf(new LinkedHashSet<>(DIMENSION_BY_CATEGORY.values())),
+                FULL_INTENDED_DIMENSIONS,
                 assessableJourneyStages,
                 assessableDimensions,
                 limitedJourneyStages,
