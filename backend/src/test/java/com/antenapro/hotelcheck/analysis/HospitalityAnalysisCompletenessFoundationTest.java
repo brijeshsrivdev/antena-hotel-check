@@ -37,8 +37,8 @@ class HospitalityAnalysisCompletenessFoundationTest {
     @Test
     void crossSourceIdentityConflictMakesTrustClarityAssessable() {
         Evaluation evaluation = evaluation();
-        StructuredEvidence first = evidence(evaluation, "<h1>Grand Hotel</h1>");
-        StructuredEvidence second = evidence(evaluation, "<h1>Grand Resort</h1>");
+        StructuredEvidence first = evidence(evaluation, "https://hotel.example.com/about", "<h1>Grand Hotel</h1>");
+        StructuredEvidence second = evidence(evaluation, "https://hotel.example.com/contact", "<h1>Grand Resort</h1>");
 
         HospitalityAnalysisResult result = service.analyze(
                 evaluation.evaluationId(), List.of(first, second), HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED);
@@ -50,7 +50,7 @@ class HospitalityAnalysisCompletenessFoundationTest {
 
     @Test
     void trustRemainsUnsupportedWhenNoGovernedConflictEvidenceExists() {
-        StructuredEvidence evidence = evidence("<h1>Grand Hotel</h1><a href=\"/rooms\">Rooms</a>");
+        StructuredEvidence evidence = evidence("https://hotel.example.com/rooms", "<h1>Grand Hotel</h1><a href=\"/rooms\">Rooms</a>");
 
         Set<HospitalityAnalysisDimension> assessable = service.analyze(
                 evidence.evaluationId(), List.of(evidence), HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED)
@@ -63,7 +63,7 @@ class HospitalityAnalysisCompletenessFoundationTest {
 
     @Test
     void bookingAbsenceRemainsNonDeficiencyWhileExistingDimensionsRemainAssessable() {
-        StructuredEvidence evidence = evidence("<h1>Grand Hotel</h1><a href=\"/rooms\">Rooms</a>");
+        StructuredEvidence evidence = evidence("https://hotel.example.com/rooms", "<h1>Grand Hotel</h1><a href=\"/rooms\">Rooms</a>");
 
         HospitalityAnalysisResult result = service.analyze(
                 evidence.evaluationId(), List.of(evidence), HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED);
@@ -74,13 +74,13 @@ class HospitalityAnalysisCompletenessFoundationTest {
                 && f.findingText().toLowerCase().contains("deficien")));
     }
 
-    private StructuredEvidence evidence(String body) {
-        return evidence(evaluation(), body);
+    private StructuredEvidence evidence(String finalUrl, String body) {
+        return evidence(evaluation(), finalUrl, body);
     }
 
-    private StructuredEvidence evidence(Evaluation evaluation, String body) {
+    private StructuredEvidence evidence(Evaluation evaluation, String finalUrl, String body) {
         AcquisitionResult acquisition = new AcquisitionResult(
-                AcquisitionOutcome.SUCCESS, WEBSITE, WEBSITE + "/", 200, "text/html",
+                AcquisitionOutcome.SUCCESS, WEBSITE, finalUrl, 200, "text/html",
                 CLOCK.instant(), AcquisitionMethod.HTTP_PUBLIC, body, Map.of(), List.of(), null);
         EvaluationAttempt attempt = evaluation.currentAttempt();
         CapabilityOutcome capabilityOutcome = CapabilityOutcome.record(
