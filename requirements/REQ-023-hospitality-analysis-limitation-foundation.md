@@ -168,7 +168,7 @@ No live hotel website or external network dependency is used by the tests.
 
 Local Maven validation is not available in the session environment because direct repository cloning cannot resolve `github.com`.
 
-GitHub Actions Backend Validation run **#129** / run ID **`37176816747`** executed against final branch head **`b45662f4e9466f508652d8c9e2d68d655bf75d74`**:
+GitHub Actions Backend Validation run **#131** / run ID **`37176902621`** executed against final branch head **`d0cbdb578edcf285e650e55db584f2506ec99606`**:
 
 - Workflow: **Backend Validation**
 - Job: **Java 21 / Maven tests**
@@ -183,14 +183,14 @@ The final-head CI run is the authoritative repository-level validation for this 
 
 ### CI
 
-**PASS** — Backend Validation run #129 / run ID `37176816747`.
+**PASS** — Backend Validation run #131 / run ID `37176902621`.
 
 ### PR
 
 - **PR:** #23 — `REQ-023: Hospitality Analysis Limitation Foundation`
 - **Base:** `main`
 - **Head:** `feature/hospitality-analysis-limitation-foundation`
-- **Validated head:** `b45662f4e9466f508652d8c9e2d68d655bf75d74`
+- **Validated head:** `d0cbdb578edcf285e650e55db584f2506ec99606`
 - **Status:** OPEN
 - **Merged:** No
 
