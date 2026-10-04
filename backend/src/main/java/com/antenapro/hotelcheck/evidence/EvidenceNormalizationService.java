@@ -11,21 +11,18 @@ public final class EvidenceNormalizationService {
         Objects.requireNonNull(result, "result must not be null");
 
         AcquisitionResult acquisition = result.acquisitionResult();
-        EvidenceProvenance provenance = acquisition.isSuccess()
-                ? EvidenceProvenance.DISCOVERED
-                : EvidenceProvenance.DISCOVERED;
 
         return new StructuredEvidence(
                 result.evaluation().evaluationId(),
                 result.attempt().attemptId(),
                 result.attempt().attemptNumber(),
                 result,
-                provenance,
+                EvidenceProvenance.DISCOVERED,
                 acquisition.outcome(),
                 acquisition.requestedUrl(),
                 acquisition.finalUrl(),
                 acquisition.retrievalTimestamp(),
-                acquisition.acquisitionMethod().name(),
+                acquisition.acquisitionMethod(),
                 acquisition.statusCode(),
                 acquisition.contentType(),
                 acquisition.body(),
