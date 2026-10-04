@@ -77,7 +77,8 @@ class HospitalityAnalysisCoverageTest {
                 Set.of(GuestJourneyStage.DISCOVER, GuestJourneyStage.UNDERSTAND),
                 Set.of(HospitalityAnalysisDimension.HOTEL_IDENTITY_AND_PROPERTY_UNDERSTANDING),
                 Set.of(GuestJourneyStage.EXPLORE, GuestJourneyStage.BOOK),
-                Set.of(HospitalityAnalysisDimension.ROOMS_AND_ROOM_INFORMATION)
+                Set.of(HospitalityAnalysisDimension.ROOMS_AND_ROOM_INFORMATION),
+                "explicitly assessed from intended hospitality scope"
         );
 
         assertEquals(evaluationId, coverage.evaluationId());
@@ -99,7 +100,8 @@ class HospitalityAnalysisCoverageTest {
                     Set.of(GuestJourneyStage.DISCOVER),
                     Set.of(HospitalityAnalysisDimension.HOTEL_IDENTITY_AND_PROPERTY_UNDERSTANDING),
                     Set.of(GuestJourneyStage.UNDERSTAND),
-                    Set.of(HospitalityAnalysisDimension.HOTEL_IDENTITY_AND_PROPERTY_UNDERSTANDING)
+                    Set.of(HospitalityAnalysisDimension.HOTEL_IDENTITY_AND_PROPERTY_UNDERSTANDING),
+                    "explicit state supplied without a numerical threshold"
             );
 
             assertEquals(state, coverage.state());
