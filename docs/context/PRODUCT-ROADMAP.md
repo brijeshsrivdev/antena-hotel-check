@@ -31,11 +31,13 @@ Hospitality Observations
         ↓
 Qualified Signals
         ↓
+Governed Coverage Assessment
+        ↓
+Coverage Classification
+        ↓
 Deterministic Hospitality Analysis
         ↓
 Evidence-grounded Deficiencies + Truthful Limitations
-        ↓
-Coverage Classification
         ↓
 Hospitality Analysis Result
         ↓
@@ -58,25 +60,26 @@ Improved hotel experience
 
 ## Current Position
 
-The repository has completed the core deterministic analysis/report domain foundation through REQ-031.
+The repository has completed the core deterministic analysis/report foundation through REQ-034.
 
 Current blocker:
 
 - **REQ-032 — Evaluation Execution Orchestration Foundation — BLOCKED.**
 
-Session 32 correctly stopped because the existing analysis service requires a caller-supplied `HospitalityAnalysisCoverageState`, while the canonical evaluation request does not provide one and REQ-024 intentionally established representation without classification/calibration rules.
+Session 35 reconciled a circular coverage contract: `HospitalityAnalysisService` requires a caller-supplied `HospitalityAnalysisCoverageState` before it creates final `HospitalityAnalysisCoverage`, while `HospitalityAnalysisCoverageClassifier` currently consumes that final coverage object.
 
-The orchestrator has created and accepted:
+The orchestrator has therefore established:
 
-- **REQ-033 — Hospitality Analysis Coverage Classification Contract — READY.**
-- **REQ-034 — Hospitality Analysis Coverage Classification Implementation — READY.**
+- **REQ-035 — Hospitality Coverage Assessment Contract — READY.**
+- REQ-035 defines the missing pre-classification fact boundary.
+- REQ-035 is specification-only and is **not implemented**.
 
-The immediate sequence is therefore:
+The immediate sequence is:
 
 ```text
-REQ-033 contract
+REQ-035 contract
       ↓
-REQ-034 implementation
+REQ-035 implementation / classifier-boundary integration
       ↓
 REQ-032 orchestration
 ```
@@ -85,7 +88,7 @@ REQ-032 orchestration
 
 ### Completed foundation
 
-The repository now contains merged deterministic foundations for:
+The repository contains merged deterministic foundations for:
 
 - public-web acquisition;
 - evaluation/acquisition integration;
@@ -95,6 +98,7 @@ The repository now contains merged deterministic foundations for:
 - findings and deficiencies;
 - limitations;
 - coverage representation;
+- coverage classification;
 - deterministic analysis;
 - guest-journey analysis;
 - recommendations;
@@ -109,33 +113,21 @@ NOT_ATTEMPTED ≠ hotel deficiency
 Unsupported dimension ≠ hotel deficiency
 ```
 
-### REQ-033 — Coverage Classification Contract
+### REQ-035 — Coverage Assessment Contract
 
 **Status:** READY
 
-Define and calibrate the three existing coverage states so the execution layer has a governed source of `HospitalityAnalysisCoverageState`.
+Define the smallest immutable pre-classification fact contract using existing evaluation identity, the five guest-journey stages, and the nine hospitality dimensions.
 
-Initial calibration:
+The assessment represents intended, assessable, and limited journey/dimension scope for exactly one evaluation. Covered scope is assessable ∪ limited scope. Limited scope contributes to coverage but not to the assessable-stage threshold.
 
-- `SUBSTANTIALLY_ASSESSED`: all five journey stages covered; at least six of nine intended dimensions covered; at least three journey stages have assessable evidence.
-- `PARTIALLY_ASSESSED`: at least one intended journey stage or dimension is covered, but substantial criteria are not satisfied.
-- `INSUFFICIENT_COVERAGE`: zero intended journey stages and zero intended dimensions are covered.
-
-These are analysis-capability classifications, not hotel-quality scores.
-
-### REQ-034 — Coverage Classification Implementation
-
-**Status:** READY
-
-Implement the deterministic classifier governed by REQ-033 as a small domain service.
-
-The implementation remains separate from the end-to-end orchestrator so the orchestration layer does not become the owner of product calibration.
+The assessment does not contain the final coverage state and does not replace `HospitalityAnalysisCoverage`.
 
 ### REQ-032 — Evaluation Execution Orchestration
 
 **Status:** BLOCKED
 
-After coverage classification exists, introduce one thin end-to-end execution boundary:
+After REQ-035 is implemented and the classifier boundary is reconciled, introduce one thin end-to-end execution boundary:
 
 ```text
 Canonical Evaluation Request
@@ -145,6 +137,8 @@ Evaluation / Attempt
 Acquisition
         ↓
 Evidence
+        ↓
+Governed Coverage Assessment
         ↓
 Coverage Classification
         ↓

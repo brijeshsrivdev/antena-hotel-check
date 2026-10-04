@@ -76,7 +76,7 @@ This is a compact record of durable decisions that a future orchestrator should 
 
 **Status:** Active
 
-**Decision:** Antena (`https://antenapro.com`) is our own hospitality product and the eventual downstream destination for Hotel Check conversion opportunities. Once digital-presence analysis is mature enough, Hotel Check may provide an Antena-hosted hotel experience at `<hotel-name>.antenapro.com` to address problems identified by the analysis.
+**Decision:** Antena is the eventual downstream destination for Hotel Check conversion opportunities. Once digital-presence analysis is mature enough, Hotel Check may provide an Antena-hosted hotel experience at `<hotel-name>.antenapro.com` to address problems identified by the analysis.
 
 **Rationale:** The analysis must first become trustworthy and useful. Premature integration would couple the early analysis foundation to downstream site generation and could distort scope.
 
@@ -96,9 +96,9 @@ This is a compact record of durable decisions that a future orchestrator should 
 
 **Status:** Active
 
-**Decision:** Hospitality analysis may report an observed deficiency only when the retained evidence and an explicit deterministic rule establish the guest-facing problem. Missing evidence, acquisition failure, `NOT_ATTEMPTED`, unsupported dimensions, and context-free keyword absence are not deficiencies.
+**Decision:** Hospitality analysis may report an observed deficiency only when retained evidence and an explicit deterministic rule establish the guest-facing problem. Missing evidence, acquisition failure, `NOT_ATTEMPTED`, unsupported dimensions, and context-free keyword absence are not deficiencies.
 
-**Rationale:** The product must distinguish an observed problem from inability to verify. This protects the analysis from false negative hotel claims while still allowing the analysis to become useful to owners by identifying genuinely observable guest-journey problems.
+**Rationale:** The product must distinguish an observed problem from inability to verify.
 
 **Source:** SPEC-006 analysis semantics and REQ-027.
 
@@ -110,6 +110,34 @@ This is a compact record of durable decisions that a future orchestrator should 
 
 A dedicated coverage-classification contract must define and calibrate the semantics before orchestration can supply `HospitalityAnalysisCoverageState` to deterministic analysis.
 
-**Rationale:** Session 32 exposed a real contract gap: `HospitalityAnalysisService` requires a coverage state, while `CanonicalEvaluationRequest` does not provide one and REQ-024 intentionally leaves classification unspecified. Hiding this decision inside REQ-032 would create an accidental product rule at the wrong architectural boundary.
+**Rationale:** Session 32 exposed a real contract gap: `HospitalityAnalysisService` requires a coverage state, while the canonical evaluation request does not provide one and REQ-024 intentionally leaves classification unspecified. Hiding this decision inside REQ-032 would create an accidental product rule at the wrong architectural boundary.
 
-**Source:** REQ-024 and Session 32 repository reconciliation. REQ-033 now defines the first governed classification contract.
+**Source:** REQ-024, REQ-033, and Session 32 repository reconciliation.
+
+## Decision 012 — Pre-classification coverage assessment is a separate boundary
+
+**Status:** Active
+
+**Decision:** Introduce a governed `HospitalityCoverageAssessment` contract between upstream evidence-derived facts and coverage classification.
+
+The intended relationship is:
+
+```text
+HospitalityCoverageAssessment
+        ↓
+HospitalityAnalysisCoverageClassifier
+        ↓
+HospitalityAnalysisCoverageState
+        ↓
+HospitalityAnalysisService
+        ↓
+HospitalityAnalysisCoverage
+```
+
+The assessment represents one evaluation's intended, assessable, and limited journey/dimension scope. Covered scope is assessable ∪ limited scope. The assessment does not contain the final classification state and does not replace `HospitalityAnalysisCoverage`.
+
+REQ-032 must remain blocked until this boundary is implemented and the classifier input is reconciled. The orchestrator must not manufacture a final `HospitalityAnalysisCoverage` solely to obtain a state, duplicate REQ-033 rules, or inspect raw evidence for classification.
+
+**Rationale:** The current runtime contracts form a circular dependency: analysis requires a state before creating final coverage, while the classifier currently requires final coverage to produce that state. A pre-classification fact boundary removes the cycle without moving product calibration into orchestration.
+
+**Source:** Session 35 reconciliation and REQ-035.

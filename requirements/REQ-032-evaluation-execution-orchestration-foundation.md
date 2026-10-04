@@ -1,40 +1,15 @@
 # REQ-032 — Evaluation Execution Orchestration Foundation
 
-STATUS: READY
+STATUS: BLOCKED
 REQUIREMENT_ID: REQ-032
 TYPE: Implementation
 BRANCH: `feature/evaluation-execution-orchestration-foundation`
 
-## Dependency Resolution
+## Dependency Resolution Status
 
-REQ-032 was previously blocked after Session 32 repository reconciliation identified a missing governed source for `HospitalityAnalysisCoverageState`.
+REQ-032 is currently blocked by a contract gap discovered while reconciling the intended execution sequence against the actual current `main`.
 
-The dependency is now resolved:
-
-- REQ-033 — Hospitality Analysis Coverage Classification Contract — accepted.
-- REQ-034 — Hospitality Analysis Coverage Classification Implementation — IMPLEMENTED / MERGED as PR #32.
-- Current `main` includes the governed `HospitalityAnalysisCoverageClassifier`.
-
-The classifier provides the required deterministic caller-supplied coverage state without moving product calibration into the orchestration layer.
-
-REQ-032 is therefore restored to `READY` after reconciliation against current `main`.
-
-## Reconciliation Record
-
-Current `main` after REQ-034 merge:
-
-`b4a9e63b541c215fb5138cd66200a0ae5ca96d99`
-
-Confirmed merged:
-
-- REQ-027 — Hospitality Deficiency Analysis Foundation;
-- REQ-028 — Hospitality Analysis Completeness Foundation;
-- REQ-029 — Guest Journey Analysis Foundation;
-- REQ-030 — Hospitality Recommendation Foundation;
-- REQ-031 — Hospitality Analysis Report Foundation;
-- REQ-034 — Hospitality Analysis Coverage Classification Implementation.
-
-The existing analysis service still requires:
+The existing deterministic analysis service requires:
 
 ```text
 analyze(
@@ -44,19 +19,58 @@ analyze(
 )
 ```
 
-The governed coverage classifier now supplies `coverageState` from the existing `HospitalityAnalysisCoverage` representation using the REQ-033 calibration. REQ-032 must invoke that classifier rather than inventing or duplicating classification rules.
+The governed `HospitalityAnalysisCoverageClassifier` exists, but its current input is `HospitalityAnalysisCoverage`. That final coverage object is created by `HospitalityAnalysisService` only after the caller has already supplied `coverageState`.
+
+This creates a circular dependency:
+
+```text
+HospitalityAnalysisService
+        ↓ requires
+HospitalityAnalysisCoverageState
+        ↑ produced by
+HospitalityAnalysisCoverageClassifier
+        ↑ currently consumes
+HospitalityAnalysisCoverage
+        ↑ currently created by
+HospitalityAnalysisService
+```
+
+REQ-033 and REQ-034 correctly established and implemented coverage calibration, but they did not provide a pre-classification source for the coverage facts. Therefore REQ-032 must not invent a workaround.
+
+REQ-035 — Hospitality Coverage Assessment Contract — now defines the missing pre-classification contract.
+
+REQ-032 remains `BLOCKED` until the REQ-035 contract is implemented and the classifier boundary is updated accordingly.
+
+## Reconciliation Record
+
+Current `main` at session start:
+
+`8a9ade5700410776136a8ad7b94d8fd8272b58e6`
+
+Confirmed existing foundations include:
+
+- REQ-024 — Hospitality Analysis Coverage Foundation;
+- REQ-026 — Deterministic Hospitality Analysis Engine;
+- REQ-033 — Hospitality Analysis Coverage Classification Contract;
+- REQ-034 — Hospitality Analysis Coverage Classification Implementation.
+
+The repository implementation was inspected directly. `HospitalityAnalysisService` creates `HospitalityAnalysisCoverage` only after receiving a caller-supplied `HospitalityAnalysisCoverageState`; `HospitalityAnalysisCoverageClassifier` currently consumes that final coverage object and returns its state.
+
+No pre-analysis coverage assessment contract exists on `main`.
 
 ## Objective
 
-Introduce the smallest explicit end-to-end orchestration boundary for executing one canonical hotel evaluation through the existing Antena Hotel Check analysis pipeline.
+Introduce the smallest explicit end-to-end orchestration boundary for executing one canonical hotel evaluation through the existing Antena Hotel Check analysis pipeline, once the pre-classification coverage contract is implemented.
 
 The product objective remains:
 
 > **Can a guest find, understand, trust, explore, and book this hotel online?**
 
-The current product focus remains trustworthy digital presence analysis. Antena-hosted hotel experience generation at `<hotel-name>.antenapro.com` remains downstream.
+The interactive Antena-hosted hotel experience remains downstream.
 
 ## Intended Execution Flow
+
+The corrected conceptual sequence is:
 
 ```text
 Canonical Evaluation Request
@@ -69,15 +83,17 @@ Acquisition Result
         ↓
 Structured Evidence
         ↓
-Hospitality Observation
+Governed Coverage Assessment
         ↓
-Qualified Hospitality Analysis Signal
+HospitalityAnalysisCoverageClassifier
         ↓
-Coverage Classification
+HospitalityAnalysisCoverageState
         ↓
 Deterministic Hospitality Analysis
         ↓
 Hospitality Finding / Deficiency / Limitation
+        ↓
+Hospitality Analysis Coverage
         ↓
 Hospitality Analysis Result
         ↓
@@ -88,22 +104,36 @@ Hospitality Recommendations
 Structured Hospitality Analysis Report
 ```
 
-The orchestrator must remain a thin coordinator and must not become the source of coverage semantics.
+At the higher-level product boundary this is:
+
+```text
+acquisition
+→ evidence
+→ governed coverage assessment
+→ coverage classifier
+→ deterministic analysis
+→ journey
+→ recommendations
+→ report
+```
+
+The orchestrator remains a thin coordinator and must not become the source of coverage semantics.
 
 ## Scope
 
-Implement only:
+When unblocked, implement only:
 
 1. one canonical evaluation request boundary;
 2. existing evaluation/attempt lifecycle usage;
 3. existing acquisition integration exactly once;
 4. existing evidence normalization;
-5. governed coverage classification using `HospitalityAnalysisCoverageClassifier`;
-6. existing deterministic hospitality analysis;
-7. existing guest-journey analysis;
-8. existing recommendation generation;
-9. existing report assembly;
-10. one evaluation-attributed orchestration result.
+5. governed pre-classification coverage assessment;
+6. governed coverage classification using `HospitalityAnalysisCoverageClassifier`;
+7. existing deterministic hospitality analysis;
+8. existing guest-journey analysis;
+9. existing recommendation generation;
+10. existing report assembly;
+11. one evaluation-attributed orchestration result.
 
 Do not redesign downstream contracts.
 
@@ -117,6 +147,7 @@ Do not add:
 - raw evidence parsing;
 - analysis rules;
 - coverage classification rules inside orchestration;
+- duplicate coverage rules;
 - scoring;
 - prioritization;
 - AI;
@@ -128,12 +159,48 @@ Do not add:
 - preview generation;
 - generic workflow engines.
 
+## Coverage Contract Boundary
+
+REQ-035 establishes `HospitalityCoverageAssessment` as the pre-classification fact boundary.
+
+The conceptual relationship is:
+
+```text
+HospitalityCoverageAssessment
+        ↓
+HospitalityAnalysisCoverageClassifier
+        ↓
+HospitalityAnalysisCoverageState
+        ↓
+HospitalityAnalysisService
+        ↓
+HospitalityAnalysisCoverage
+```
+
+The orchestrator must not construct a final `HospitalityAnalysisCoverage` merely to obtain the state required by analysis.
+
+The orchestrator must not default, guess, or derive a state independently.
+
+The classifier remains the sole owner of the REQ-033 coverage calibration.
+
 ## Governance
 
-The coverage-classification dependency has been resolved by REQ-034. REQ-032 is now `READY` for implementation.
+REQ-032 is blocked by the REQ-035 contract and its subsequent implementation.
 
-The implementation session must still reconcile the actual current `main` before coding and must stop if another material contract gap is discovered.
+Required sequence before REQ-032 implementation:
+
+```text
+REQ-035 — Hospitality Coverage Assessment Contract — READY
+        ↓
+REQ-035 implementation / classifier-boundary integration
+        ↓
+REQ-032 — Evaluation Execution Orchestration
+```
+
+The blocker is explicitly architectural/contractual, not an implementation invitation to move classification logic into the orchestrator.
 
 ## Final-Head Validation Rule
 
 The requirement implementation record must reference validation performed against the exact final PR head. If the requirement file changes after a successful CI run, Backend Validation must be rerun against the resulting final head.
+
+**Blocked by REQ-035 contract and subsequent implementation.**
