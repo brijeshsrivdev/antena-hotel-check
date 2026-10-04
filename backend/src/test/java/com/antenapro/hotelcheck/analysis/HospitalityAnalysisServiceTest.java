@@ -67,6 +67,90 @@ class HospitalityAnalysisServiceTest {
     }
 
     @Test
+    void intendedDimensionsContainTheCompleteGovernedHospitalityScope() {
+        StructuredEvidence evidence = evidence(AcquisitionOutcome.SUCCESS,
+                "<h1>Grand Hotel</h1><a href=\"/rooms\">Rooms</a>", null);
+
+        HospitalityAnalysisCoverage coverage = service.analyze(
+                evidence.evaluationId(), List.of(evidence), HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED)
+                .coverage();
+
+        assertEquals(Set.of(
+                HospitalityAnalysisDimension.HOTEL_IDENTITY_AND_PROPERTY_UNDERSTANDING,
+                HospitalityAnalysisDimension.DISCOVERABILITY_AND_NAVIGATION,
+                HospitalityAnalysisDimension.ROOMS_AND_ROOM_INFORMATION,
+                HospitalityAnalysisDimension.AMENITIES_AND_GUEST_FACING_INFORMATION,
+                HospitalityAnalysisDimension.CONTACT_AND_LOCATION,
+                HospitalityAnalysisDimension.BOOKING_DISCOVERABILITY_AND_JOURNEY_SIGNALS,
+                HospitalityAnalysisDimension.TRUST_AND_CLARITY,
+                HospitalityAnalysisDimension.MOBILE_AND_TECHNICAL_GUEST_EXPERIENCE,
+                HospitalityAnalysisDimension.SEO_AND_STRUCTURED_DATA_SUPPORTING_SIGNALS
+        ), coverage.intendedDimensions());
+    }
+
+    @Test
+    void currentAssessableDimensionsAreOnlyThoseSupportedByCurrentFindings() {
+        StructuredEvidence evidence = evidence(AcquisitionOutcome.SUCCESS,
+                "<h1>Grand Hotel</h1>"
+                        + "<a href=\"/rooms\">Rooms</a>"
+                        + "<a href=\"/amenities\">Pool and Wi-Fi</a>"
+                        + "<a href=\"mailto:stay@hotel.example.com\">Contact Us</a>"
+                        + "<a href=\"/booking\">Book Now</a>", null);
+
+        HospitalityAnalysisCoverage coverage = service.analyze(
+                evidence.evaluationId(), List.of(evidence), HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED)
+                .coverage();
+
+        assertEquals(Set.of(
+                HospitalityAnalysisDimension.HOTEL_IDENTITY_AND_PROPERTY_UNDERSTANDING,
+                HospitalityAnalysisDimension.ROOMS_AND_ROOM_INFORMATION,
+                HospitalityAnalysisDimension.AMENITIES_AND_GUEST_FACING_INFORMATION,
+                HospitalityAnalysisDimension.CONTACT_AND_LOCATION,
+                HospitalityAnalysisDimension.BOOKING_DISCOVERABILITY_AND_JOURNEY_SIGNALS
+        ), coverage.assessableDimensions());
+        assertTrue(coverage.intendedDimensions().containsAll(coverage.assessableDimensions()));
+    }
+
+    @Test
+    void unsupportedDimensionsRemainIntendedButAreNotFalselyAssessable() {
+        StructuredEvidence evidence = evidence(AcquisitionOutcome.SUCCESS,
+                "<h1>Grand Hotel</h1>"
+                        + "<a href=\"/rooms\">Rooms</a>"
+                        + "<a href=\"/amenities\">Amenities</a>"
+                        + "<a href=\"/contact\">Contact</a>"
+                        + "<a href=\"/booking\">Book Now</a>", null);
+
+        HospitalityAnalysisCoverage coverage = service.analyze(
+                evidence.evaluationId(), List.of(evidence), HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED)
+                .coverage();
+
+        Set<HospitalityAnalysisDimension> unsupported = Set.of(
+                HospitalityAnalysisDimension.DISCOVERABILITY_AND_NAVIGATION,
+                HospitalityAnalysisDimension.TRUST_AND_CLARITY,
+                HospitalityAnalysisDimension.MOBILE_AND_TECHNICAL_GUEST_EXPERIENCE,
+                HospitalityAnalysisDimension.SEO_AND_STRUCTURED_DATA_SUPPORTING_SIGNALS
+        );
+
+        assertTrue(coverage.intendedDimensions().containsAll(unsupported));
+        assertTrue(unsupported.stream().noneMatch(coverage.assessableDimensions()::contains));
+        assertFalse(coverage.assessableDimensions().containsAll(unsupported));
+    }
+
+    @Test
+    void diningContributesToAmenitiesDimensionWithoutCreatingAnInventedDimension() {
+        StructuredEvidence evidence = evidence(AcquisitionOutcome.SUCCESS,
+                "<a href=\"/dining\">Restaurant & Breakfast</a>", null);
+
+        HospitalityAnalysisCoverage coverage = service.analyze(
+                evidence.evaluationId(), List.of(evidence), HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED)
+                .coverage();
+
+        assertEquals(Set.of(HospitalityAnalysisDimension.AMENITIES_AND_GUEST_FACING_INFORMATION),
+                coverage.assessableDimensions());
+        assertEquals(9, coverage.intendedDimensions().size());
+    }
+
+    @Test
     void multipleEvidenceItemsRemainTraceableAndDistinct() {
         Evaluation evaluation = evaluation();
         StructuredEvidence homepage = evidence(evaluation, AcquisitionOutcome.SUCCESS,
