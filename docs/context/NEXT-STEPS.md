@@ -2,15 +2,36 @@
 
 ## Current Position
 
-REQ-021 — Hospitality Analysis Signal Foundation is the latest completed product capability.
+REQ-022 — Hospitality Finding Foundation is merged into `main`.
 
 REQ-020 — Orchestrator Durable Context Foundation is merged and establishes the durable handoff/context mechanism.
 
-## Immediate Next Action
+## Immediate Next Slice
 
-Inspect the updated `main` and define the next smallest product requirement for trustworthy digital-presence analysis.
+REQ-023 — Hospitality Analysis Limitation Foundation.
 
-Do not assume the next product requirement merely from this file. Read the relevant specifications and inspect the implementation before defining it.
+Purpose: establish a truthful, deterministic representation of **unable to verify** conditions without turning them into hotel deficiencies.
+
+Required distinction:
+
+```text
+Unable to verify booking
+  ≠ Booking is broken
+
+No usable evidence
+  ≠ Hotel lacks the capability
+
+NOT_ATTEMPTED
+  ≠ Feature absent
+```
+
+The implementation must consume existing acquisition/evidence state and must not introduce new acquisition, network access, AI, scoring, severity, recommendations, coverage, reporting, persistence, or Antena integration.
+
+Do not assume a limitation merely because evidence is absent. Use only repository-supported acquisition/evidence conditions. If the existing contracts cannot distinguish a limitation from `NOT_ATTEMPTED` or simple absence of evidence, stop rather than invent semantics.
+
+## After REQ-023
+
+Do not pre-commit to a feature beyond the next repository-grounded slice. After REQ-023 is merged, the orchestrator should inspect `main`, specifications, and implemented contracts again before defining the next requirement.
 
 ## Product Sequence
 
@@ -24,6 +45,8 @@ Structured Evidence
 Bounded Hospitality Observations
         ↓
 Qualified Hospitality Analysis Signals
+        ↓
+Hospitality Findings + truthful limitations
         ↓
 Digital-presence / hospitality analysis
         ↓
