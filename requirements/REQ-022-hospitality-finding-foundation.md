@@ -1,6 +1,6 @@
 # REQ-022 — Hospitality Finding Foundation
 
-**STATUS:** READY  
+**STATUS:** PR_READY  
 **REQUIREMENT_ID:** REQ-022  
 **TYPE:** Implementation  
 **BRANCH:** `feature/hospitality-finding-foundation`
@@ -134,23 +134,129 @@ Do not create a generic `FindingEngine`, `AnalysisEngine`, `RuleEngine`, or fram
 
 Reuse existing types where appropriate. Keep the output in-memory and immutable/value-oriented where practical.
 
-## Required Requirement Update
+## Implementation Record — Session 22
 
-The implementation session must update this same requirement file with:
+### Implementation summary
 
-- implementation summary;
-- files changed;
-- tests performed;
-- CI result;
-- PR number/status;
-- limitations;
-- self-review;
-- any material architectural decision discovered during implementation.
+Implemented the smallest deterministic in-memory boundary from `HospitalityAnalysisSignal` to `HospitalityFinding`.
 
-Only set `STATUS: PR_READY` after actual validation and CI evidence.
+The finding retains the originating signal by reference. Journey stages, hospitality category, finding text, supporting observation/evidence, evaluation identity, and attempt attribution are exposed from that retained signal chain rather than duplicating the complete evidence object.
+
+The finding service emits `VERIFIED_OBSERVED` only when the supplied signal is `QUALIFIED` and its originating observation remains `DISCOVERED` and backed by successful retained evidence content. A malformed/manually-constructed signal whose nested provenance/evidence cannot support a verified observation is rejected as a finding rather than strengthened into a hotel deficiency or verified fact.
+
+`HospitalityFindingStatus` uses only the four status concepts explicitly established by `SPEC-006`: `VERIFIED_OBSERVED`, `LIMITATION`, `INSUFFICIENT_EVIDENCE`, and `NOT_APPLICABLE`. REQ-021 currently produces only successful, discovered, content-backed qualified signals, so the latter three states are not synthesized from unsupported input in this slice. This preserves the status vocabulary without inventing limitation/absence semantics that the current signal contract cannot legitimately provide.
+
+No severity, score, recommendation, coverage, report, persistence, API, UI, AI, acquisition, observation, or signal behavior was added or changed.
+
+### Files changed
+
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityFindingStatus.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityFinding.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityFindingService.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/analysis/HospitalityFindingServiceTest.java`
+- this requirement file
+
+### Tests
+
+Added deterministic unit coverage for:
+
+1. supported signal → `VERIFIED_OBSERVED` finding;
+2. journey-stage preservation;
+3. hospitality category preservation;
+4. originating signal/observation/evidence traceability;
+5. evaluation ID and attempt ID/number attribution;
+6. booking entry-point truthfulness without booking-success inference;
+7. room-information truthfulness without availability/inventory inference;
+8. failed evidence not becoming a verified finding or deficiency;
+9. inferred provenance not becoming a verified finding;
+10. demonstration provenance not becoming a verified finding;
+11. source signal/observation immutability;
+12. deterministic repeatability;
+13. exact four-state finding vocabulary from `SPEC-006`;
+14. null input handling consistent with existing service conventions.
+
+No live hotel website or external network dependency is used by the tests.
+
+### Validation
+
+Local Maven validation was not available in the session environment because repository cloning could not resolve `github.com`. The repository's GitHub Actions validation was used as the authoritative executed validation.
+
+GitHub Actions **Backend Validation** run **#118** (run ID `37175521277`) executed:
+
+`mvn --batch-mode --no-transfer-progress test`
+
+Result:
+
+- **BUILD SUCCESS**
+- **106 tests**
+- **0 failures**
+- **0 errors**
+- `HospitalityFindingServiceTest`: **11 tests**, all passing
+- `HospitalityAnalysisSignalServiceTest`: **10 tests**, all passing
+- `HospitalityObservationServiceTest`: **8 tests**, all passing
+
+The run completed successfully. Existing non-blocking Java/Actions deprecation warnings were unrelated to REQ-022.
+
+### CI
+
+**PASS** — Backend Validation run #118 / run ID `37175521277`.
+
+### PR
+
+- **PR:** #22 — `REQ-022: Hospitality Finding Foundation`
+- **Base:** `main`
+- **Head:** `feature/hospitality-finding-foundation`
+- **Validated head:** `475138a363d9965d9e0e053f7f3613f6183a6f71`
+- **CI merge commit:** `a32cda0be95e567051517022c6f4151f970ed31b`
+- **Status:** OPEN
+- **Merged:** No
+
+### Limitations / open questions
+
+- REQ-021's current input contract can only produce qualified signals from successful `DISCOVERED` evidence with retained content. Therefore this slice does not manufacture `LIMITATION`, `INSUFFICIENT_EVIDENCE`, or `NOT_APPLICABLE` findings from unsupported signal states.
+- Limitation/insufficient-evidence finding generation for actual analysis inputs requires a later governed signal/input contract that can represent those conditions without ambiguity.
+- Finding persistence, aggregation, conflict handling, freshness, severity/importance, scoring, recommendations, coverage, reporting, and preview consumption remain later requirements.
+
+### Material architectural decision
+
+The finding retains the `HospitalityAnalysisSignal` rather than copying the full evidence graph. This keeps traceability intact through `signal → observation → structured evidence` while preventing duplicate evidence state and preserving source immutability. Finding-level accessors expose the hospitality category, journey stages, evidence, and evaluation/attempt attribution from that retained source chain.
+
+### Self-review
+
+#### Scope
+
+Only REQ-022 was implemented. No acquisition, evaluation, evidence-normalization, observation, or signal behavior was modified.
+
+#### Truthfulness
+
+The service never upgrades booking entry points to booking success, room information to availability, failed/unavailable evidence to deficiency, or inferred/demonstration provenance to verified fact.
+
+#### Status
+
+Only status concepts defined by `SPEC-006` were introduced. The current REQ-021 signal contract does not support legitimate limitation/insufficient/not-applicable inputs, so those states are represented in the vocabulary but not fabricated by this boundary.
+
+#### Traceability
+
+The finding retains the originating signal by reference, preserving the complete existing chain to observation, structured evidence, provenance, evaluation, and attempt attribution.
+
+#### Architecture
+
+No generic finding engine, rule engine, framework, persistence model, or speculative abstraction was introduced.
+
+#### Determinism
+
+The mapping is a pure deterministic validation/wrapping operation with no network, clock, randomness, or AI dependency.
+
+#### Tests
+
+Focused REQ-022 tests and the complete backend Maven suite passed in GitHub Actions with zero failures/errors. Tests contain no live hotel website or external-network dependency.
+
+#### Security / production
+
+The new boundary performs no network access, persistence, external service calls, or unbounded processing. It operates only on the supplied in-memory signal graph.
 
 ## Governance
 
-This requirement is intentionally the smallest next semantic slice after REQ-021. It must not be expanded into the complete `SPEC-006` findings/recommendations/scoring/report contract.
+`STATUS: PR_READY` — implementation is complete, requirement documentation is updated with validation and PR evidence, Backend Validation run #118 passed, and PR #22 remains open and unmerged for orchestrator review.
 
-If repository evidence shows that any acceptance criterion cannot be implemented without architectural guessing, the implementation session must STOP and report the ambiguity rather than inventing a contract.
+**STOPPING FOR ORCHESTRATOR REVIEW.**
