@@ -12,7 +12,6 @@ public record HospitalityAnalysisLimitation(
         Set<HospitalityObservationCategory> categories,
         Set<GuestJourneyStage> journeyStages,
         HospitalityAnalysisLimitationType type,
-        AcquisitionOutcome sourceCondition,
         StructuredEvidence supportingEvidence,
         String explanation
 ) {
@@ -20,7 +19,6 @@ public record HospitalityAnalysisLimitation(
         Objects.requireNonNull(categories, "categories must not be null");
         Objects.requireNonNull(journeyStages, "journeyStages must not be null");
         Objects.requireNonNull(type, "type must not be null");
-        Objects.requireNonNull(sourceCondition, "sourceCondition must not be null");
         Objects.requireNonNull(supportingEvidence, "supportingEvidence must not be null");
         Objects.requireNonNull(explanation, "explanation must not be null");
         if (explanation.isBlank()) {
@@ -28,6 +26,10 @@ public record HospitalityAnalysisLimitation(
         }
         categories = Set.copyOf(categories);
         journeyStages = Set.copyOf(journeyStages);
+    }
+
+    public AcquisitionOutcome sourceCondition() {
+        return supportingEvidence.acquisitionOutcome();
     }
 
     public UUID evaluationId() {
