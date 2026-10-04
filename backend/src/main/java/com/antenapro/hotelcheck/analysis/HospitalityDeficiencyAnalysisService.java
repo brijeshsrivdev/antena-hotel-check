@@ -105,7 +105,7 @@ public final class HospitalityDeficiencyAnalysisService {
 
     private static HospitalityFinding deficiency(HospitalityAnalysisSignal source, String interpretation) {
         HospitalityAnalysisSignal deficiencySignal = new HospitalityAnalysisSignal(source.originatingObservation(), source.journeyStages(), interpretation, HospitalityAnalysisSignalStatus.QUALIFIED);
-        return new HospitalityFinding(deficiencySignal, HospitalityFindingStatus.VERIFIED_OBSERVED);
+        return new HospitalityFinding(deficiencySignal, HospitalityFindingStatus.VERIFIED_OBSERVED, HospitalityFindingKind.DEFICIENCY);
     }
 
     private static boolean sameSource(HospitalityAnalysisSignal left, HospitalityAnalysisSignal right) {
