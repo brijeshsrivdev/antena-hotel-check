@@ -91,3 +91,13 @@ This is a compact record of durable decisions that a future orchestrator should 
 **Rationale:** Establish a reliable analysis product before building the downstream solution that addresses the identified problems.
 
 **Source:** Product sequencing decision maintained by the orchestrator.
+
+## Decision 010 — Deficiency claims require observed support
+
+**Status:** Active
+
+**Decision:** Hospitality analysis may report an observed deficiency only when the retained evidence and an explicit deterministic rule establish the guest-facing problem. Missing evidence, acquisition failure, `NOT_ATTEMPTED`, unsupported dimensions, and context-free keyword absence are not deficiencies.
+
+**Rationale:** The product must distinguish an observed problem from inability to verify. This protects the analysis from false negative hotel claims while still allowing the analysis to become useful to owners by identifying genuinely observable guest-journey problems.
+
+**Source:** SPEC-006 analysis semantics and REQ-027.
