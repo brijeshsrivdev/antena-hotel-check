@@ -153,14 +153,6 @@ The coverage value object defensively copies collections, requires non-empty int
 
 No coverage calculation engine, threshold, page-count input, finding-count input, score, severity, recommendation, report, preview, AI, network, or upstream behavior was introduced.
 
-### Files changed
-
-- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisCoverageState.java`
-- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisDimension.java`
-- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisCoverage.java`
-- `backend/src/test/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisCoverageTest.java`
-- `requirements/REQ-024-hospitality-analysis-coverage-foundation.md`
-
 ### Tests
 
 Added deterministic tests covering:
@@ -203,31 +195,21 @@ Do not merge. The PR is for orchestrator review.
 - `NOT_APPLICABLE` coverage semantics are not introduced because the requirement defines only the three coverage states.
 - No persistence or report-level aggregation is included.
 
-### Self-review
+## Review Resolution — Classification Boundary
 
-#### Scope
+The orchestrator review identified that an explicit `state` field could be mistaken for a coverage-classification algorithm if the model appeared responsible for determining whether a supplied state was semantically correct.
 
-Only REQ-024 behavior was added. No acquisition, lifecycle, evidence, observation, signal, finding, or limitation behavior was changed.
+The repository does not provide enough governed information to introduce such a classifier safely. In particular, `SPEC-006` does not define numerical thresholds or state-classification rules. Therefore this requirement intentionally establishes the following boundary:
 
-#### Truthfulness
+- REQ-024 **represents** an already-governed coverage classification.
+- REQ-024 does **not classify** coverage.
+- `HospitalityAnalysisCoverage.state` is explicit input from a future or upstream governed classifier.
+- The value object validates structural consistency and traceability only.
+- The value object does not infer state from assessable scope, limited scope, finding count, page count, percentages, or thresholds.
 
-Coverage describes assessment completeness and preserves inability-to-verify as limitation context. It does not infer hotel capability, quality, or booking/room availability.
+This distinction is deliberate and prevents REQ-024 from silently becoming a scoring/classification engine. A future classification capability must be specified and governed separately before semantic invariants between state and scope are introduced.
 
-#### Thresholds
-
-No numerical or arbitrary threshold was introduced because `SPEC-006` explicitly leaves calibration for later governed work.
-
-#### Hospitality
-
-Coverage is explicitly organized around the five guest-journey stages and nine hospitality analysis dimensions from `SPEC-006`.
-
-#### Traceability
-
-Supporting findings and limitations are retained as existing domain objects, preserving their existing traceability to observations/evidence. Evaluation identity is explicitly retained and cross-evaluation references are rejected.
-
-#### Simplicity
-
-No generic coverage engine, rule framework, factory, strategy system, persistence model, API, or external dependency was introduced.
+Tests explicitly preserve this boundary by verifying that the supplied state is retained and that finding/page counts are not classification inputs.
 
 ## Governance
 
