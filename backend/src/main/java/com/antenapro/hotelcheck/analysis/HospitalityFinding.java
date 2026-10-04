@@ -11,11 +11,20 @@ import java.util.UUID;
 
 public record HospitalityFinding(
         HospitalityAnalysisSignal originatingSignal,
-        HospitalityFindingStatus status
+        HospitalityFindingStatus status,
+        HospitalityFindingKind kind
 ) {
     public HospitalityFinding {
         Objects.requireNonNull(originatingSignal, "originatingSignal must not be null");
         Objects.requireNonNull(status, "status must not be null");
+        Objects.requireNonNull(kind, "kind must not be null");
+    }
+
+    public HospitalityFinding(
+            HospitalityAnalysisSignal originatingSignal,
+            HospitalityFindingStatus status
+    ) {
+        this(originatingSignal, status, HospitalityFindingKind.OBSERVATION);
     }
 
     public HospitalityObservationCategory category() {

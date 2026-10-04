@@ -35,4 +35,12 @@ public record HospitalityAnalysisResult(
         findings = Set.copyOf(findings);
         limitations = Set.copyOf(limitations);
     }
+
+    /**
+     * Derives the hospitality guest-journey lens from this result without changing
+     * the existing finding, limitation, or coverage contracts.
+     */
+    public GuestJourneyAnalysis guestJourneyAnalysis() {
+        return new GuestJourneyAnalysisService().analyze(this);
+    }
 }
