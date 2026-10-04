@@ -3,6 +3,7 @@ package com.antenapro.hotelcheck.analysis;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public record GuestJourneyAnalysis(
         UUID evaluationId,
@@ -16,12 +17,19 @@ public record GuestJourneyAnalysis(
         stages = Set.copyOf(stages);
         unmappedLimitations = Set.copyOf(unmappedLimitations);
 
-        if (stages.size() != GuestJourneyStage.values().length) {
+        Set<GuestJourneyStage> representedStages = stages.stream()
+                .map(GuestJourneyStageAnalysis::stage)
+                .collect(Collectors.toSet());
+        if (!representedStages.equals(Set.of(GuestJourneyStage.values()))) {
             throw new IllegalArgumentException("journey analysis must contain exactly one result for each journey stage");
         }
-        if (stages.stream().anyMatch(stage -> !evaluationId.equals(stage.observedImpacts().stream()
-                .findFirst().map(HospitalityFinding::evaluationId).orElse(evaluationId)))) {
+        if (stages.stream().flatMap(stage -> stage.observedImpacts().stream())
+                .anyMatch(finding -> !evaluationId.equals(finding.evaluationId()))) {
             throw new IllegalArgumentException("journey stage impacts must belong to evaluationId");
+        }
+        if (stages.stream().flatMap(stage -> stage.limitations().stream())
+                .anyMatch(limitation -> !evaluationId.equals(limitation.evaluationId()))) {
+            throw new IllegalArgumentException("journey stage limitations must belong to evaluationId");
         }
         if (unmappedLimitations.stream().anyMatch(limitation -> !evaluationId.equals(limitation.evaluationId()))) {
             throw new IllegalArgumentException("unmapped limitations must belong to evaluationId");
