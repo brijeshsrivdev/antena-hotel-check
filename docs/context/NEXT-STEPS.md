@@ -24,22 +24,24 @@ The orchestrator must not silently default the state or invent thresholds inside
 
 ## Immediate Next Slice
 
-REQ-033 — Hospitality Analysis Coverage Classification Contract — READY.
+REQ-033 — Hospitality Analysis Coverage Classification Contract — READY and accepted by the orchestrator.
+
+REQ-034 — Hospitality Analysis Coverage Classification Implementation — READY.
 
 Requirement:
 
-`requirements/REQ-033-hospitality-analysis-coverage-classification-contract.md`
+`requirements/REQ-034-hospitality-analysis-coverage-classification-implementation.md`
 
-REQ-033 defines the product semantics/calibration for the three already-governed coverage states. It is a specification boundary, not the classifier implementation itself.
+REQ-034 implements the deterministic classifier governed by REQ-033 as a small domain service. It is intentionally separate from REQ-032 so the execution orchestrator does not own product calibration.
 
-The next implementation slice after REQ-033 review should implement the classifier, then REQ-032 can be reconciled and implemented.
+After REQ-034 is merged, reconcile REQ-032 against the new `main` and restore it to READY only if the classifier closes the identified contract gap.
 
 ## Required Sequence
 
 ```text
 REQ-033 — Coverage Classification Contract
         ↓
-Coverage Classification Implementation
+REQ-034 — Coverage Classification Implementation
         ↓
 REQ-032 — Evaluation Execution Orchestration
         ↓
@@ -48,7 +50,7 @@ End-to-End Real Evaluation Validation
 
 ## Coverage Classification Direction
 
-The initial governed calibration in REQ-033 is:
+The governed calibration in REQ-033 is:
 
 - `SUBSTANTIALLY_ASSESSED`: all five journey stages covered; at least six of nine intended dimensions covered; at least three journey stages have assessable evidence.
 - `PARTIALLY_ASSESSED`: at least one intended journey stage or dimension is covered, but substantial criteria are not satisfied.
