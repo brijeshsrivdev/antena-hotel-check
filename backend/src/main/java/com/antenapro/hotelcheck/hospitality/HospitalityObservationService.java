@@ -34,7 +34,7 @@ public final class HospitalityObservationService {
             "(?i)\\b(?:contact(?:\\s+us)?|get\\s+in\\s+touch|directions?|location)\\b"
     );
     private static final Pattern CONTACT_NEGATIVE = Pattern.compile(
-            "(?i)\\b(?:supplier|vendor|partner|corporate|investor|press)\\b"
+            "(?i)\\b(?:suppliers?|vendors?|partners?|corporate|investors?|press)\\b"
     );
     private static final Pattern BOOKING = Pattern.compile(
             "(?i)\\b(?:book(?:\\s+now)?|reserve|reservation|reservations|check\\s+availability|book\\s+your\\s+stay)\\b"
