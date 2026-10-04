@@ -2,15 +2,21 @@
 
 ## Current Position
 
-REQ-023 — Hospitality Analysis Limitation Foundation is merged into `main`.
+REQ-024 — Hospitality Analysis Coverage Foundation is merged into `main`.
 
 REQ-020 — Orchestrator Durable Context Foundation is merged and establishes the durable handoff/context mechanism.
 
 ## Immediate Next Slice
 
-Inspect the updated `main`, specifications, and implemented contracts before defining the next requirement. Do not pre-commit to a feature.
+REQ-025 — Hospitality Analysis Result Foundation — READY.
 
-The completed analysis foundation now reaches:
+Implementation branch:
+
+`feature/hospitality-analysis-result-foundation`
+
+The next session must inspect the actual current `main`, existing specifications, and implemented contracts before coding. REQ-025 is deliberately only an immutable aggregation boundary for findings, limitations, and coverage belonging to one evaluation.
+
+## Completed Analysis Foundation
 
 ```text
 Acquisition
@@ -22,9 +28,17 @@ Hospitality Observation
 Qualified Analysis Signal
   ↓
 Hospitality Finding / Unable-to-Verify Limitation
+  ↓
+Hospitality Analysis Coverage
+  ↓
+Hospitality Analysis Result
 ```
 
-REQ-023 establishes the truthful distinction between **unable to verify** and an observed hotel deficiency. It does not implement severity, scoring, recommendations, coverage, reporting, AI, persistence, or Antena integration.
+REQ-023 establishes the truthful distinction between **unable to verify** and an observed hotel deficiency.
+
+REQ-024 establishes coverage representation only. It intentionally does not classify coverage, invent thresholds, or calculate coverage from page/finding counts.
+
+REQ-025 must not turn this into scoring, classification, recommendations, or reporting.
 
 ## Product Sequence
 
@@ -41,16 +55,18 @@ Qualified Hospitality Analysis Signals
         ↓
 Hospitality Findings + truthful limitations
         ↓
-Digital-presence / hospitality analysis
+Coverage representation
         ↓
-Mature, trustworthy analysis result
+Hospitality Analysis Result
+        ↓
+Mature, trustworthy analysis
         ↓
 Antena integration opportunity
         ↓
 <hotel-name>.antenapro.com
 ```
 
-Current focus remains the analysis portion. Antena-hosted integration is downstream and must not be implemented prematurely.
+Current focus remains the digital-presence analysis portion. Antena-hosted integration is downstream and must not be implemented prematurely.
 
 ## Standard Continuation Lifecycle
 
@@ -76,6 +92,8 @@ Merge
 Update durable context
 ```
 
+After every merged agent PR, update durable orchestrator context before starting the next implementation session.
+
 ## Guardrails
 
-Do not jump directly to a complete scoring engine, generic AI analysis, full hospitality ontology, recommendations, report generation, interactive Antena-hosted experience, broad crawling infrastructure, or generic SEO auditing. Each requires an explicit bounded requirement.
+Do not jump directly to a complete scoring engine, coverage classifier without governed rules, generic AI analysis, full hospitality ontology, recommendations, report generation, interactive Antena-hosted experience, broad crawling infrastructure, or generic SEO auditing. Each requires an explicit bounded requirement.
