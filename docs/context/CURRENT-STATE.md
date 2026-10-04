@@ -6,7 +6,15 @@ Last updated: 2026-10-04
 
 Repository: `brijeshsrivdev/antena-hotel-check`
 
+Current `main`: `ad0a4e9dc06e38ccb544e6b648f040930b65c64d`
+
 The repository's `main` branch is the source of truth. This file is a compact operational snapshot and must not replace detailed requirements/specifications.
+
+## Product Objective
+
+Antena Hotel Check analyzes a hotel's publicly accessible digital presence and guest journey with hospitality-specific analysis. The long-term product outcome is to identify problems/opportunities and, once the analysis is mature enough, provide an Antena-hosted hotel experience at `<hotel-name>.antenapro.com` that can address those problems.
+
+**Current focus:** make the digital-presence analysis trustworthy and mature. Antena-hosted integration is downstream and is not being implemented as part of the current analysis foundation.
 
 ## Product Stage
 
@@ -32,12 +40,7 @@ Hospitality Observation
 - REQ-017 — Evaluation Acquisition Integration — IMPLEMENTED / MERGED.
 - REQ-018 — Evidence Normalization Foundation — IMPLEMENTED / MERGED.
 - REQ-019 — Hospitality Observation Foundation — IMPLEMENTED / MERGED.
-
-REQ-020 is the current durable-context foundation work and is IN PROGRESS on its implementation branch; it is not yet merged at the time this snapshot is created.
-
-## Current Main
-
-This context was started from the current `main` immediately before the durable-context branch was created. The exact current main commit should be revalidated whenever this snapshot is updated after a merge.
+- REQ-020 — Orchestrator Durable Context Foundation — IMPLEMENTED / MERGED.
 
 ## Current Architectural Boundary
 
@@ -47,11 +50,13 @@ The latest completed product boundary is:
 
 REQ-019 deliberately stops before findings, scoring, recommendations, AI interpretation, reporting, preview generation, booking conclusions, persistence, or generic SEO analysis.
 
+REQ-020 establishes the durable orchestration context and handoff mechanism; it does not add Hotel Check runtime behavior.
+
 ## Immediate Next Governed Step
 
-After REQ-020 is reviewed and merged, the orchestrator should inspect the current repository and define the next smallest product slice. Do not assume a particular REQ-021 design without inspecting the latest specifications and implementation.
+Inspect the updated `main` and define the next smallest product requirement from the repository specifications and implemented boundaries.
 
-The likely product direction is downstream hospitality analysis, but the exact boundary must be established from repository evidence.
+The likely product direction is downstream hospitality/digital-presence analysis, but the exact boundary must be established from repository evidence rather than assumed.
 
 ## Explicitly Not Implemented
 
@@ -63,11 +68,11 @@ The following remain outside the completed foundation unless a merged requiremen
 - AI/LLM analysis
 - complete hotel ontology
 - report generation
-- interactive hotel preview
+- interactive Antena-hosted hotel preview integration
 - booking/OTA analysis beyond bounded observed entry-point signals
 - persistence for the evidence/observation pipeline
 - unrestricted crawling/browser acquisition
-- generic SEO auditing
+- generic SEO auditing as the product center
 - competitor analysis
 
 ## Operating Rule
