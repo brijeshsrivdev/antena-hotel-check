@@ -1,6 +1,6 @@
 # REQ-027 — Hospitality Deficiency Analysis Foundation
 
-STATUS: READY
+STATUS: PR_READY
 REQUIREMENT_ID: REQ-027
 TYPE: Implementation
 BRANCH: `feature/hospitality-deficiency-analysis-foundation`
@@ -435,3 +435,131 @@ Implementation sessions must:
 `READY` becomes `PR_READY` only after implementation and final-head CI validation.
 
 **STOPPING FOR IMPLEMENTATION SESSION.**
+
+## Implementation Record — Session 27
+
+### Context reconciliation
+
+Inspected the current `main` contracts for REQ-026 and the existing observation, signal, finding, limitation, coverage, result, structured-evidence, evaluation/provenance, and test layers before implementation. REQ-026 is present on `main`; no upstream contract was changed.
+
+The current observation categories remain `HOTEL_IDENTITY`, `ROOMS`, `AMENITIES`, `CONTACT`, `BOOKING`, and `DINING`. The current finding model supports traceability through an originating qualified signal and retains the existing governed finding-status vocabulary.
+
+The current evidence model does not expose a governed `NOT_ATTEMPTED` state or an explicit successful broken-path observation contract. Those cases therefore remain conservative boundaries rather than being manufactured by REQ-027.
+
+### Implementation summary
+
+Added `HospitalityDeficiencyAnalysisService` as the explicit deterministic collaborator invoked by `HospitalityAnalysisService` after observation and signal qualification.
+
+The service operates only on qualified signals whose retained observations are discovered and backed by successful observed content. Rules are page-context aware and do not use generic keyword absence as a deficiency rule.
+
+Implemented supported high-confidence rule families for:
+
+- room-context booking discoverability: a successfully observed room journey page with no observed booking signal produces a booking-action deficiency;
+- room information: an observed room context without deterministic room decision-support indicators produces a room-information deficiency;
+- contact/location: an observed contact/location context without usable contact/location details produces a deficiency;
+- guest-facing information: an observed amenities/guest-information context without deterministic stay-related decision-support details produces a deficiency;
+- materially conflicting hotel identity information across retained sources produces trust/clarity findings while retaining each source-specific provenance chain.
+
+No recommendation, severity, score, coverage classifier, acquisition, observation category, AI, network, persistence, API, or preview capability was added.
+
+### Files changed
+
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityDeficiencyAnalysisService.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityAnalysisService.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/analysis/HospitalityDeficiencyAnalysisServiceTest.java`
+- `requirements/REQ-027-hospitality-deficiency-analysis-foundation.md`
+
+### Tests
+
+Focused REQ-027 coverage includes:
+
+- observed room context without booking action → booking deficiency;
+- observed room context without decision-support information → room-information deficiency;
+- observed contact context without guest-facing detail → contact/location deficiency;
+- observed amenities context without stay-related detail → guest-information deficiency;
+- materially conflicting hotel identity sources → trust/clarity findings with both supporting evidence items retained;
+- generic successful page with no hospitality context → zero deficiency findings;
+- acquisition timeout → limitation and no deficiency;
+- unsupported acquisition → no deficiency;
+- deterministic repeated execution → equivalent results.
+
+GitHub Actions Backend Validation executed Maven tests on the final PR head. The final run reported **158 tests, 0 failures, 0 errors, 0 skipped** and **BUILD SUCCESS**. The focused `HospitalityDeficiencyAnalysisServiceTest` ran **8 tests**, all passing. Existing REQ-026 and earlier tests remained green.
+
+### CI
+
+**PASS** — GitHub Actions `Backend Validation`, run **#205**, workflow run ID `37201270103`.
+
+Validated PR head: `19e965142ce925785a890b83e0646ec9c5efb2de`.
+
+The PR merge ref used by GitHub Actions was `36beb94e86a74efbfbb56329a5fc8cb48523f78c`, whose head corresponds to the final PR head above.
+
+### Architectural decisions
+
+1. A small `HospitalityDeficiencyAnalysisService` was used instead of a generic rule engine, registry, plugin model, or reflection dispatcher.
+2. The existing `HospitalityFinding` model was reused. Deficiency findings retain the existing signal → observation → evidence → evaluation provenance chain.
+3. No upstream acquisition, evidence normalization, observation, signal, limitation, coverage, or result contracts were changed.
+4. Conflict handling preserves source-specific findings rather than silently selecting a preferred source hierarchy. Each conflict finding remains traceable to its retained source evidence.
+5. Rules use evaluated page/path context plus existing observation categories and successful evidence state. They do not treat a missing keyword on a generic page as proof of a hotel deficiency.
+
+### Truth-boundary decisions
+
+- Missing evidence is never converted to a deficiency.
+- Acquisition/access failure remains a limitation or produces no deficiency according to the existing limitation contract.
+- Unsupported dimensions remain unsupported.
+- Booking unavailability is not inferred from inability to access a booking engine.
+- Booking-success semantics are not introduced.
+- Room availability/inventory is not inferred.
+- No new `NOT_ATTEMPTED` semantics were invented because the current evidence contract does not expose that state.
+- Broken-path findings were not fabricated because the current successful observation contract does not explicitly encode a verified broken guest-facing path. Access failure remains distinct from a broken path.
+- No source hierarchy was invented for conflicting retained information.
+
+### Limitations
+
+- The current deterministic evidence/observation contracts do not provide an explicit verified broken-path state, so the broken observed-path family is not synthesized in this requirement.
+- The current contract does not expose a governed `NOT_ATTEMPTED` state, so no new semantics were added solely for this requirement.
+- Conflict findings are represented as source-specific `HospitalityFinding` instances because the existing finding contract exposes a single supporting-evidence chain per finding; both source-specific findings are retained and traceable. No parallel deficiency object was introduced.
+- Insufficient-evidence status vocabulary already exists in the finding model, but REQ-027 does not fabricate that status from unsupported upstream inputs.
+
+### Self-review
+
+#### Scope
+
+Only REQ-027 behavior was added. No acquisition, evidence normalization, observation extraction, signal qualification, coverage classification, result aggregation, recommendation, reporting, preview, or Antena integration was introduced.
+
+#### Truthfulness
+
+All deficiency rules require successful observed evidence plus explicit page/source context. Generic keyword absence, missing evidence, acquisition failure, unsupported dimensions, and inability to verify are not treated as hotel deficiencies.
+
+#### Context
+
+Booking, room, contact/location, and guest-information rules require explicit evaluated page/path context and the corresponding existing observation category.
+
+#### Provenance
+
+Every deficiency finding is derived from an existing qualified signal and therefore remains traceable through observation, structured evidence, and evaluation/attempt attribution.
+
+#### Evaluation
+
+The existing `HospitalityAnalysisService` evaluation-integrity validation remains unchanged, and deficiency analysis consumes only the validated evidence/signal set for the requested evaluation.
+
+#### Conflicts
+
+Conflicting hotel identity values from distinct retained sources are preserved as source-specific findings. No first-party-over-third-party hierarchy was introduced.
+
+#### Limitations
+
+Acquisition failures continue through the existing limitation path. No infrastructure error is reinterpreted as a hotel-facing deficiency.
+
+#### Unsupported scope
+
+No new observation categories were added, and unsupported dimensions cannot generate deficiencies because the deficiency service only operates on existing qualified signals.
+
+#### Simplicity
+
+Rules remain local private methods with explicit deterministic conditions. No configurable or reflective rule framework was introduced.
+
+### Governance
+
+`STATUS: PR_READY` — implementation is complete, final-head GitHub Actions Backend Validation passed, and PR #27 remains open and unmerged for orchestrator review.
+
+**STOPPING FOR ORCHESTRATOR REVIEW.**
