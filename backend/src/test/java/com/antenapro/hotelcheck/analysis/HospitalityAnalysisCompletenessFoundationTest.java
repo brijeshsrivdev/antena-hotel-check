@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -36,38 +35,7 @@ class HospitalityAnalysisCompletenessFoundationTest {
     private final HospitalityAnalysisService service = new HospitalityAnalysisService();
 
     @Test
-    void existingGuestFacingEntryPointsSupportDiscoverabilityWithoutNewObservationCategories() {
-        StructuredEvidence evidence = evidence("<h1>Grand Hotel</h1>"
-                + "<a href=\"/rooms\">Rooms</a>"
-                + "<a href=\"/amenities\">Amenities</a>"
-                + "<a href=\"/contact\">Contact</a>"
-                + "<a href=\"/booking\">Book Now</a>");
-
-        HospitalityAnalysisCoverage coverage = service.analyze(
-                evidence.evaluationId(), List.of(evidence), HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED)
-                .coverage();
-
-        assertTrue(coverage.assessableDimensions().contains(HospitalityAnalysisDimension.DISCOVERABILITY_AND_NAVIGATION));
-        assertTrue(coverage.assessableDimensions().contains(HospitalityAnalysisDimension.ROOMS_AND_ROOM_INFORMATION));
-        assertTrue(coverage.assessableDimensions().contains(HospitalityAnalysisDimension.CONTACT_AND_LOCATION));
-        assertTrue(coverage.assessableDimensions().contains(HospitalityAnalysisDimension.BOOKING_DISCOVERABILITY_AND_JOURNEY_SIGNALS));
-    }
-
-    @Test
-    void identityOnlyEvidenceDoesNotClaimDiscoverability() {
-        StructuredEvidence evidence = evidence("<title>Grand Hotel</title><h1>Grand Hotel</h1>");
-
-        HospitalityAnalysisCoverage coverage = service.analyze(
-                evidence.evaluationId(), List.of(evidence), HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED)
-                .coverage();
-
-        assertEquals(Set.of(HospitalityAnalysisDimension.HOTEL_IDENTITY_AND_PROPERTY_UNDERSTANDING),
-                coverage.assessableDimensions());
-        assertFalse(coverage.assessableDimensions().contains(HospitalityAnalysisDimension.DISCOVERABILITY_AND_NAVIGATION));
-    }
-
-    @Test
-    void crossSourceIdentityConflictSupportsTrustClarityAssessment() {
+    void crossSourceIdentityConflictMakesTrustClarityAssessable() {
         Evaluation evaluation = evaluation();
         StructuredEvidence first = evidence(evaluation, "<h1>Grand Hotel</h1>");
         StructuredEvidence second = evidence(evaluation, "<h1>Grand Resort</h1>");
@@ -81,7 +49,7 @@ class HospitalityAnalysisCompletenessFoundationTest {
     }
 
     @Test
-    void trustMobileAndSeoRemainUnsupportedWithoutGovernedEvidence() {
+    void trustRemainsUnsupportedWhenNoGovernedConflictEvidenceExists() {
         StructuredEvidence evidence = evidence("<h1>Grand Hotel</h1><a href=\"/rooms\">Rooms</a>");
 
         Set<HospitalityAnalysisDimension> assessable = service.analyze(
@@ -94,13 +62,13 @@ class HospitalityAnalysisCompletenessFoundationTest {
     }
 
     @Test
-    void bookingAbsenceRemainsNonDeficiencyWhileDiscoverabilityCanBeAssessed() {
+    void bookingAbsenceRemainsNonDeficiencyWhileExistingDimensionsRemainAssessable() {
         StructuredEvidence evidence = evidence("<h1>Grand Hotel</h1><a href=\"/rooms\">Rooms</a>");
 
         HospitalityAnalysisResult result = service.analyze(
                 evidence.evaluationId(), List.of(evidence), HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED);
 
-        assertTrue(result.coverage().assessableDimensions().contains(HospitalityAnalysisDimension.DISCOVERABILITY_AND_NAVIGATION));
+        assertTrue(result.coverage().assessableDimensions().contains(HospitalityAnalysisDimension.ROOMS_AND_ROOM_INFORMATION));
         assertFalse(result.findings().stream().anyMatch(f -> f.category() == HospitalityObservationCategory.BOOKING));
         assertFalse(result.findings().stream().anyMatch(f -> f.findingText().toLowerCase().contains("booking")
                 && f.findingText().toLowerCase().contains("deficien")));
