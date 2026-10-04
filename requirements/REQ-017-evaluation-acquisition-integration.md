@@ -1,6 +1,6 @@
 # REQ-017 — Evaluation Acquisition Integration
 
-STATUS: READY
+STATUS: PR_READY
 REQUIREMENT_ID: REQ-017
 TYPE: Implementation
 BRANCH: `feature/evaluation-acquisition-integration`
@@ -239,7 +239,76 @@ The implementation session must:
 
 ## Completion Record
 
-To be filled by the implementation session.
+### Completion status
+
+`PR_READY` — implementation committed, PR created, and backend CI passed.
+
+### Implementation summary
+
+- Added `EvaluationAcquisitionIntegrationService` as the single application/domain integration boundary.
+- Creates an evaluation from the existing `CanonicalEvaluationRequest` and starts the existing REQ-012 attempt lifecycle.
+- Calls the existing `PublicWebAcquisitionService` exactly once, using its existing `CanonicalEvaluationRequest` conversion to `AcquisitionRequest`.
+- Preserves the complete typed `AcquisitionResult`, including provenance metadata, redirect information, timestamps, body/result metadata, and typed acquisition outcome.
+- Maps `SUCCESS` to the existing `CapabilityOutcomeStatus.SUCCEEDED`; acquisition failures map to `FAILED` capability outcomes while preserving the original typed acquisition outcome.
+- Leaves the evaluation `RUNNING` after acquisition, including acquisition failure; no hotel capability absence or evaluation-level `FAILED` conclusion is inferred.
+- Does not produce `COMPLETED`, because report and interactive preview outcomes are not available at this stage.
+
+### Files changed
+
+- `backend/src/main/java/com/antenapro/hotelcheck/evaluation/EvaluationAcquisitionIntegrationService.java`
+- `backend/src/main/java/com/antenapro/hotelcheck/evaluation/EvaluationAcquisitionResult.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/evaluation/EvaluationAcquisitionIntegrationServiceTest.java`
+- `requirements/REQ-017-evaluation-acquisition-integration.md`
+
+### Tests
+
+Deterministic REQ-017 tests cover:
+
+- successful acquisition integration;
+- canonical website target conversion through the existing acquisition-request boundary;
+- exactly one acquisition invocation;
+- timeout failure propagation;
+- HTTP error propagation;
+- invalid-target propagation;
+- response-too-large and network-error distinction;
+- redirect-limit and provenance/result metadata propagation;
+- lifecycle remaining `RUNNING` after acquisition failure;
+- successful acquisition not producing `COMPLETED`.
+
+The test suite contains no live hotel websites or external network dependency.
+
+### Local validation
+
+The session environment did not have Maven available, and direct GitHub cloning was not available from the local container, so no local Maven test result is claimed.
+
+### CI validation
+
+GitHub Actions backend workflow:
+
+- **Workflow:** Backend Validation
+- **Run:** #45
+- **Run ID:** `37171335629`
+- **Head SHA:** `64d107118ce49e97050612ed419b685521b90a73`
+- **Job:** Java 21 / Maven tests
+- **Result:** `success`
+- **Maven test step:** completed successfully
+- **Duration:** approximately 53 seconds for the Maven test step
+
+### Branch
+
+`feature/evaluation-acquisition-integration`
+
+### PR
+
+- **PR:** #17
+- **URL:** https://github.com/brijeshsrivdev/antena-hotel-check/pull/17
+- **Base:** `main`
+- **Merged:** No
+
+### Limitations
+
+- REQ-017 intentionally leaves evidence normalization/persistence, analysis, report assembly, preview generation, target discovery/resolution, and asynchronous production orchestration to later requirements.
+- Acquisition capability failures are retained as capability outcomes while the evaluation remains `RUNNING`; later orchestration must determine the appropriate terminal `INCOMPLETE`, `UNRESOLVED`, or `FAILED` outcome when the full evaluation contract exists.
 
 ## Orchestrator Review History
 
