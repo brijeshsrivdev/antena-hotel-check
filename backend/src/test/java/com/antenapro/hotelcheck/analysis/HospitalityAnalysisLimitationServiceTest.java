@@ -28,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HospitalityAnalysisLimitationServiceTest {
 
@@ -53,6 +52,16 @@ class HospitalityAnalysisLimitationServiceTest {
         assertEquals("request timed out", limitation.explanation());
         assertEquals(Set.of(HospitalityObservationCategory.BOOKING), limitation.categories());
         assertEquals(Set.of(GuestJourneyStage.BOOK), limitation.journeyStages());
+    }
+
+    @Test
+    void sourceConditionIsDerivedFromSupportingEvidence() {
+        StructuredEvidence evidence = evidence(AcquisitionOutcome.HTTP_ERROR, null, "HTTP request failed with status 503");
+
+        HospitalityAnalysisLimitation limitation = service.create(evidence);
+
+        assertSame(limitation.supportingEvidence().acquisitionOutcome(), limitation.sourceCondition());
+        assertEquals(evidence.acquisitionOutcome(), limitation.sourceCondition());
     }
 
     @Test
