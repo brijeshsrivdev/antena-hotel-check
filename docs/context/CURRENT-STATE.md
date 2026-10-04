@@ -73,6 +73,8 @@ The latest completed product boundary is:
 
 `StructuredEvidence → Observation → Qualified Signal → Findings / Deficiencies / Limitations → Coverage → HospitalityAnalysisResult → GuestJourneyAnalysis → HospitalityRecommendations → HospitalityAnalysisReport`
 
+REQ-024 establishes coverage representation only. It deliberately does not classify coverage; its state is governed caller input and its exact calibration was left unspecified.
+
 REQ-028 extends the deterministic analysis boundary conservatively. It makes `TRUST_AND_CLARITY` assessable only when existing typed evidence establishes a material same-evaluation cross-source hotel-identity conflict. Discoverability, mobile/technical, and SEO/structured-data dimensions remain unsupported because the current governed evidence contracts do not provide sufficient evidence for responsible claims.
 
 REQ-029 adds a deterministic guest-journey lens over the existing result using `DISCOVER → UNDERSTAND → EXPLORE → TRUST → BOOK`. It preserves limitations and unsupported stages and does not introduce scoring or positive claims from missing deficiencies.
@@ -87,15 +89,25 @@ The REQ-027 booking truth boundary remains authoritative:
 
 Missing evidence, acquisition failure, `NOT_ATTEMPTED`, unsupported dimensions, and unrecognized observations do not become hotel deficiencies or journey failures.
 
-## Immediate Next Governed Step
+## Current Blocker / Immediate Next Governed Step
 
-REQ-032 — Evaluation Execution Orchestration Foundation — READY.
+REQ-032 — Evaluation Execution Orchestration Foundation — BLOCKED.
 
-Implementation branch: `feature/evaluation-execution-orchestration-foundation`.
+Session 32 repository reconciliation identified a real contract gap: `HospitalityAnalysisService.analyze(...)` requires a caller-supplied `HospitalityAnalysisCoverageState`, while `CanonicalEvaluationRequest` does not contain one and REQ-024 intentionally does not classify coverage. The orchestrator must not invent a default or derive coverage from ungoverned heuristics.
 
-REQ-032 is the next bounded slice toward making the existing analysis components executable as one real end-to-end evaluation flow. It should orchestrate existing acquisition, normalization, observation, analysis, journey, recommendation, and report contracts without redesigning those contracts.
+REQ-033 — Hospitality Analysis Coverage Classification Contract — READY.
 
-REQ-032 must remain in-memory and deterministic apart from the already-existing public acquisition boundary. It must not introduce persistence, UI, external integrations, AI, scoring, or Antena integration.
+REQ-033 defines the first governed calibration for the three existing coverage states. A separate implementation slice must implement that classifier before REQ-032 can be restored to READY and implemented.
+
+Implementation order:
+
+```text
+REQ-033 — Coverage Classification Contract
+        ↓
+Coverage Classification Implementation
+        ↓
+REQ-032 — Evaluation Execution Orchestration
+```
 
 ## Product Sequence
 
@@ -104,7 +116,9 @@ Hotel public digital presence
         ↓
 Canonical Evaluation Request
         ↓
-End-to-End Evaluation Orchestration  ← REQ-032
+Coverage Classification Contract / Implementation
+        ↓
+End-to-End Evaluation Orchestration
         ↓
 Acquisition
         ↓
@@ -118,7 +132,7 @@ Executable Deterministic Analysis
         ↓
 Evidence-grounded deficiencies + truthful limitations
         ↓
-Coverage representation
+Coverage
         ↓
 Hospitality Analysis Result
         ↓
@@ -141,8 +155,8 @@ Antena integration opportunity
 
 The following remain outside the completed foundation unless a merged requirement explicitly says otherwise:
 
-- end-to-end evaluation execution/orchestration (REQ-032 is READY, not implemented)
-- governed coverage classification/calibration rules beyond existing semantics
+- governed coverage classification implementation
+- end-to-end evaluation execution/orchestration (REQ-032 is BLOCKED, not implemented)
 - scoring and recommendation prioritization
 - complete nine-dimension analysis capability
 - customer-facing report API/rendering/UI
@@ -158,4 +172,4 @@ The following remain outside the completed foundation unless a merged requiremen
 
 ## Operating Rule
 
-Never describe a `READY`, `PLANNED`, `PROPOSED`, or future requirement as implemented. Verify status against `main`, requirement files, merged PRs, and code before updating this snapshot.
+Never describe a `READY`, `PLANNED`, `PROPOSED`, `BLOCKED`, or future requirement as implemented. Verify status against `main`, requirement files, merged PRs, and code before updating this snapshot.
