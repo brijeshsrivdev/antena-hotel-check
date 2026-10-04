@@ -87,9 +87,10 @@ class HospitalityAnalysisServiceTest {
 
     @Test
     void successfulAndTimeoutEvidenceProduceFindingsAndUnableToVerifyLimitation() {
-        StructuredEvidence success = evidence(AcquisitionOutcome.SUCCESS,
+        Evaluation evaluation = evaluation();
+        StructuredEvidence success = evidence(evaluation, AcquisitionOutcome.SUCCESS,
                 "<a href=\"/rooms\">Rooms</a>", null);
-        StructuredEvidence timeout = evidence(AcquisitionOutcome.TIMEOUT, null, "request timed out");
+        StructuredEvidence timeout = evidence(evaluation, AcquisitionOutcome.TIMEOUT, null, "request timed out");
 
         HospitalityAnalysisResult result = service.analyze(
                 success.evaluationId(), List.of(success, timeout), HospitalityAnalysisCoverageState.PARTIALLY_ASSESSED);
