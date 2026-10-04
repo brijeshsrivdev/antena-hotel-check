@@ -181,7 +181,7 @@ No live hotel website or external network dependency is used by the tests.
 
 Local Maven validation was not available in the session environment because repository cloning could not resolve `github.com`. The repository's GitHub Actions validation was used as the authoritative executed validation.
 
-GitHub Actions **Backend Validation** run **#116** (run ID `37175424942`) executed:
+GitHub Actions **Backend Validation** run **#118** (run ID `37175521277`) executed:
 
 `mvn --batch-mode --no-transfer-progress test`
 
@@ -199,14 +199,15 @@ The run completed successfully. Existing non-blocking Java/Actions deprecation w
 
 ### CI
 
-**PASS** — Backend Validation run #116 / run ID `37175424942`.
+**PASS** — Backend Validation run #118 / run ID `37175521277`.
 
 ### PR
 
 - **PR:** #22 — `REQ-022: Hospitality Finding Foundation`
 - **Base:** `main`
 - **Head:** `feature/hospitality-finding-foundation`
-- **Validated head:** `ad0eccb5a3be430fe0c0239d0bf6956d7a760afe`
+- **Validated head:** `475138a363d9965d9e0e053f7f3613f6183a6f71`
+- **CI merge commit:** `a32cda0be95e567051517022c6f4151f970ed31b`
 - **Status:** OPEN
 - **Merged:** No
 
@@ -256,6 +257,6 @@ The new boundary performs no network access, persistence, external service calls
 
 ## Governance
 
-`STATUS: PR_READY` — implementation is complete, requirement documentation is updated with validation and PR evidence, Backend Validation run #116 passed, and PR #22 remains open and unmerged for orchestrator review.
+`STATUS: PR_READY` — implementation is complete, requirement documentation is updated with validation and PR evidence, Backend Validation run #118 passed, and PR #22 remains open and unmerged for orchestrator review.
 
 **STOPPING FOR ORCHESTRATOR REVIEW.**
