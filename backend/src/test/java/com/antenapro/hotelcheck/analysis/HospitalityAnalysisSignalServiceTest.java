@@ -192,8 +192,8 @@ class HospitalityAnalysisSignalServiceTest {
         EvaluationAcquisitionResult source = new EvaluationAcquisitionResult(evaluation, attempt, acquisition, outcome);
 
         return new StructuredEvidence(
-                evaluation.getId(),
-                attempt.id(),
+                evaluation.evaluationId(),
+                attempt.attemptId(),
                 attempt.attemptNumber(),
                 source,
                 EvidenceProvenance.DISCOVERED,
