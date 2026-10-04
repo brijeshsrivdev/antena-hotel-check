@@ -71,3 +71,23 @@ This is a compact record of durable decisions that a future orchestrator should 
 **Rationale:** A long-running project must remain recoverable if an orchestrator or implementation session ends or changes.
 
 **Source:** Orchestrator durable-context foundation.
+
+## Decision 008 — Antena is the downstream product integration
+
+**Status:** Active
+
+**Decision:** Antena (`https://antenapro.com`) is our own hospitality product and the eventual downstream destination for Hotel Check conversion opportunities. Once digital-presence analysis is mature enough, Hotel Check may provide an Antena-hosted hotel experience at `<hotel-name>.antenapro.com` to address problems identified by the analysis.
+
+**Rationale:** The analysis must first become trustworthy and useful. Premature integration would couple the early analysis foundation to downstream site generation and could distort scope.
+
+**Source:** Product direction maintained by the orchestrator.
+
+## Decision 009 — Analysis maturity precedes Antena integration
+
+**Status:** Active
+
+**Decision:** Current development focuses on digital-presence analysis only. Antena-hosted hotel experience integration is intentionally downstream and must not be treated as implemented, required in early analysis slices, or used to justify premature architecture.
+
+**Rationale:** Establish a reliable analysis product before building the downstream solution that addresses the identified problems.
+
+**Source:** Product sequencing decision maintained by the orchestrator.
