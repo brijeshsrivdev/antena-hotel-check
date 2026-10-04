@@ -1,25 +1,80 @@
 # REQ-032 — Evaluation Execution Orchestration Foundation
 
-STATUS: READY
+STATUS: BLOCKED
 REQUIREMENT_ID: REQ-032
 TYPE: Implementation
 BRANCH: `feature/evaluation-execution-orchestration-foundation`
 
-## Objective
+## Blocker
 
-Introduce the smallest explicit end-to-end orchestration boundary for executing one canonical hotel evaluation through the existing Antena Hotel Check analysis pipeline.
+REQ-032 is intentionally blocked after Session 32 repository reconciliation identified a missing governed source for `HospitalityAnalysisCoverageState`.
 
-REQ-032 does not add new analysis capability. It coordinates existing contracts so that one `CanonicalEvaluationRequest` can flow through acquisition, evidence normalization, deterministic hospitality analysis, guest-journey analysis, recommendations, and structured report assembly.
+The existing `HospitalityAnalysisService.analyze(...)` contract requires a caller-supplied `HospitalityAnalysisCoverageState`. REQ-024 explicitly established coverage representation only and states that the coverage state must be an already-governed classification; it does not calculate or classify the state. The current `CanonicalEvaluationRequest` contains no coverage classification input.
+
+Therefore REQ-032 cannot safely invent a default such as `PARTIALLY_ASSESSED` or derive a state from page/finding counts or arbitrary thresholds.
+
+### Required dependency
+
+`REQ-033 — Hospitality Analysis Coverage Classification Contract` now defines the product calibration required to create a governed classifier.
+
+Implementation order:
+
+```text
+REQ-033 — Coverage Classification Contract
+        ↓
+Coverage Classification Implementation
+        ↓
+REQ-032 — Evaluation Execution Orchestration
+```
+
+REQ-032 must remain `BLOCKED` until the governed coverage classifier is implemented and merged.
+
+## Session 32 Reconciliation Record
+
+The implementation session inspected current `main` at:
+
+`9425d4209069c51c8441b5da78f67854dd8bf53b`
+
+Confirmed on `main`:
+
+- REQ-027 merged;
+- REQ-028 merged;
+- REQ-029 merged;
+- REQ-030 merged;
+- REQ-031 merged;
+- REQ-032 exists and was `READY` before this reconciliation;
+- acquisition integration exists;
+- evidence normalization exists;
+- deterministic hospitality analysis exists;
+- guest-journey analysis exists;
+- recommendation generation exists;
+- structured report assembly exists.
+
+The analysis service currently requires:
+
+```text
+analyze(
+    evaluationId,
+    evidenceItems,
+    coverageState
+)
+```
+
+The coverage state is not derived by that service. The existing coverage model explicitly treats classification as governed caller input and does not define thresholds. The canonical evaluation request also does not contain a coverage state.
+
+The session correctly stopped without creating a branch, modifying application code, or creating a PR.
+
+## Original Objective
+
+Once the coverage-classification dependency is available, REQ-032 will introduce the smallest explicit end-to-end orchestration boundary for executing one canonical hotel evaluation through the existing Antena Hotel Check analysis pipeline.
 
 The product objective remains:
 
-> Can a guest find, understand, trust, explore, and book this hotel online?
+> **Can a guest find, understand, trust, explore, and book this hotel online?**
 
-The current product focus remains trustworthy digital-presence analysis. Antena-hosted hotel experience generation at `<hotel-name>.antenapro.com` remains downstream.
+The current product focus remains trustworthy digital presence analysis. Antena-hosted hotel experience generation at `<hotel-name>.antenapro.com` remains downstream.
 
-## Repository Baseline
-
-REQ-032 consumes the completed pipeline:
+## Intended Execution Flow
 
 ```text
 Canonical Evaluation Request
@@ -36,11 +91,11 @@ Hospitality Observation
         ↓
 Qualified Hospitality Analysis Signal
         ↓
+Coverage Classification
+        ↓
 Deterministic Hospitality Analysis
         ↓
 Hospitality Finding / Deficiency / Limitation
-        ↓
-Hospitality Analysis Coverage
         ↓
 Hospitality Analysis Result
         ↓
@@ -51,363 +106,50 @@ Hospitality Recommendations
 Structured Hospitality Analysis Report
 ```
 
-Existing domain contracts remain authoritative. The orchestrator must coordinate them rather than redesigning or duplicating them.
-
-## Scope
-
-Implement a small deterministic orchestration service for one canonical evaluation execution.
-
-The orchestration boundary must:
-
-1. accept one canonical evaluation request;
-2. establish/use the existing evaluation and attempt lifecycle;
-3. invoke the existing evaluation-acquisition integration exactly once for the execution;
-4. pass the successful retained acquisition output into the existing evidence normalization boundary;
-5. execute the existing deterministic hospitality analysis pipeline;
-6. execute the existing guest-journey analysis;
-7. execute the existing recommendation layer;
-8. assemble the existing structured hospitality analysis report;
-9. return the resulting report/output together with the existing evaluation/attempt attribution needed by callers.
-
-The orchestrator must not become a second implementation of any downstream stage.
-
-## Existing Contract Reuse
-
-Reuse existing services/types for:
-
-- canonical evaluation request;
-- evaluation/attempt lifecycle;
-- acquisition integration;
-- structured evidence normalization;
-- hospitality observation/signal processing;
-- deterministic analysis;
-- guest journey analysis;
-- recommendation generation;
-- report assembly.
-
-If a required downstream contract is not currently callable from an orchestration boundary, introduce only the smallest adapter/interface needed to invoke the existing behavior. Do not redesign the underlying domain contract merely for orchestration convenience.
-
-## Execution Ordering
-
-The order must be explicit and deterministic:
-
-```text
-Request
-  ↓
-Evaluation / Attempt
-  ↓
-Acquisition Integration
-  ↓
-Evidence Normalization
-  ↓
-Hospitality Analysis
-  ↓
-Guest Journey
-  ↓
-Recommendations
-  ↓
-Report
-```
-
-Do not execute downstream analysis before its required upstream input exists.
-
-Do not parallelize stages unless the existing contracts explicitly guarantee independence and doing so does not alter lifecycle/provenance semantics. Sequential execution is the default.
-
-## Acquisition Invocation
-
-The existing REQ-017 contract remains authoritative.
-
-For one orchestration execution:
-
-- acquisition must be invoked exactly once;
-- the existing typed acquisition result must be preserved;
-- acquisition provenance/evaluation attribution must remain intact;
-- acquisition failures must retain their existing capability-failure semantics;
-- acquisition failure must not become a hotel-feature absence;
-- acquisition failure must not be converted into a false successful report.
-
-Do not add retries, crawler behavior, browser automation, target discovery, or new HTTP behavior.
-
-## Evidence Boundary
-
-Only the existing successful retained acquisition/evidence contract may enter evidence normalization.
-
-Do not normalize raw HTTP/browser responses directly inside the orchestrator.
-
-Do not duplicate the evidence model.
-
-Do not mutate acquisition results.
-
-## Analysis Boundary
-
-The orchestrator must call the existing deterministic analysis implementation.
-
-It must not:
-
-- implement new observation rules;
-- implement new signal qualification;
-- classify evidence itself;
-- create findings itself;
-- calculate coverage itself;
-- infer unsupported dimensions;
-- add scoring;
-- parse human-readable finding text.
-
-All analysis truth semantics remain owned by the existing analysis contracts.
-
-## Guest Journey Boundary
-
-The orchestrator must reuse the existing guest-journey analysis:
-
-```text
-DISCOVER → UNDERSTAND → EXPLORE → TRUST → BOOK
-```
-
-Do not create a second journey model.
-
-Do not infer journey failures in orchestration.
-
-Missing evidence, acquisition failure, unsupported dimensions, `NOT_ATTEMPTED`, and `UNABLE_TO_VERIFY` must retain their existing semantics.
-
-## Recommendation Boundary
-
-The orchestrator must reuse the existing deterministic recommendation service.
-
-Do not generate recommendations in orchestration.
-
-Do not prioritize, score, rank, or rewrite recommendations.
-
-The existing booking truth remains authoritative:
-
-```text
-successful room evidence
-+
-no BOOKING signal
-        ↓
-no booking deficiency
-        ↓
-no booking recommendation
-```
-
-## Report Boundary
-
-The orchestrator must reuse the existing `HospitalityAnalysisReportService`.
-
-It must not construct a second report model or generate narrative content.
-
-The final report must belong to exactly the evaluation being executed.
-
-## Lifecycle Semantics
-
-Preserve existing evaluation/attempt lifecycle semantics.
-
-In particular:
-
-- successful acquisition does not automatically mean evaluation `COMPLETED` unless the existing lifecycle contract defines completion at the end of the complete orchestration;
-- downstream capability failure must not be silently treated as hotel-feature absence;
-- a successful end-to-end orchestration may become terminal success only through the existing lifecycle semantics;
-- exceptions must not leave an apparently successful report attached to a failed or unrelated evaluation.
-
-Do not invent a new lifecycle state machine.
-
-## Failure Semantics
-
-REQ-032 must distinguish at least:
-
-### Acquisition failure
-
-Preserve the existing acquisition capability failure. Do not continue into analysis as though the hotel had no feature.
-
-### Evidence normalization failure
-
-Preserve the existing evidence-layer failure semantics. Do not manufacture analysis findings from failed normalization.
-
-### Analysis capability failure
-
-Preserve existing analysis semantics. Do not convert technical execution failure into a hotel deficiency.
-
-### Journey/recommendation/report failure
-
-Preserve the existing downstream capability failure semantics and evaluation attribution. Do not return a misleading successful report.
-
-Do not introduce a generic exception-to-hotel-finding mapping.
-
-## Evaluation Isolation
-
-One execution must operate within exactly one evaluation identity.
-
-Evaluation A must never consume:
-
-- acquisition results from B;
-- structured evidence from B;
-- findings from B;
-- journey analysis from B;
-- recommendations from B;
-- report objects from B.
-
-Add explicit regression coverage for cross-evaluation mismatch rejection where existing contracts support it.
-
-## Determinism
-
-For identical canonical request and identical deterministic upstream inputs, orchestration order and downstream output must be identical.
-
-No:
-
-- randomness;
-- current-time-dependent business logic;
-- mutable global state;
+The orchestrator must remain a thin coordinator and must not become the source of coverage semantics.
+
+## Scope After Blocker Resolution
+
+When unblocked, implement only:
+
+1. one canonical evaluation request boundary;
+2. existing evaluation/attempt lifecycle usage;
+3. existing acquisition integration exactly once;
+4. existing evidence normalization;
+5. governed coverage classification;
+6. existing deterministic hospitality analysis;
+7. existing guest-journey analysis;
+8. existing recommendation generation;
+9. existing report assembly;
+10. one evaluation-attributed orchestration result.
+
+Do not redesign downstream contracts.
+
+## Explicit Non-Scope
+
+Do not add:
+
+- acquisition behavior;
+- crawler/browser changes;
+- retries;
+- raw evidence parsing;
+- analysis rules;
+- coverage classification rules inside orchestration;
+- scoring;
+- prioritization;
 - AI;
-- external calls beyond the existing acquisition boundary.
-
-## No New Acquisition
-
-REQ-032 does not add:
-
-- crawler implementation;
-- browser automation;
-- target discovery;
-- HTTP client behavior;
-- retry strategy;
-- redirect policy;
-- acquisition limits;
-- external API calls.
-
-Use the existing REQ-015/017 acquisition contracts.
-
-## No Persistence
-
-Do not add:
-
-- evaluation database tables;
-- repositories;
-- migrations;
-- report storage;
-- evidence storage;
-- evaluation history.
-
-The orchestration result may remain in-memory for this requirement.
-
-Persistence is a later requirement.
-
-## No API / UI
-
-Do not implement:
-
-- REST endpoints;
-- controllers;
-- Next.js pages;
-- dashboard UI;
-- report rendering;
-- PDF generation;
-- email rendering.
-
-REQ-032 is a backend/domain orchestration boundary only.
-
-## No Google / Connected Performance
-
-Do not implement:
-
-- Google Business Profile;
-- Search Console;
-- GA4;
-- Google Places;
-- OTA APIs;
-- booking APIs;
-- external analytics.
-
-Connected digital-performance capabilities remain future plan-gated capabilities and may be added after the core analysis is mature.
-
-## No AI
-
-Do not add:
-
-- LLMs;
-- model providers;
-- prompts;
-- semantic classifiers;
-- generated recommendations;
-- generated report prose.
-
-## No Antena Integration
-
-Do not implement:
-
-- `<hotel-name>.antenapro.com`;
+- Google integrations;
+- API;
+- UI;
+- persistence;
+- Antena integration;
 - preview generation;
-- Antena package mapping;
-- commercial CTAs;
-- automatic conversion of findings into Antena configuration.
+- generic workflow engines.
 
-The Antena-hosted experience remains a downstream product outcome after the analysis is mature enough.
+## Governance
 
-## Architectural Shape
+`STATUS: READY` may be restored only after the coverage classification implementation is merged and the orchestrator requirement has been reconciled against the resulting `main`.
 
-Prefer:
+Until then:
 
-```text
-CanonicalEvaluationRequest
-        ↓
-EvaluationExecutionOrchestrator
-        ↓
-Existing domain services in explicit order
-        ↓
-Structured Hospitality Analysis Report
-```
-
-The orchestrator should be thin.
-
-Do not introduce:
-
-- workflow engines;
-- generic pipeline frameworks;
-- reflection-based dispatch;
-- plugin registries;
-- dynamic stage discovery;
-- generic command buses;
-- duplicated domain logic.
-
-Each stage should retain ownership of its existing domain rules.
-
-## Testing Acceptance Criteria
-
-Automated tests must demonstrate:
-
-1. One canonical evaluation request produces one explicit end-to-end orchestration.
-2. Existing evaluation/attempt attribution is preserved.
-3. Acquisition integration is invoked exactly once.
-4. Successful acquisition reaches evidence normalization.
-5. Evidence normalization output reaches deterministic analysis.
-6. Analysis output reaches guest-journey analysis.
-7. Journey output reaches recommendation generation.
-8. Analysis + journey + recommendations reach report assembly.
-9. Acquisition failure does not become a hotel-feature absence.
-10. Acquisition failure does not produce a false successful report.
-11. Downstream capability failure does not become a hotel deficiency.
-12. Evaluation A cannot leak data into Evaluation B.
-13. Existing booking truth remains unchanged.
-14. Existing limitation/unsupported semantics remain unchanged.
-15. The orchestrator does not perform network access itself.
-16. No duplicate analysis/recommendation/report logic is introduced.
-17. Same deterministic inputs produce the same orchestration result.
-18. Existing REQ-027 through REQ-031 behavior remains unchanged.
-19. Complete backend tests pass.
-
-## Completion Requirements
-
-Before `PR_READY`:
-
-- inspect current `main` and referenced requirements/specifications;
-- implement only REQ-032;
-- add focused deterministic orchestration tests;
-- run complete backend Maven tests;
-- run Backend Validation against the exact final PR head;
-- update this same requirement file with implementation, tests, validation, architectural decisions, failure/lifecycle decisions, limitations, and self-review;
-- ensure the final requirement-file update is included in the successfully validated final PR head.
-
-Do not merge. Do not start REQ-033.
-
-## Orchestrator Intent
-
-REQ-032 is the first execution-level boundary after the analysis/report domain chain is complete. Its purpose is to prove that the existing pieces can be coordinated as one evaluation without prematurely introducing API, persistence, UI, integrations, or Antena preview generation.
-
-The next implementation decision after REQ-032 must be based on actual end-to-end maturity and product value, not automatic REQ-number progression.
+**STOPPING — BLOCKED BY GOVERNED COVERAGE CLASSIFICATION DEPENDENCY.**
