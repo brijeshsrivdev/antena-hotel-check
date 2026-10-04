@@ -51,7 +51,6 @@ public final class HospitalityAnalysisLimitationService {
                 categories,
                 journeyStages,
                 HospitalityAnalysisLimitationType.UNABLE_TO_VERIFY,
-                evidence.acquisitionOutcome(),
                 evidence,
                 explanation
         );
