@@ -95,16 +95,18 @@ REQ-032 — Evaluation Execution Orchestration Foundation — BLOCKED.
 
 Session 32 repository reconciliation identified a real contract gap: `HospitalityAnalysisService.analyze(...)` requires a caller-supplied `HospitalityAnalysisCoverageState`, while `CanonicalEvaluationRequest` does not contain one and REQ-024 intentionally does not classify coverage. The orchestrator must not invent a default or derive coverage from ungoverned heuristics.
 
-REQ-033 — Hospitality Analysis Coverage Classification Contract — READY.
+REQ-033 — Hospitality Analysis Coverage Classification Contract — READY and accepted by the orchestrator.
 
-REQ-033 defines the first governed calibration for the three existing coverage states. A separate implementation slice must implement that classifier before REQ-032 can be restored to READY and implemented.
+REQ-034 — Hospitality Analysis Coverage Classification Implementation — READY.
+
+REQ-034 is the next implementation slice. It implements the governed REQ-033 classifier as a small deterministic domain service. After REQ-034 is merged, REQ-032 must be reconciled against the new `main` and can then be restored to READY if no further contract gaps remain.
 
 Implementation order:
 
 ```text
 REQ-033 — Coverage Classification Contract
         ↓
-Coverage Classification Implementation
+REQ-034 — Coverage Classification Implementation
         ↓
 REQ-032 — Evaluation Execution Orchestration
 ```
@@ -116,7 +118,7 @@ Hotel public digital presence
         ↓
 Canonical Evaluation Request
         ↓
-Coverage Classification Contract / Implementation
+Governed Coverage Classification
         ↓
 End-to-End Evaluation Orchestration
         ↓
@@ -155,7 +157,7 @@ Antena integration opportunity
 
 The following remain outside the completed foundation unless a merged requirement explicitly says otherwise:
 
-- governed coverage classification implementation
+- governed coverage classification implementation (REQ-034 is READY, not implemented)
 - end-to-end evaluation execution/orchestration (REQ-032 is BLOCKED, not implemented)
 - scoring and recommendation prioritization
 - complete nine-dimension analysis capability
