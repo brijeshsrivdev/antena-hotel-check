@@ -12,43 +12,39 @@ REQ-030 — Hospitality Recommendation Foundation is merged as PR #30.
 
 REQ-031 — Hospitality Analysis Report Foundation is merged as PR #31.
 
+REQ-033 — Hospitality Analysis Coverage Classification Contract is accepted and its calibration is implemented.
+
+REQ-034 — Hospitality Analysis Coverage Classification Implementation is merged as PR #32.
+
 REQ-020 — Orchestrator Durable Context Foundation is merged and establishes the durable handoff/context mechanism.
 
-## Current Blocker
+## Current Next Slice
 
-REQ-032 — Evaluation Execution Orchestration Foundation — BLOCKED.
+REQ-032 — Evaluation Execution Orchestration Foundation — READY.
 
-Session 32 correctly stopped during repository reconciliation because the existing deterministic analysis service requires a caller-supplied `HospitalityAnalysisCoverageState`, but the canonical evaluation request has no coverage classification input and REQ-024 intentionally provides representation rather than classification.
+Session 32 correctly stopped because the existing deterministic analysis service required a caller-supplied `HospitalityAnalysisCoverageState`, but the canonical evaluation request had no coverage classification input and REQ-024 intentionally provided representation rather than classification.
 
-The orchestrator must not silently default the state or invent thresholds inside the execution layer.
-
-## Immediate Next Slice
-
-REQ-033 — Hospitality Analysis Coverage Classification Contract — READY and accepted by the orchestrator.
-
-REQ-034 — Hospitality Analysis Coverage Classification Implementation — READY.
+REQ-033 established the governed coverage-classification contract and REQ-034 implemented it as a deterministic classifier. The blocker is now resolved.
 
 Requirement:
 
-`requirements/REQ-034-hospitality-analysis-coverage-classification-implementation.md`
+`requirements/REQ-032-evaluation-execution-orchestration-foundation.md`
 
-REQ-034 implements the deterministic classifier governed by REQ-033 as a small domain service. It is intentionally separate from REQ-032 so the execution orchestrator does not own product calibration.
-
-After REQ-034 is merged, reconcile REQ-032 against the new `main` and restore it to READY only if the classifier closes the identified contract gap.
+REQ-032 must use `HospitalityAnalysisCoverageClassifier` and must not duplicate or invent coverage semantics.
 
 ## Required Sequence
 
 ```text
 REQ-033 — Coverage Classification Contract
         ↓
-REQ-034 — Coverage Classification Implementation
+REQ-034 — Coverage Classification Implementation — MERGED
         ↓
-REQ-032 — Evaluation Execution Orchestration
+REQ-032 — Evaluation Execution Orchestration  ← NEXT
         ↓
 End-to-End Real Evaluation Validation
 ```
 
-## Coverage Classification Direction
+## Coverage Classification Contract
 
 The governed calibration in REQ-033 is:
 
@@ -60,55 +56,9 @@ Covered means explicitly assessable or explicitly limited. Limited scope contrib
 
 These are product calibration rules, not quality scores, and may be revised later using real evaluation data.
 
-## Completed Analysis Foundation
+## REQ-032 Direction
 
-```text
-Acquisition
-  ↓
-Structured Evidence
-  ↓
-Hospitality Observation
-  ↓
-Qualified Analysis Signal
-  ↓
-Hospitality Finding / Deficiency / Unable-to-Verify Limitation
-  ↓
-Hospitality Analysis Coverage
-  ↓
-Hospitality Analysis Result
-  ↓
-Guest Journey Analysis
-  ↓
-Actionable Recommendations
-  ↓
-Structured Analysis Report
-```
-
-REQ-023 establishes the truthful distinction between **unable to verify** and an observed hotel deficiency.
-
-REQ-024 establishes coverage representation only. Coverage state must be governed and must not be invented from page/finding counts.
-
-REQ-025 establishes the immutable aggregation boundary for findings, limitations, and coverage belonging to one evaluation.
-
-REQ-026 establishes the first executable deterministic analysis pipeline over already-retained evidence and explicitly separates the full nine-dimension intended scope from the currently assessable scope.
-
-REQ-027 establishes conservative evidence-grounded observed deficiencies.
-
-REQ-028 establishes the first conservative completeness expansion and makes `TRUST_AND_CLARITY` assessable only where existing typed evidence establishes a material same-evaluation cross-source identity conflict.
-
-REQ-029 establishes the first explicit guest-journey representation:
-
-```text
-DISCOVER → UNDERSTAND → EXPLORE → TRUST → BOOK
-```
-
-REQ-030 establishes deterministic bounded recommendations derived from governed deficiencies/semantics without scoring, prioritization, AI, or speculative advice.
-
-REQ-031 establishes the first structured report-domain boundary by aggregating existing governed outputs without committing the project to UI, API, persistence, PDF, or public-report presentation.
-
-## REQ-032 Direction After Unblocking
-
-REQ-032 should create a single explicit orchestration service for one canonical evaluation execution.
+REQ-032 creates a single explicit orchestration service for one canonical evaluation execution.
 
 ```text
 Canonical Evaluation Request
@@ -134,6 +84,54 @@ The orchestrator should coordinate existing contracts rather than absorb their r
 
 It should make the end-to-end sequence testable and explicit while preserving current failure/truth semantics.
 
+## Completed Analysis Foundation
+
+```text
+Acquisition
+  ↓
+Structured Evidence
+  ↓
+Hospitality Observation
+  ↓
+Qualified Analysis Signal
+  ↓
+Governed Coverage Classification
+  ↓
+Hospitality Finding / Deficiency / Unable-to-Verify Limitation
+  ↓
+Hospitality Analysis Coverage
+  ↓
+Hospitality Analysis Result
+  ↓
+Guest Journey Analysis
+  ↓
+Actionable Recommendations
+  ↓
+Structured Analysis Report
+```
+
+REQ-023 establishes the truthful distinction between **unable to verify** and an observed hotel deficiency.
+
+REQ-024 establishes coverage representation only. REQ-033 and REQ-034 establish and implement the governed classification.
+
+REQ-025 establishes the immutable aggregation boundary for findings, limitations, and coverage belonging to one evaluation.
+
+REQ-026 establishes the first executable deterministic analysis pipeline over already-retained evidence and explicitly separates the full nine-dimension intended scope from the currently assessable scope.
+
+REQ-027 establishes conservative evidence-grounded observed deficiencies.
+
+REQ-028 establishes the first conservative completeness expansion and makes `TRUST_AND_CLARITY` assessable only where existing typed evidence establishes a material same-evaluation cross-source identity conflict.
+
+REQ-029 establishes the first explicit guest-journey representation:
+
+```text
+DISCOVER → UNDERSTAND → EXPLORE → TRUST → BOOK
+```
+
+REQ-030 establishes deterministic bounded recommendations derived from governed deficiencies/semantics without scoring, prioritization, AI, or speculative advice.
+
+REQ-031 establishes the first structured report-domain boundary by aggregating existing governed outputs without committing the project to UI, API, persistence, PDF, or public-report presentation.
+
 ## Future Sequence
 
 After REQ-032, reassess the actual repository state before defining the next slice. Likely future areas include:
@@ -155,9 +153,7 @@ Hotel public digital presence
         ↓
 Canonical Evaluation Request
         ↓
-Governed Coverage Classification
-        ↓
-End-to-End Evaluation Orchestration
+End-to-End Evaluation Orchestration  ← NEXT
         ↓
 Acquisition
         ↓
@@ -166,6 +162,8 @@ Structured Evidence
 Bounded Hospitality Observations
         ↓
 Qualified Hospitality Analysis Signals
+        ↓
+Governed Coverage Classification
         ↓
 Executable Deterministic Analysis
         ↓
@@ -197,7 +195,7 @@ Inspect main
     ↓
 Identify next bounded slice
     ↓
-Create READY requirement on main
+Create/refine READY requirement on main
     ↓
 Implementation session
     ↓
@@ -220,4 +218,4 @@ After every merged agent PR, update durable orchestrator context before starting
 
 Do not jump directly to a complete scoring engine, generic AI analysis, full hospitality ontology, recommendation prioritization, report rendering/UI, interactive Antena-hosted experience, broad crawling infrastructure, or generic SEO auditing. Each requires an explicit bounded requirement.
 
-Do not bypass the coverage-classification dependency by defaulting a state inside the orchestration layer.
+Do not bypass the coverage-classification contract by defaulting a state inside the orchestration layer.
