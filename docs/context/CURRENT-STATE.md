@@ -6,9 +6,7 @@ Last updated: 2026-10-04
 
 Repository: `brijeshsrivdev/antena-hotel-check`
 
-Current `main`: `0bfd78fdc823ef31111b0302a732cf43ad5dc26a`
-
-The repository's `main` branch is the source of truth. This file is a compact operational snapshot and must not replace detailed requirements/specifications.
+Current `main` durable snapshot is maintained here, but `main` itself remains the source of truth. This file is a compact operational snapshot and must not replace detailed requirements/specifications.
 
 ## Product Objective
 
@@ -18,7 +16,7 @@ Antena Hotel Check analyzes a hotel's publicly accessible digital presence and g
 
 ## Product Stage
 
-The implemented foundation currently establishes a bounded path from canonical evaluation input through public-web acquisition, structured evidence, deterministic hospitality observations, and qualified hospitality analysis signals.
+The implemented foundation now establishes a bounded path from canonical evaluation input through public-web acquisition, structured evidence, deterministic hospitality observations, qualified analysis signals, findings/limitations, coverage representation, and an immutable analysis-result aggregation boundary.
 
 ```text
 Canonical Evaluation Request
@@ -34,6 +32,12 @@ Structured Evidence
 Hospitality Observation
         ↓
 Qualified Hospitality Analysis Signal
+        ↓
+Hospitality Finding / Unable-to-Verify Limitation
+        ↓
+Hospitality Analysis Coverage
+        ↓
+Hospitality Analysis Result
 ```
 
 ## Completed / Merged Foundation
@@ -44,28 +48,61 @@ Qualified Hospitality Analysis Signal
 - REQ-019 — Hospitality Observation Foundation — IMPLEMENTED / MERGED.
 - REQ-020 — Orchestrator Durable Context Foundation — IMPLEMENTED / MERGED.
 - REQ-021 — Hospitality Analysis Signal Foundation — IMPLEMENTED / MERGED.
+- REQ-022 — Hospitality Finding Foundation — IMPLEMENTED / MERGED.
+- REQ-023 — Hospitality Analysis Limitation Foundation — IMPLEMENTED / MERGED.
+- REQ-024 — Hospitality Analysis Coverage Foundation — IMPLEMENTED / MERGED.
 
 ## Current Architectural Boundary
 
 The latest completed product boundary is:
 
-`HospitalityObservation → Qualified HospitalityAnalysisSignal`
+`Qualified HospitalityAnalysisSignal → Findings / Limitations → Coverage → HospitalityAnalysisResult`
 
-REQ-021 deliberately stops before findings, severity, scoring, recommendations, AI interpretation, reporting, preview generation, booking-success conclusions, persistence, or generic SEO analysis.
+REQ-024 establishes coverage representation only. Coverage state is an explicit already-governed classification; it does not invent thresholds or classify from page/finding counts.
+
+REQ-025 is the next READY implementation boundary and will only aggregate the existing findings, limitations, and coverage into an immutable hospitality analysis result. It must not introduce scoring, recommendations, classification, reporting, persistence, AI, or Antena integration.
 
 REQ-020 establishes the durable orchestration context and handoff mechanism; it does not add Hotel Check runtime behavior.
 
 ## Immediate Next Governed Step
 
-Inspect the updated `main` and define the next smallest product requirement from the repository specifications and implemented boundaries.
+REQ-025 — Hospitality Analysis Result Foundation — READY.
 
-The likely product direction is downstream hospitality/digital-presence analysis, but the exact boundary must be established from repository evidence rather than assumed.
+Implementation branch: `feature/hospitality-analysis-result-foundation`.
+
+The implementation session must inspect actual `main` and existing contracts before coding, reuse the existing finding/limitation/coverage objects by reference, preserve evaluation identity, and avoid inventing a result lifecycle/status.
+
+## Product Sequence
+
+```text
+Hotel public digital presence
+        ↓
+Acquisition
+        ↓
+Structured Evidence
+        ↓
+Bounded Hospitality Observations
+        ↓
+Qualified Hospitality Analysis Signals
+        ↓
+Hospitality Findings + truthful limitations
+        ↓
+Coverage representation
+        ↓
+Hospitality Analysis Result
+        ↓
+Mature, trustworthy analysis
+        ↓
+Antena integration opportunity
+        ↓
+<hotel-name>.antenapro.com
+```
 
 ## Explicitly Not Implemented
 
 The following remain outside the completed foundation unless a merged requirement explicitly says otherwise:
 
-- full hospitality analysis/findings
+- coverage classification/calibration rules
 - scoring and recommendations
 - guest-journey scoring
 - AI/LLM analysis
@@ -73,7 +110,7 @@ The following remain outside the completed foundation unless a merged requiremen
 - report generation
 - interactive Antena-hosted hotel preview integration
 - booking/OTA analysis beyond bounded observed entry-point signals
-- persistence for the evidence/observation pipeline
+- persistence for the evidence/analysis pipeline
 - unrestricted crawling/browser acquisition
 - generic SEO auditing as the product center
 - competitor analysis
