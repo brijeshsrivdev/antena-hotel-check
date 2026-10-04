@@ -252,7 +252,7 @@ Focused tests cover supported deficiency mappings, typed identity conflict handl
 
 The first PR-head validation run (#279 / run ID `37210126305`) correctly exposed one invalid test assumption: a non-deficiency finding cannot be inserted into `GuestJourneyAnalysis` because that existing contract requires observed impacts to contain deficiencies only. The invalid test was removed; no production code was changed for this correction.
 
-Final Backend Validation:
+Backend Validation was then run against the exact implementation/test head `800f3ce4ff945082de3bd7d69ee7a0948eb60888`:
 
 - Workflow: `Backend Validation`
 - Run: **#280**
@@ -265,11 +265,27 @@ Final Backend Validation:
 - Errors: **0**
 - `HospitalityRecommendationServiceTest`: **9 tests**, all passing.
 
-The final run checked out the exact feature branch head `800f3ce4ff945082de3bd7d69ee7a0948eb60888`. The subsequent requirement-file update is intentionally the final repository change and therefore requires the next Backend Validation run before this requirement can remain `PR_READY`.
+After that validation, the requirement-file update produced PR head `85a72f43c22bba1b6e6804eb2f67697d217a25dd`. Backend Validation run **#283** / run ID **`37210337937`** was executed against that exact PR head and passed:
+
+- Workflow: `Backend Validation`
+- Run: **#283**
+- Run ID: **`37210337937`**
+- Validated head: **`85a72f43c22bba1b6e6804eb2f67697d217a25dd`**
+- Command: `mvn --batch-mode --no-transfer-progress test`
+- Result: **BUILD SUCCESS**
+- Tests: **184**
+- Failures: **0**
+- Errors: **0**
+
+Run #283 checked out the PR merge ref containing PR #30 head `85a72f43c22bba1b6e6804eb2f67697d217a25dd` and its base `d0bdb0fa62e331a2be9f8a72efb94f1df5e0471b`. The complete backend suite passed, including all 9 recommendation tests.
+
+Because this validation record is itself being updated now, the resulting commit is the new final head and requires one more Backend Validation run before this record can be considered fully final.
 
 ### CI
 
-Run #280 passed against implementation/test head `800f3ce4ff945082de3bd7d69ee7a0948eb60888`. A final-head validation run is required after this requirement-file update.
+- Run #280 validated implementation/test head `800f3ce4ff945082de3bd7d69ee7a0948eb60888`.
+- Run #283 validated PR head `85a72f43c22bba1b6e6804eb2f67697d217a25dd` with the prior requirement-file update included.
+- The current requirement-file update is the final planned record update; Backend Validation must pass against the resulting commit.
 
 ### PR
 
@@ -302,7 +318,7 @@ Each recommendation retains source finding/limitation and evaluation identity. T
 No network, persistence, external calls, or unbounded processing are introduced.
 
 #### Testing
-Focused tests and the complete backend suite passed in Backend Validation run #280. The final requirement-file update is the only remaining validation step before the status can be considered fully final.
+The complete backend suite passed in Backend Validation runs #280 and #283. The final requirement-file update requires one final validation run against its resulting commit.
 
 ### Final-head validation record
 
