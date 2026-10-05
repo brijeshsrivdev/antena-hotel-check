@@ -1,5 +1,6 @@
 package com.antenapro.hotelcheck.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.antenapro.hotelcheck.evaluation.Evaluation;
 import com.antenapro.hotelcheck.evaluation.EvaluationExecutionOrchestrator;
 import com.antenapro.hotelcheck.evaluation.EvaluationExecutionResult;
@@ -14,6 +15,7 @@ import com.antenapro.hotelcheck.input.ValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -46,8 +48,10 @@ class EvaluationExecutionControllerTest {
                 new HotelEvaluationInputValidator(),
                 orchestrator
         );
+        ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new EvaluationApiExceptionHandler())
+                .setMessageConverters(new MappingJackson2HttpMessageConverter(objectMapper))
                 .build();
     }
 
