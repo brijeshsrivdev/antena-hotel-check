@@ -10,64 +10,42 @@ REQ-035 — Hospitality Coverage Assessment Contract is implemented and merged a
 
 REQ-036 — Hospitality Coverage Assessment Derivation is implemented and merged as PR #36.
 
-REQ-032 — Evaluation Execution Orchestration Foundation is now the active implementation slice on `feature/evaluation-execution-orchestration` and is **IN PROGRESS**.
+REQ-032 — Evaluation Execution Orchestration Foundation is implemented and merged as PR #37.
 
-## REQ-032 Current Direction
+REQ-037 — Evaluation Execution API Boundary is the current implementation slice on `feature/evaluation-execution-api` and is **IN PROGRESS**.
+
+## REQ-037 Current Direction
 
 The active execution boundary is:
 
 ```text
+HTTP POST /api/evaluations
+        ↓
+Existing HotelEvaluationInput contract
+        ↓
+Existing canonical input validation
+        ↓
 Canonical Evaluation Request
         ↓
-Evaluation / Attempt
+REQ-032 Evaluation Execution Orchestrator
         ↓
-Existing acquisition integration
+Existing governed evaluation pipeline
         ↓
-Structured evidence
-        ↓
-Governed observations/signals/findings
-        ↓
-REQ-036 coverage assessment derivation
-        ↓
-Coverage classification
-        ↓
-Deterministic hospitality analysis
-        ↓
-Guest journey
-        ↓
-Recommendations
-        ↓
-Structured report
+Thin HTTP execution response
 ```
 
-The orchestrator is sequencing existing services only. It must not absorb acquisition, evidence parsing, observation, signal, finding, limitation, coverage derivation, classifier, analysis, journey, recommendation, or report semantics.
+The API controller is sequencing and transport only. It must not absorb acquisition, evidence parsing, observation, signal, finding, limitation, coverage derivation, classifier, analysis, journey, recommendation, or report semantics.
 
-## REQ-036 Implemented Boundary
+## REQ-037 Guardrails
 
-REQ-036 defines and implements the governed derivation:
-
-```text
-Governed hospitality observations / qualified signals
-                    ↓
-       Coverage Assessment Derivation
-                    ↓
-      HospitalityCoverageAssessment
-```
-
-The existing mappings remain authoritative, including `DINING` → `AMENITIES_AND_GUEST_FACING_INFORMATION` and typed material same-evaluation identity conflict → `TRUST_AND_CLARITY`.
-
-Explicit limitation category/journey context may create limited scope. Unscoped acquisition limitations do not receive guessed scope.
-
-## REQ-032 Guardrails
-
-- use one canonical request entry point;
-- preserve one evaluation identity;
-- call REQ-036 derivation before the classifier;
-- pass the exact derivation result to the classifier;
-- pass the exact classifier state to deterministic analysis;
-- never default coverage state;
-- preserve typed acquisition failures and inability-to-verify semantics;
-- do not add preview generation, API, persistence, external integrations, queues, or workflow engines.
+- use the existing canonical input validator;
+- delegate execution to the existing `EvaluationExecutionOrchestrator`;
+- preserve the existing evaluation identity and execution result;
+- keep execution synchronous;
+- use the repository's existing acquisition URL validation;
+- do not add a new SSRF subsystem;
+- do not add persistence, queues, background jobs, UI, external integrations, authentication, or OpenAPI tooling unless separately specified;
+- do not convert execution failures into successful analysis responses.
 
 ## Completed Analysis Foundation
 
@@ -101,10 +79,9 @@ Structured Analysis Report
 
 ## Future Sequence
 
-After REQ-032 implementation and review, reassess the actual repository state before defining the next slice. Likely future areas include:
+After REQ-037 implementation and review, reassess the actual repository state before defining the next slice. Likely future areas include:
 
 - real-hotel end-to-end validation against controlled public targets;
-- API boundary for starting/retrieving an evaluation;
 - persistence and evaluation history;
 - analysis quality/calibration and additional supported dimensions;
 - customer-facing report rendering;
