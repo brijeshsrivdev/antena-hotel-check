@@ -136,9 +136,7 @@ HospitalityAnalysisCoverage
 
 The assessment represents one evaluation's intended, assessable, and limited journey/dimension scope. Covered scope is assessable ∪ limited scope. The assessment does not contain the final classification state and does not replace `HospitalityAnalysisCoverage`.
 
-REQ-032 must remain blocked until this boundary is implemented and the classifier input is reconciled. The orchestrator must not manufacture a final `HospitalityAnalysisCoverage` solely to obtain a state, duplicate REQ-033 rules, or inspect raw evidence for classification.
-
-**Rationale:** The current runtime contracts form a circular dependency: analysis requires a state before creating final coverage, while the classifier currently requires final coverage to produce that state. A pre-classification fact boundary removes the cycle without moving product calibration into orchestration.
+**Rationale:** The current runtime contracts formed a circular dependency: analysis required a state before creating final coverage, while the classifier required final coverage to produce that state. A pre-classification fact boundary removed the cycle without moving product calibration into orchestration.
 
 **Source:** Session 35 reconciliation and REQ-035.
 
@@ -146,24 +144,20 @@ REQ-032 must remain blocked until this boundary is implemented and the classifie
 
 **Status:** Active
 
-**Decision:** The transformation from existing governed hospitality observations/signals into `HospitalityCoverageAssessment` is a separate domain contract owned by REQ-036. The derivation must reuse the existing six observation categories, five journey stages, nine dimensions, current signal-to-journey mappings, current category-to-dimension mappings, and typed identity-conflict semantics. Explicit limitation category/journey context may establish limited scope; unscoped acquisition failures must not receive guessed scope.
+**Decision:** The transformation from existing governed hospitality observations/signals into `HospitalityCoverageAssessment` is owned by REQ-036. The derivation reuses the existing six observation categories, five journey stages, nine dimensions, current signal-to-journey mappings, current category-to-dimension mappings, and typed identity-conflict semantics. Explicit limitation category/journey context may establish limited scope; unscoped acquisition failures must not receive guessed scope.
 
-The architectural sequence is:
-
-```text
-Governed observations/signals
-        ↓
-Coverage Assessment Derivation
-        ↓
-HospitalityCoverageAssessment
-        ↓
-Coverage Classifier
-        ↓
-HospitalityAnalysisCoverageState
-```
-
-REQ-036 must not classify coverage, create deficiencies, infer absence, or expand unsupported dimensions merely to increase coverage.
-
-**Rationale:** REQ-035 solved the representation/circular-dependency problem but deliberately did not define how assessable/limited sets are populated. Leaving this mapping implicit would allow REQ-032 or a runtime service to invent product semantics at implementation time.
+**Rationale:** REQ-035 solved the representation/circular-dependency problem but deliberately did not define how assessable/limited sets are populated. REQ-036 made this mapping explicit before orchestration.
 
 **Source:** Session 36 repository reconciliation and REQ-036.
+
+## Decision 014 — Evaluation execution orchestration is a thin synchronous boundary
+
+**Status:** Active
+
+**Decision:** REQ-032 uses one synchronous `EvaluationExecutionOrchestrator` entry point accepting the existing `CanonicalEvaluationRequest`. It coordinates the existing service contracts in the fixed order acquisition → evidence → observations/signals → REQ-036 derivation → classifier → deterministic analysis → journey → recommendations → report. It does not introduce a workflow engine, queue, scheduler, retry system, persistence boundary, or new domain semantics.
+
+The existing acquisition integration owns creation of the evaluation/attempt identity. The orchestrator propagates that identity rather than creating a second one.
+
+**Rationale:** The product needs a readable execution boundary now that all governed analysis stages exist. Keeping orchestration thin preserves the semantic ownership established by REQ-019 through REQ-036 and makes ordering/identity/failure behavior directly testable.
+
+**Source:** REQ-032 and Session 38 repository reconciliation.
