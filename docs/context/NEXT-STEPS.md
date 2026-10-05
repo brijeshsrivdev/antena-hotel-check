@@ -6,13 +6,15 @@ REQ-033 — Hospitality Analysis Coverage Classification Contract is accepted an
 
 REQ-034 — Hospitality Analysis Coverage Classification Implementation is merged as PR #32.
 
-REQ-035 — Hospitality Coverage Assessment Contract is implemented in PR #34 and is awaiting orchestrator review/merge.
+REQ-035 — Hospitality Coverage Assessment Contract is implemented and merged as PR #34.
+
+REQ-036 — Hospitality Coverage Assessment Derivation Contract is now specified as the missing factual derivation boundary. Runtime implementation has not started.
 
 REQ-032 — Evaluation Execution Orchestration Foundation remains **BLOCKED** as a separate implementation slice.
 
-## REQ-035 Implementation
+## REQ-035 Implemented Boundary
 
-The runtime pre-classification boundary is now:
+The runtime pre-classification boundary is:
 
 ```text
 Evidence / governed upstream facts
@@ -30,19 +32,41 @@ HospitalityAnalysisCoverage
 
 `HospitalityCoverageAssessment` is immutable and contains exactly one evaluation identity plus intended, assessable, and limited journey/dimension scope. Covered scope is derived as assessable ∪ limited scope.
 
-The classifier now consumes the assessment directly. REQ-033 calibration remains unchanged.
+The classifier consumes the assessment directly. REQ-033 calibration remains unchanged.
 
-## Validation Status
+## REQ-036 — Current Specification Boundary
 
-PR #34's GitHub Actions Backend Validation completed successfully against commit `a9e0ceeac492585d8382af82b9f3447484a5e497` before the durable-context updates. Because these context files were changed afterward, the final PR head requires another Backend Validation run before REQ-035 can be considered fully PR_READY.
+REQ-036 defines the governed derivation:
 
-The final-head rule is intentional: documentation/context is part of the deliverable and CI must validate the exact final PR head.
+```text
+Governed hospitality observations / qualified signals
+                    ↓
+       Coverage Assessment Derivation
+                    ↓
+      HospitalityCoverageAssessment
+```
+
+The contract preserves the existing mappings:
+
+- `HOTEL_IDENTITY` → `DISCOVER`, `UNDERSTAND` and hotel-identity dimension;
+- `ROOMS` → `EXPLORE` and rooms dimension;
+- `AMENITIES` → `UNDERSTAND`, `EXPLORE` and amenities/guest-facing dimension;
+- `CONTACT` → `DISCOVER` and contact/location dimension;
+- `BOOKING` → `BOOK` and booking-discoverability dimension;
+- `DINING` → `UNDERSTAND`, `EXPLORE` and amenities/guest-facing dimension;
+- typed material same-evaluation cross-source hotel identity conflict → `TRUST_AND_CLARITY`.
+
+The current unsupported dimensions remain unsupported: discoverability/navigation, mobile/technical guest experience, and SEO/structured-data supporting signals.
+
+Explicit limitation category/journey context may create limited scope. Unscoped acquisition limitations do not receive guessed scope.
+
+REQ-036 is specification only. No runtime implementation has started.
 
 ## REQ-032 Direction
 
-Once REQ-035 is reviewed and merged, REQ-032 can be reconsidered as the next implementation slice.
+REQ-032 remains blocked until REQ-036 is implemented and reviewed.
 
-It should create a single explicit orchestration service for one canonical evaluation execution:
+Once unblocked, it should create a single explicit orchestration service for one canonical evaluation execution:
 
 ```text
 Canonical Evaluation Request
@@ -53,7 +77,9 @@ Existing acquisition integration
         ↓
 Structured evidence
         ↓
-Governed coverage assessment
+Governed observations/signals
+        ↓
+REQ-036 coverage assessment derivation
         ↓
 Coverage classification
         ↓
@@ -66,7 +92,7 @@ Recommendations
 Structured report
 ```
 
-The orchestrator should coordinate existing contracts rather than absorb their responsibilities.
+The orchestrator should coordinate existing contracts rather than absorb their responsibilities or duplicate coverage semantics.
 
 ## Existing Coverage Classification
 
@@ -89,6 +115,8 @@ Hospitality Observation
   ↓
 Qualified Analysis Signal
   ↓
+Coverage Assessment Derivation [REQ-036 specified; implementation pending]
+  ↓
 Governed Coverage Assessment
   ↓
 Governed Coverage Classification
@@ -108,9 +136,11 @@ Structured Analysis Report
 
 REQ-023 establishes the truthful distinction between unable-to-verify and an observed hotel deficiency.
 
-REQ-024 establishes final coverage representation. REQ-033 and REQ-034 establish and implement governed classification. REQ-035 now provides the missing runtime pre-classification contract.
+REQ-024 establishes final coverage representation. REQ-033 and REQ-034 establish and implement governed classification. REQ-035 provides the pre-classification representation. REQ-036 now defines how existing governed facts populate that representation.
 
 ## Future Sequence
+
+After REQ-036 implementation and review, reassess the actual repository state before beginning REQ-032. Do not start REQ-032 until the assessment derivation is implemented and the complete dependency chain is validated.
 
 After REQ-032, reassess the actual repository state before defining the next slice. Likely future areas include:
 
@@ -150,4 +180,4 @@ Update durable context
 
 ## Guardrails
 
-Do not bypass the coverage-assessment/classification contract by defaulting a state inside orchestration. Do not duplicate calibration rules in the orchestrator. Do not make the classifier inspect raw evidence. Do not start REQ-032 until REQ-035 is reviewed/merged and the separate orchestration requirement is ready.
+Do not bypass the coverage-assessment derivation/classification contract by defaulting a state inside orchestration. Do not duplicate calibration rules in the orchestrator. Do not make the classifier inspect raw evidence. Do not guess limited scope from unscoped acquisition failures. Do not start REQ-032 until REQ-036 is implemented/reviewed and the separate orchestration requirement is ready.
