@@ -141,3 +141,29 @@ REQ-032 must remain blocked until this boundary is implemented and the classifie
 **Rationale:** The current runtime contracts form a circular dependency: analysis requires a state before creating final coverage, while the classifier currently requires final coverage to produce that state. A pre-classification fact boundary removes the cycle without moving product calibration into orchestration.
 
 **Source:** Session 35 reconciliation and REQ-035.
+
+## Decision 013 — Coverage assessment derivation is a separate governed boundary
+
+**Status:** Active
+
+**Decision:** The transformation from existing governed hospitality observations/signals into `HospitalityCoverageAssessment` is a separate domain contract owned by REQ-036. The derivation must reuse the existing six observation categories, five journey stages, nine dimensions, current signal-to-journey mappings, current category-to-dimension mappings, and typed identity-conflict semantics. Explicit limitation category/journey context may establish limited scope; unscoped acquisition failures must not receive guessed scope.
+
+The architectural sequence is:
+
+```text
+Governed observations/signals
+        ↓
+Coverage Assessment Derivation
+        ↓
+HospitalityCoverageAssessment
+        ↓
+Coverage Classifier
+        ↓
+HospitalityAnalysisCoverageState
+```
+
+REQ-036 must not classify coverage, create deficiencies, infer absence, or expand unsupported dimensions merely to increase coverage.
+
+**Rationale:** REQ-035 solved the representation/circular-dependency problem but deliberately did not define how assessable/limited sets are populated. Leaving this mapping implicit would allow REQ-032 or a runtime service to invent product semantics at implementation time.
+
+**Source:** Session 36 repository reconciliation and REQ-036.
