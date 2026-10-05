@@ -1,16 +1,15 @@
 package com.antenapro.hotelcheck.analysis;
 
-import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.UUID;
 
 /**
- * Applies the governed REQ-033 coverage calibration to one evaluation's coverage.
+ * Applies the governed REQ-033 coverage calibration to one evaluation's
+ * pre-classification coverage assessment.
  *
- * <p>This classifier consumes only the existing coverage representation. It does
- * not inspect evidence, findings, pages, recommendations, scores, or hotel
- * content, and it has no external or mutable state.</p>
+ * <p>This classifier consumes only governed coverage facts. It does not inspect
+ * evidence, findings, pages, recommendations, scores, or hotel content, and it
+ * has no external or mutable state.</p>
  */
 public final class HospitalityAnalysisCoverageClassifier {
 
@@ -19,28 +18,16 @@ public final class HospitalityAnalysisCoverageClassifier {
 
     private static final Set<GuestJourneyStage> ALL_JOURNEY_STAGES =
             Set.of(GuestJourneyStage.values());
-    private static final Set<HospitalityAnalysisDimension> ALL_DIMENSIONS =
-            Set.of(HospitalityAnalysisDimension.values());
 
-    public HospitalityAnalysisCoverageState classify(HospitalityAnalysisCoverage coverage) {
-        Objects.requireNonNull(coverage, "coverage must not be null");
-        validateEvaluationIsolation(coverage);
+    public HospitalityAnalysisCoverageState classify(HospitalityCoverageAssessment assessment) {
+        Objects.requireNonNull(assessment, "assessment must not be null");
 
-        Set<GuestJourneyStage> coveredJourneyStages = EnumSet.noneOf(GuestJourneyStage.class);
-        coveredJourneyStages.addAll(coverage.assessableJourneyStages());
-        coveredJourneyStages.addAll(coverage.limitedJourneyStages());
-
-        Set<HospitalityAnalysisDimension> coveredDimensions =
-                EnumSet.noneOf(HospitalityAnalysisDimension.class);
-        coveredDimensions.addAll(coverage.assessableDimensions());
-        coveredDimensions.addAll(coverage.limitedDimensions());
+        Set<GuestJourneyStage> coveredJourneyStages = assessment.coveredJourneyStages();
+        Set<HospitalityAnalysisDimension> coveredDimensions = assessment.coveredDimensions();
 
         boolean substantial = coveredJourneyStages.containsAll(ALL_JOURNEY_STAGES)
-                && coveredDimensions.stream().filter(ALL_DIMENSIONS::contains).count()
-                >= SUBSTANTIAL_DIMENSION_THRESHOLD
-                && coverage.assessableJourneyStages().stream()
-                .filter(ALL_JOURNEY_STAGES::contains)
-                .count() >= SUBSTANTIAL_ASSESSABLE_STAGE_THRESHOLD;
+                && coveredDimensions.size() >= SUBSTANTIAL_DIMENSION_THRESHOLD
+                && assessment.assessableJourneyStages().size() >= SUBSTANTIAL_ASSESSABLE_STAGE_THRESHOLD;
 
         if (substantial) {
             return HospitalityAnalysisCoverageState.SUBSTANTIALLY_ASSESSED;
@@ -51,18 +38,5 @@ public final class HospitalityAnalysisCoverageClassifier {
         }
 
         return HospitalityAnalysisCoverageState.INSUFFICIENT_COVERAGE;
-    }
-
-    private static void validateEvaluationIsolation(HospitalityAnalysisCoverage coverage) {
-        UUID evaluationId = coverage.evaluationId();
-
-        if (coverage.supportingFindings().stream()
-                .anyMatch(finding -> !evaluationId.equals(finding.evaluationId()))) {
-            throw new IllegalArgumentException("supportingFindings must belong to evaluationId");
-        }
-        if (coverage.supportingLimitations().stream()
-                .anyMatch(limitation -> !evaluationId.equals(limitation.evaluationId()))) {
-            throw new IllegalArgumentException("supportingLimitations must belong to evaluationId");
-        }
     }
 }
