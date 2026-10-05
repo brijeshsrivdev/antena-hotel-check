@@ -16,7 +16,7 @@ Antena Hotel Check analyzes a hotel's publicly accessible digital presence and g
 
 ## Product Stage
 
-The deterministic analysis/report foundation through REQ-034 is implemented/merged. REQ-035 now has its runtime implementation in PR #34, pending orchestrator review and merge.
+The deterministic analysis/report foundation through REQ-035 is implemented/merged. REQ-036 now defines the remaining factual derivation contract required before end-to-end orchestration can safely construct the pre-classification coverage assessment.
 
 The intended pipeline is now:
 
@@ -31,7 +31,11 @@ Acquisition Result
         ↓
 Structured Evidence
         ↓
-Governed Coverage Assessment
+Governed Hospitality Observations / Signals
+        ↓
+Coverage Assessment Derivation
+        ↓
+HospitalityCoverageAssessment
         ↓
 Coverage Classification
         ↓
@@ -70,10 +74,9 @@ Structured Hospitality Analysis Report
 - REQ-031 — Hospitality Analysis Report Foundation — IMPLEMENTED / MERGED as PR #31.
 - REQ-033 — Hospitality Analysis Coverage Classification Contract — ACCEPTED / MERGED as the governed calibration basis.
 - REQ-034 — Hospitality Analysis Coverage Classification Implementation — IMPLEMENTED / MERGED as PR #32.
+- REQ-035 — Hospitality Coverage Assessment Contract — IMPLEMENTED / MERGED as PR #34.
 
-## REQ-035 — Current Implementation
-
-**Status: PR_READY / PR #34 / not merged.**
+## REQ-035 — Implemented Boundary
 
 The runtime pre-classification boundary is implemented as immutable `HospitalityCoverageAssessment`.
 
@@ -109,11 +112,50 @@ coveredDimensions    = assessableDimensions ∪ limitedDimensions
 
 The assessment is immutable through defensive collection copying.
 
+## REQ-036 — Current Specification Boundary
+
+**Status: READY / specification only / implementation not started.**
+
+REQ-036 defines how existing governed observations/signals and explicitly scoped limitation/identity-conflict facts populate the REQ-035 assessment.
+
+Authoritative journey derivation:
+
+- `HOTEL_IDENTITY` → `DISCOVER`, `UNDERSTAND`
+- `ROOMS` → `EXPLORE`
+- `AMENITIES` → `UNDERSTAND`, `EXPLORE`
+- `CONTACT` → `DISCOVER`
+- `BOOKING` → `BOOK`
+- `DINING` → `UNDERSTAND`, `EXPLORE`
+
+Authoritative dimension derivation:
+
+- `HOTEL_IDENTITY` → `HOTEL_IDENTITY_AND_PROPERTY_UNDERSTANDING`
+- `ROOMS` → `ROOMS_AND_ROOM_INFORMATION`
+- `AMENITIES` → `AMENITIES_AND_GUEST_FACING_INFORMATION`
+- `CONTACT` → `CONTACT_AND_LOCATION`
+- `BOOKING` → `BOOKING_DISCOVERABILITY_AND_JOURNEY_SIGNALS`
+- `DINING` → `AMENITIES_AND_GUEST_FACING_INFORMATION`
+- typed material same-evaluation cross-source hotel identity conflict → `TRUST_AND_CLARITY`
+
+The three currently unsupported dimensions remain intentionally unsupported:
+
+- `DISCOVERABILITY_AND_NAVIGATION`
+- `MOBILE_AND_TECHNICAL_GUEST_EXPERIENCE`
+- `SEO_AND_STRUCTURED_DATA_SUPPORTING_SIGNALS`
+
+Explicit limitation category/journey context may create limited scope. Unscoped acquisition limitations do not get arbitrary scope assigned.
+
+REQ-036 does not classify coverage, score hotels, create deficiencies, or infer absence from missing evidence.
+
 ## Current Architectural Boundary
 
-REQ-035 reconciles the previous circular dependency:
+The governed coverage sequence is now:
 
 ```text
+Governed observations/signals
+        ↓
+REQ-036 derivation
+        ↓
 HospitalityCoverageAssessment
         ↓
 HospitalityAnalysisCoverageClassifier
@@ -127,7 +169,7 @@ HospitalityAnalysisCoverage
 
 `HospitalityAnalysisCoverage` remains the final analysis coverage representation. It has not been replaced by the assessment.
 
-`HospitalityAnalysisService` remains unchanged and continues to receive the classified `HospitalityAnalysisCoverageState` before creating final coverage.
+The assessment is the factual pre-classification boundary; the classifier remains the owner of REQ-033 calibration.
 
 ## Coverage Classification Contract
 
@@ -139,20 +181,21 @@ REQ-033 remains authoritative:
 
 Covered means explicitly assessable or explicitly limited. Limited scope contributes to coverage but does not count toward the assessable-stage threshold.
 
-The classifier now consumes `HospitalityCoverageAssessment` directly and does not inspect page counts, raw HTML, finding counts, recommendation counts, HTTP status counts, arbitrary percentages, AI output, or network results.
+The classifier consumes `HospitalityCoverageAssessment` directly and does not inspect page counts, raw HTML, finding counts, recommendation counts, HTTP status counts, arbitrary percentages, AI output, or network results.
 
 ## Current Blocker
 
 **REQ-032 — Evaluation Execution Orchestration Foundation — BLOCKED.**
 
-REQ-035 removes the coverage-assessment/classification circular dependency, but REQ-032 still requires a separate bounded orchestration implementation and orchestrator review.
+REQ-035 removed the representation/classification circular dependency. REQ-036 now defines the remaining factual derivation contract required before orchestration can construct the assessment without inventing product semantics.
 
-REQ-032 must not be started from this session. It remains a separate requirement and must preserve the governed assessment → classifier → state → analysis boundary.
+REQ-032 must not be started from this session. It remains a separate implementation requirement and must consume the governed derivation → assessment → classifier → state → analysis boundary.
 
 ## Explicitly Not Implemented
 
 The following remain outside the completed foundation unless a merged requirement explicitly says otherwise:
 
+- REQ-036 runtime implementation
 - end-to-end evaluation execution/orchestration (REQ-032 is BLOCKED, not implemented)
 - complete nine-dimension analysis capability
 - customer-facing report API/rendering/UI
