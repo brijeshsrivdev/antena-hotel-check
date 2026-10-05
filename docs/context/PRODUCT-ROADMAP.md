@@ -2,7 +2,7 @@
 
 **Status:** DIRECTIONAL / LIVING ROADMAP  
 **Owner:** Orchestrator  
-**Last updated:** 2026-10-04
+**Last updated:** 2026-10-05
 
 ## Purpose
 
@@ -30,6 +30,8 @@ Structured Evidence
 Hospitality Observations
         ↓
 Qualified Signals
+        ↓
+Coverage Assessment Derivation
         ↓
 Governed Coverage Assessment
         ↓
@@ -60,26 +62,22 @@ Improved hotel experience
 
 ## Current Position
 
-The repository has completed the core deterministic analysis/report foundation through REQ-034.
+The repository has completed and merged the runtime representation/classification foundation through REQ-035.
 
 Current blocker:
 
 - **REQ-032 — Evaluation Execution Orchestration Foundation — BLOCKED.**
 
-Session 35 reconciled a circular coverage contract: `HospitalityAnalysisService` requires a caller-supplied `HospitalityAnalysisCoverageState` before it creates final `HospitalityAnalysisCoverage`, while `HospitalityAnalysisCoverageClassifier` currently consumes that final coverage object.
+REQ-035 implemented the pre-classification `HospitalityCoverageAssessment` and reconciled the classifier boundary. Repository review then identified the remaining semantic gap: the system still needs a governed contract for transforming existing observations/signals into that assessment.
 
-The orchestrator has therefore established:
-
-- **REQ-035 — Hospitality Coverage Assessment Contract — READY.**
-- REQ-035 defines the missing pre-classification fact boundary.
-- REQ-035 is specification-only and is **not implemented**.
-
-The immediate sequence is:
+The current sequence is therefore:
 
 ```text
-REQ-035 contract
+REQ-035 implementation — complete/merged
       ↓
-REQ-035 implementation / classifier-boundary integration
+REQ-036 derivation contract — READY / specification only
+      ↓
+REQ-036 implementation
       ↓
 REQ-032 orchestration
 ```
@@ -102,7 +100,8 @@ The repository contains merged deterministic foundations for:
 - deterministic analysis;
 - guest-journey analysis;
 - recommendations;
-- structured report aggregation.
+- structured report aggregation;
+- pre-classification coverage assessment representation.
 
 The important truth boundary remains:
 
@@ -113,21 +112,32 @@ NOT_ATTEMPTED ≠ hotel deficiency
 Unsupported dimension ≠ hotel deficiency
 ```
 
-### REQ-035 — Coverage Assessment Contract
+### REQ-036 — Coverage Assessment Derivation Contract
 
-**Status:** READY
+**Status:** READY / specification only
 
-Define the smallest immutable pre-classification fact contract using existing evaluation identity, the five guest-journey stages, and the nine hospitality dimensions.
+REQ-036 defines the missing factual transformation from existing governed observations/signals to `HospitalityCoverageAssessment`.
 
-The assessment represents intended, assessable, and limited journey/dimension scope for exactly one evaluation. Covered scope is assessable ∪ limited scope. Limited scope contributes to coverage but not to the assessable-stage threshold.
+The contract preserves:
 
-The assessment does not contain the final coverage state and does not replace `HospitalityAnalysisCoverage`.
+- the five existing journey stages;
+- the nine existing hospitality dimensions;
+- the six existing observation categories;
+- current signal-to-journey mappings;
+- current category-to-dimension mappings;
+- `DINING` → `AMENITIES_AND_GUEST_FACING_INFORMATION`;
+- typed identity-conflict → `TRUST_AND_CLARITY` semantics;
+- explicit limitation category/journey scope as the only source of limited coverage.
+
+The contract intentionally leaves discoverability/navigation, mobile/technical, and SEO/structured-data dimensions unsupported until governed upstream evidence exists.
+
+REQ-036 does not classify coverage, create deficiencies, score hotels, or infer absence from missing evidence.
 
 ### REQ-032 — Evaluation Execution Orchestration
 
 **Status:** BLOCKED
 
-After REQ-035 is implemented and the classifier boundary is reconciled, introduce one thin end-to-end execution boundary:
+After REQ-036 is implemented and the derivation boundary is validated, introduce one thin end-to-end execution boundary:
 
 ```text
 Canonical Evaluation Request
@@ -137,6 +147,10 @@ Evaluation / Attempt
 Acquisition
         ↓
 Evidence
+        ↓
+Governed Observations / Signals
+        ↓
+Coverage Assessment Derivation
         ↓
 Governed Coverage Assessment
         ↓
@@ -358,16 +372,7 @@ Yes / No
 Relevant Antena capability
 ```
 
-Examples:
-
-| Analysis finding | Potential Antena opportunity |
-|---|---|
-| Poor room presentation | Antena hotel website |
-| Weak booking CTA | Antena direct booking |
-| Missing dining presentation | Antena dining capability |
-| Weak contact/location journey | Antena hotel website |
-| Poor mobile experience | Antena responsive experience |
-| Weak information architecture | Antena hotel website |
+Examples include poor room presentation, weak booking CTA, missing dining presentation, weak contact/location journey, poor mobile experience, and weak information architecture. These are future opportunity mappings, not current implementation requirements.
 
 ### Hotel Preview Generation
 
