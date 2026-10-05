@@ -59,8 +59,10 @@ public final class HospitalityCoverageAssessmentDerivationService {
                 throw new IllegalArgumentException("qualifiedSignals must contain only QUALIFIED signals");
             }
 
-            assessableJourneyStages.addAll(signal.journeyStages());
-            HospitalityAnalysisDimension dimension = dimensionFor(signal.originatingObservation().category());
+            HospitalityObservationCategory category = signal.originatingObservation().category();
+            assessableJourneyStages.addAll(journeyStagesFor(category));
+
+            HospitalityAnalysisDimension dimension = dimensionFor(category);
             if (dimension != null) {
                 assessableDimensions.add(dimension);
             }
@@ -93,6 +95,17 @@ public final class HospitalityCoverageAssessmentDerivationService {
                 limitedJourneyStages,
                 limitedDimensions
         );
+    }
+
+    private static Set<GuestJourneyStage> journeyStagesFor(HospitalityObservationCategory category) {
+        return switch (category) {
+            case HOTEL_IDENTITY -> Set.of(GuestJourneyStage.DISCOVER, GuestJourneyStage.UNDERSTAND);
+            case ROOMS -> Set.of(GuestJourneyStage.EXPLORE);
+            case AMENITIES -> Set.of(GuestJourneyStage.UNDERSTAND, GuestJourneyStage.EXPLORE);
+            case CONTACT -> Set.of(GuestJourneyStage.DISCOVER);
+            case BOOKING -> Set.of(GuestJourneyStage.BOOK);
+            case DINING -> Set.of(GuestJourneyStage.UNDERSTAND, GuestJourneyStage.EXPLORE);
+        };
     }
 
     private static HospitalityAnalysisDimension dimensionFor(HospitalityObservationCategory category) {
