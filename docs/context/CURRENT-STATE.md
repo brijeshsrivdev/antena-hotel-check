@@ -16,11 +16,13 @@ Antena Hotel Check analyzes a hotel's publicly accessible digital presence and g
 
 ## Product Stage
 
-The deterministic analysis/report foundation and the governed coverage derivation/classification chain are implemented/merged. REQ-032 is now the active implementation slice for end-to-end evaluation execution orchestration.
+The deterministic analysis/report foundation, governed coverage derivation/classification chain, and evaluation execution orchestration foundation are implemented/merged. REQ-037 is the current implementation slice for exposing that governed pipeline through a thin synchronous HTTP boundary.
 
 The intended pipeline is now:
 
 ```text
+HTTP Evaluation Request [REQ-037 IN PROGRESS]
+        ↓
 Canonical Evaluation Request
         ↓
 Evaluation / Attempt
@@ -54,6 +56,8 @@ Guest Journey Analysis
 Hospitality Recommendations
         ↓
 Structured Hospitality Analysis Report
+        ↓
+HTTP Evaluation Response [REQ-037 IN PROGRESS]
 ```
 
 ## Completed / Merged Foundation
@@ -78,6 +82,7 @@ Structured Hospitality Analysis Report
 - REQ-034 — Hospitality Analysis Coverage Classification Implementation — IMPLEMENTED / MERGED as PR #32.
 - REQ-035 — Hospitality Coverage Assessment Contract — IMPLEMENTED / MERGED as PR #34.
 - REQ-036 — Hospitality Coverage Assessment Derivation — IMPLEMENTED / MERGED as PR #36.
+- REQ-032 — Evaluation Execution Orchestration Foundation — IMPLEMENTED / MERGED as PR #37.
 
 ## REQ-036 — Implemented Boundary
 
@@ -109,25 +114,35 @@ HospitalityAnalysisCoverageState
 HospitalityAnalysisService
 ```
 
-## REQ-032 — Current Implementation
+## REQ-032 — Implemented Boundary
 
-**Status: IN PROGRESS.**
+`EvaluationExecutionOrchestrator` is the governed synchronous execution boundary for one canonical evaluation.
 
-Branch: `feature/evaluation-execution-orchestration`
-
-Session 38 has added the explicit orchestration boundary:
-
-- `EvaluationExecutionOrchestrator`
-- `EvaluationExecutionResult`
-- focused orchestration contract tests
-
-The orchestrator accepts the canonical `CanonicalEvaluationRequest`, uses the existing acquisition integration exactly once, normalizes evidence, prepares governed observations/signals/findings, invokes REQ-036 derivation, invokes the classifier, passes the exact classifier state into deterministic analysis, then runs journey analysis, recommendations, and report assembly.
+It uses the existing acquisition integration exactly once, normalizes evidence, prepares governed observations/signals/findings, invokes REQ-036 derivation, invokes the classifier, passes the exact classifier state into deterministic analysis, then runs journey analysis, recommendations, and report assembly.
 
 The execution result preserves one evaluation/attempt identity across the pipeline.
 
 Successful analysis/report execution uses the existing lifecycle `INCOMPLETE` state because preview generation is outside REQ-032 and `COMPLETED` requires both report and preview outcomes.
 
 A mandatory downstream runtime failure is recorded as the existing `FAILED` lifecycle state and rethrown; later stages do not execute.
+
+## REQ-037 — Current Implementation
+
+**Status: IN PROGRESS.**
+
+Branch: `feature/evaluation-execution-api`
+
+The current slice adds a thin Spring MVC boundary:
+
+- `POST /api/evaluations`;
+- existing `HotelEvaluationInput` accepted at the transport boundary;
+- existing `HotelEvaluationInputValidator` produces the governed `CanonicalEvaluationRequest`;
+- existing `EvaluationExecutionOrchestrator` executes synchronously;
+- `EvaluationExecutionResponse` exposes the existing execution artifacts without new domain semantics;
+- minimal machine-readable 4xx/5xx error handling;
+- Spring MVC integration-style tests without a real external crawl.
+
+No change has been made to the REQ-032 orchestrator or its hospitality semantics.
 
 ## Coverage Classification
 
