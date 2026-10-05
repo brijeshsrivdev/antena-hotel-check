@@ -29,7 +29,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.content.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -57,7 +57,17 @@ class EvaluationExecutionControllerTest {
 
     @Test
     void acceptsValidCanonicalInputAndDelegatesToOrchestrator() throws Exception {
-        EvaluationExecutionResult result = executionResult();
+        EvaluationExecutionResult result = mock(EvaluationExecutionResult.class);
+        Evaluation evaluation = evaluation();
+        EvaluationAttempt attempt = evaluation.currentAttempt();
+        when(result.evaluation()).thenReturn(evaluation);
+        when(result.attempt()).thenReturn(attempt);
+        when(result.acquisition()).thenReturn(null);
+        when(result.evidence()).thenReturn(null);
+        when(result.analysisResult()).thenReturn(null);
+        when(result.guestJourneyAnalysis()).thenReturn(null);
+        when(result.recommendations()).thenReturn(java.util.Set.of());
+        when(result.report()).thenReturn(null);
         when(orchestrator.execute(any(CanonicalEvaluationRequest.class))).thenReturn(result);
 
         mockMvc.perform(post("/api/evaluations")
@@ -65,7 +75,7 @@ class EvaluationExecutionControllerTest {
                         .content("{\"websiteUrl\":\"https://hotel.example.com\"}"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.evaluation.evaluationId").value(result.evaluation().evaluationId().toString()))
+                .andExpect(jsonPath("$.evaluation.evaluationId").value(evaluation.evaluationId().toString()))
                 .andExpect(jsonPath("$.attempt.state").value(EvaluationLifecycleState.INCOMPLETE.name()));
 
         var captor = org.mockito.ArgumentCaptor.forClass(CanonicalEvaluationRequest.class);
@@ -125,17 +135,12 @@ class EvaluationExecutionControllerTest {
                 .andExpect(jsonPath("$.evaluation").doesNotExist());
     }
 
-    private EvaluationExecutionResult executionResult() {
+    private Evaluation evaluation() {
         CanonicalEvaluationRequest request = acceptedRequest();
         Evaluation evaluation = Evaluation.create(request, CLOCK);
         evaluation.start();
-        EvaluationAttempt attempt = evaluation.currentAttempt();
-        attempt.incomplete("analysis complete", new OwnerFacingOutcome(true, false));
-
-        EvaluationExecutionResult result = mock(EvaluationExecutionResult.class);
-        when(result.evaluation()).thenReturn(evaluation);
-        when(result.attempt()).thenReturn(attempt);
-        return result;
+        evaluation.currentAttempt().incomplete("analysis complete", new OwnerFacingOutcome(true, false));
+        return evaluation;
     }
 
     private CanonicalEvaluationRequest acceptedRequest() {
