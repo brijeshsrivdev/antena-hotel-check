@@ -1,6 +1,6 @@
 # Current State
 
-Last updated: 2026-10-04
+Last updated: 2026-10-05
 
 ## Repository
 
@@ -16,7 +16,7 @@ Antena Hotel Check analyzes a hotel's publicly accessible digital presence and g
 
 ## Product Stage
 
-The deterministic analysis/report foundation through REQ-034 is implemented/merged, but the end-to-end execution path is currently blocked by a newly identified contract gap between coverage assessment and coverage classification.
+The deterministic analysis/report foundation through REQ-034 is implemented/merged. REQ-035 now has its runtime implementation in PR #34, pending orchestrator review and merge.
 
 The intended pipeline is now:
 
@@ -71,39 +71,63 @@ Structured Hospitality Analysis Report
 - REQ-033 — Hospitality Analysis Coverage Classification Contract — ACCEPTED / MERGED as the governed calibration basis.
 - REQ-034 — Hospitality Analysis Coverage Classification Implementation — IMPLEMENTED / MERGED as PR #32.
 
-## Current Architectural Boundary
+## REQ-035 — Current Implementation
 
-REQ-024 represents final analysis coverage but does not classify it. REQ-033 defines the classification calibration and REQ-034 implements the classifier.
+**Status: PR_READY / PR #34 / not merged.**
 
-The current runtime contracts expose a circular dependency:
+The runtime pre-classification boundary is implemented as immutable `HospitalityCoverageAssessment`.
+
+It contains:
 
 ```text
-HospitalityAnalysisService
-        ↓ requires
-HospitalityAnalysisCoverageState
-        ↑ produced by
-HospitalityAnalysisCoverageClassifier
-        ↑ currently consumes
-HospitalityAnalysisCoverage
-        ↑ currently created by
-HospitalityAnalysisService
+evaluationId
+intendedJourneyStages
+intendedDimensions
+assessableJourneyStages
+assessableDimensions
+limitedJourneyStages
+limitedDimensions
 ```
 
-This is not resolved by defaulting a state or moving classification rules into orchestration.
+It reuses the existing `UUID`, `GuestJourneyStage`, and `HospitalityAnalysisDimension` types.
 
-## Current Blocker
+Structural validation enforces:
 
-**REQ-032 — Evaluation Execution Orchestration Foundation — BLOCKED.**
+- required values are non-null;
+- assessable scope is within intended scope;
+- limited scope is within intended scope;
+- assessable and limited scope do not overlap.
 
-The blocker is the missing pre-classification coverage contract. The deterministic analysis service requires a coverage state before it creates final `HospitalityAnalysisCoverage`, while the current classifier consumes that final coverage object.
+Empty scope is valid.
 
-Session 35 establishes:
+Covered scope is derived:
 
-- REQ-035 — Hospitality Coverage Assessment Contract — READY.
-- `HospitalityCoverageAssessment` is the governed pre-classification fact boundary.
-- The intended relationship is `HospitalityCoverageAssessment → CoverageClassifier → HospitalityAnalysisCoverageState → HospitalityAnalysisCoverage`.
-- REQ-035 itself is specification-only; it is **not implemented**.
-- REQ-032 remains downstream and must not start until the assessment contract is implemented and the classifier boundary is reconciled.
+```text
+coveredJourneyStages = assessableJourneyStages ∪ limitedJourneyStages
+coveredDimensions    = assessableDimensions ∪ limitedDimensions
+```
+
+The assessment is immutable through defensive collection copying.
+
+## Current Architectural Boundary
+
+REQ-035 reconciles the previous circular dependency:
+
+```text
+HospitalityCoverageAssessment
+        ↓
+HospitalityAnalysisCoverageClassifier
+        ↓
+HospitalityAnalysisCoverageState
+        ↓
+HospitalityAnalysisService
+        ↓
+HospitalityAnalysisCoverage
+```
+
+`HospitalityAnalysisCoverage` remains the final analysis coverage representation. It has not been replaced by the assessment.
+
+`HospitalityAnalysisService` remains unchanged and continues to receive the classified `HospitalityAnalysisCoverageState` before creating final coverage.
 
 ## Coverage Classification Contract
 
@@ -115,41 +139,21 @@ REQ-033 remains authoritative:
 
 Covered means explicitly assessable or explicitly limited. Limited scope contributes to coverage but does not count toward the assessable-stage threshold.
 
-The classifier must not consume page counts, raw HTML, finding counts, recommendation counts, HTTP status counts, arbitrary percentages, AI output, or network results as classification inputs.
+The classifier now consumes `HospitalityCoverageAssessment` directly and does not inspect page counts, raw HTML, finding counts, recommendation counts, HTTP status counts, arbitrary percentages, AI output, or network results.
 
-## Coverage Assessment Boundary
+## Current Blocker
 
-REQ-035 defines the smallest pre-classification contract using existing typed domain concepts:
+**REQ-032 — Evaluation Execution Orchestration Foundation — BLOCKED.**
 
-```text
-HospitalityCoverageAssessment
-    evaluationId
-    intendedJourneyStages
-    intendedDimensions
-    assessableJourneyStages
-    assessableDimensions
-    limitedJourneyStages
-    limitedDimensions
-```
+REQ-035 removes the coverage-assessment/classification circular dependency, but REQ-032 still requires a separate bounded orchestration implementation and orchestrator review.
 
-Covered scope is derived as assessable ∪ limited scope. The assessment contains no final coverage state and does not replace `HospitalityAnalysisCoverage`.
-
-The assessment preserves the truth boundary:
-
-```text
-covered ≠ assessable
-UNABLE_TO_VERIFY ≠ positive evidence
-NOT_ATTEMPTED ≠ assessable evidence
-UNSUPPORTED ≠ assessable evidence
-missing evidence ≠ hotel deficiency
-```
+REQ-032 must not be started from this session. It remains a separate requirement and must preserve the governed assessment → classifier → state → analysis boundary.
 
 ## Explicitly Not Implemented
 
 The following remain outside the completed foundation unless a merged requirement explicitly says otherwise:
 
 - end-to-end evaluation execution/orchestration (REQ-032 is BLOCKED, not implemented)
-- REQ-035 runtime implementation (READY, not implemented)
 - complete nine-dimension analysis capability
 - customer-facing report API/rendering/UI
 - Google Business Profile / Search Console / GA4 connected performance integrations
