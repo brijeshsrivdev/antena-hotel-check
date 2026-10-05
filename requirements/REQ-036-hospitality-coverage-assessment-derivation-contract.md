@@ -57,7 +57,7 @@ REQ-033 owns product calibration and REQ-034 owns classification. REQ-036 owns o
 
 ## 3. Current gap
 
-Current `HospitalityAnalysisService` still derives assessable/limited scope internally while receiving a caller-supplied `HospitalityAnalysisCoverageState`. The existing derivation is the authoritative repository behavior to be formalized for the next implementation slice:
+Current `HospitalityAnalysisService` still derives assessable/limited scope internally while receiving a caller-supplied `HospitalityAnalysisCoverageState`. Repository behavior and mappings were inspected during reconciliation as evidence for the existing implementation boundary; they are not, by themselves, the durable semantic authority for future behavior. REQ-036 is the durable governed semantic contract for the next implementation slice, and future runtime implementation must follow REQ-036 rather than infer semantics from incidental current service behavior:
 
 - all five journey stages are intended;
 - all nine hospitality dimensions are intended;
@@ -67,7 +67,7 @@ Current `HospitalityAnalysisService` still derives assessable/limited scope inte
 - a typed material same-evaluation cross-source hotel-identity conflict establishes `TRUST_AND_CLARITY` assessability;
 - explicit limitation categories/journey stages establish limited scope when supplied by the governed limitation contract.
 
-REQ-036 converts those existing semantics into an explicit contract rather than creating a new taxonomy or silently expanding coverage.
+REQ-036 converts those reconciled semantics into an explicit contract rather than creating a new taxonomy or silently expanding coverage.
 
 ## 4. Scope
 
