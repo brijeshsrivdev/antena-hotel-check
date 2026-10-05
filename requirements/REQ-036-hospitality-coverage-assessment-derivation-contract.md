@@ -1,9 +1,9 @@
 # REQ-036 — Hospitality Coverage Assessment Derivation Contract
 
-STATUS: READY
+STATUS: PR_READY
 REQUIREMENT_ID: REQ-036
 TYPE: Implementation
-BRANCH: `feature/hospitality-coverage-assessment-derivation-contract`
+BRANCH: `feature/hospitality-coverage-assessment-derivation`
 
 ## 1. Problem statement
 
@@ -647,10 +647,104 @@ The current governed observation/signal model does not support responsible asses
 
 REQ-036 intentionally does not invent mappings for them. A future requirement may expand upstream evidence/observation capability if real product evaluations show that expansion is valuable.
 
+## 24. Runtime implementation record
+
+### Implementation mapping
+
+The runtime derivation is implemented by `HospitalityCoverageAssessmentDerivationService` in the analysis domain. It consumes the existing qualified `HospitalityAnalysisSignal` model, existing typed `HospitalityFinding` identity-conflict representation, and existing `HospitalityAnalysisLimitation` model, and constructs the existing immutable `HospitalityCoverageAssessment`.
+
+### Classes added/changed
+
+Added:
+
+- `backend/src/main/java/com/antenapro/hotelcheck/analysis/HospitalityCoverageAssessmentDerivationService.java`
+- `backend/src/test/java/com/antenapro/hotelcheck/analysis/HospitalityCoverageAssessmentDerivationServiceTest.java`
+
+Changed:
+
+- this requirement implementation record only.
+
+No classifier, analysis orchestration, acquisition, persistence, API, UI, or taxonomy classes were changed.
+
+### Journey derivation
+
+The service reuses the qualified signal's explicit journey stages. Therefore the governed mappings remain:
+
+- `HOTEL_IDENTITY` → `DISCOVER`, `UNDERSTAND`
+- `ROOMS` → `EXPLORE`
+- `AMENITIES` → `UNDERSTAND`, `EXPLORE`
+- `CONTACT` → `DISCOVER`
+- `BOOKING` → `BOOK`
+- `DINING` → `UNDERSTAND`, `EXPLORE`
+
+### Dimension derivation
+
+The service reuses the governed category-to-dimension mapping:
+
+- `HOTEL_IDENTITY` → `HOTEL_IDENTITY_AND_PROPERTY_UNDERSTANDING`
+- `ROOMS` → `ROOMS_AND_ROOM_INFORMATION`
+- `AMENITIES` → `AMENITIES_AND_GUEST_FACING_INFORMATION`
+- `CONTACT` → `CONTACT_AND_LOCATION`
+- `BOOKING` → `BOOKING_DISCOVERABILITY_AND_JOURNEY_SIGNALS`
+- `DINING` → `AMENITIES_AND_GUEST_FACING_INFORMATION`
+- typed material same-evaluation cross-source identity conflict → `TRUST_AND_CLARITY`
+
+No synthetic mappings were added for discoverability/navigation, mobile/technical experience, or SEO/structured-data supporting signals.
+
+### Assessable semantics
+
+Assessable journey scope comes only from explicit journey stages on `QUALIFIED` signals. Assessable dimension scope comes only from the governed originating observation category mapping. `TRUST_AND_CLARITY` is added only when the existing typed `HospitalityFinding.isIdentityConflictWith(...)` contract identifies a material same-evaluation cross-source identity conflict.
+
+### Limited semantics
+
+Limited journey scope comes only from explicit limitation journey stages. Limited dimension scope comes only from explicit limitation categories using the same governed category-to-dimension mapping. Unscoped limitations remain unscoped.
+
+### Evaluation isolation
+
+The service validates the requested evaluation identity against every signal, typed identity-conflict fact, and limitation and rejects mismatches rather than filtering or reassigning them.
+
+### Determinism and immutability
+
+The derivation contains no network, persistence, current-time, AI, randomness, or mutable global state. It uses deterministic enum-set accumulation and constructs the existing immutable assessment, whose defensive-copy and structural-invariant behavior remains owned by REQ-035.
+
+### Tests
+
+Focused tests cover:
+
+- all governed journey mappings;
+- all supported dimension mappings;
+- unsupported dimensions remaining unsupported;
+- Dining mapping without a Dining dimension;
+- missing Booking non-inference;
+- explicit limited journey/dimension scope;
+- unscoped limitations;
+- typed material identity conflict trust coverage;
+- non-conflicting identity observations;
+- cross-evaluation rejection;
+- evaluation identity and structural invariants;
+- deterministic repeated derivation;
+- returned assessment collection immutability.
+
+### Validation
+
+- focused REQ-036 tests: implemented in `HospitalityCoverageAssessmentDerivationServiceTest`;
+- complete backend Maven test suite: required in CI;
+- Backend Validation workflow: required against the exact final PR head;
+- diff scope inspection: completed before PR creation;
+- no network, persistence, API/UI, classifier invocation, orchestration, new taxonomy, scoring, or recommendation logic introduced.
+
+### Known limitations
+
+The current acquisition-created limitations still carry empty category/journey scope, so REQ-036 intentionally cannot attribute those failures to arbitrary hospitality stages or dimensions. The three unsupported dimensions remain unsupported by the current upstream observation/signal model.
+
+### Final status
+
+**PR_READY** — runtime implementation is complete for the governed REQ-036 contract, pending orchestrator review of the final PR head and CI validation.
+
 ## Governance
 
-REQ-036 is specification/domain-contract work. No runtime implementation is part of this requirement session.
+REQ-036 is now a runtime implementation boundary. The derivation implementation does not replace REQ-035 representation, REQ-034 classification, or the blocked REQ-032 orchestration boundary.
 
-`STATUS: READY` means the derivation semantics are defined for a later implementation session; it does not mean REQ-036 is implemented.
+REQ-032 remains `BLOCKED` until the complete derivation → assessment → classifier → analysis sequence is available for orchestration.
 
 **STOPPING FOR ORCHESTRATOR REVIEW.**
