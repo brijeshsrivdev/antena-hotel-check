@@ -16,7 +16,7 @@ Antena Hotel Check analyzes a hotel's publicly accessible digital presence and g
 
 ## Product Stage
 
-The deterministic analysis/report foundation through REQ-035 is implemented/merged. REQ-036 now defines the remaining factual derivation contract required before end-to-end orchestration can safely construct the pre-classification coverage assessment.
+The deterministic analysis/report foundation and the governed coverage derivation/classification chain are implemented/merged. REQ-032 is now the active implementation slice for end-to-end evaluation execution orchestration.
 
 The intended pipeline is now:
 
@@ -33,11 +33,13 @@ Structured Evidence
         ↓
 Governed Hospitality Observations / Signals
         ↓
-Coverage Assessment Derivation
+Coverage Assessment Derivation [REQ-036 IMPLEMENTED]
         ↓
 HospitalityCoverageAssessment
         ↓
-Coverage Classification
+Coverage Classification [REQ-034 IMPLEMENTED]
+        ↓
+HospitalityAnalysisCoverageState
         ↓
 Deterministic Hospitality Analysis
         ↓
@@ -72,89 +74,31 @@ Structured Hospitality Analysis Report
 - REQ-029 — Guest Journey Analysis Foundation — IMPLEMENTED / MERGED as PR #29.
 - REQ-030 — Hospitality Recommendation Foundation — IMPLEMENTED / MERGED as PR #30.
 - REQ-031 — Hospitality Analysis Report Foundation — IMPLEMENTED / MERGED as PR #31.
-- REQ-033 — Hospitality Analysis Coverage Classification Contract — ACCEPTED / MERGED as the governed calibration basis.
+- REQ-033 — Hospitality Analysis Coverage Classification Contract — ACCEPTED / MERGED.
 - REQ-034 — Hospitality Analysis Coverage Classification Implementation — IMPLEMENTED / MERGED as PR #32.
 - REQ-035 — Hospitality Coverage Assessment Contract — IMPLEMENTED / MERGED as PR #34.
+- REQ-036 — Hospitality Coverage Assessment Derivation — IMPLEMENTED / MERGED as PR #36.
 
-## REQ-035 — Implemented Boundary
+## REQ-036 — Implemented Boundary
 
-The runtime pre-classification boundary is implemented as immutable `HospitalityCoverageAssessment`.
+`HospitalityCoverageAssessmentDerivationService` is the governed factual boundary between qualified hospitality signals/typed facts and the pre-classification assessment.
 
-It contains:
+It preserves:
 
-```text
-evaluationId
-intendedJourneyStages
-intendedDimensions
-assessableJourneyStages
-assessableDimensions
-limitedJourneyStages
-limitedDimensions
-```
+- the existing five journey stages;
+- the existing nine dimensions;
+- the existing six observation categories;
+- existing signal-to-journey mappings;
+- existing category-to-dimension mappings;
+- typed same-evaluation material identity-conflict semantics for trust assessability;
+- explicit limitation scope without inventing scope for unscoped acquisition failures.
 
-It reuses the existing `UUID`, `GuestJourneyStage`, and `HospitalityAnalysisDimension` types.
-
-Structural validation enforces:
-
-- required values are non-null;
-- assessable scope is within intended scope;
-- limited scope is within intended scope;
-- assessable and limited scope do not overlap.
-
-Empty scope is valid.
-
-Covered scope is derived:
-
-```text
-coveredJourneyStages = assessableJourneyStages ∪ limitedJourneyStages
-coveredDimensions    = assessableDimensions ∪ limitedDimensions
-```
-
-The assessment is immutable through defensive collection copying.
-
-## REQ-036 — Current Specification Boundary
-
-**Status: READY / specification only / implementation not started.**
-
-REQ-036 defines how existing governed observations/signals and explicitly scoped limitation/identity-conflict facts populate the REQ-035 assessment.
-
-Authoritative journey derivation:
-
-- `HOTEL_IDENTITY` → `DISCOVER`, `UNDERSTAND`
-- `ROOMS` → `EXPLORE`
-- `AMENITIES` → `UNDERSTAND`, `EXPLORE`
-- `CONTACT` → `DISCOVER`
-- `BOOKING` → `BOOK`
-- `DINING` → `UNDERSTAND`, `EXPLORE`
-
-Authoritative dimension derivation:
-
-- `HOTEL_IDENTITY` → `HOTEL_IDENTITY_AND_PROPERTY_UNDERSTANDING`
-- `ROOMS` → `ROOMS_AND_ROOM_INFORMATION`
-- `AMENITIES` → `AMENITIES_AND_GUEST_FACING_INFORMATION`
-- `CONTACT` → `CONTACT_AND_LOCATION`
-- `BOOKING` → `BOOKING_DISCOVERABILITY_AND_JOURNEY_SIGNALS`
-- `DINING` → `AMENITIES_AND_GUEST_FACING_INFORMATION`
-- typed material same-evaluation cross-source hotel identity conflict → `TRUST_AND_CLARITY`
-
-The three currently unsupported dimensions remain intentionally unsupported:
-
-- `DISCOVERABILITY_AND_NAVIGATION`
-- `MOBILE_AND_TECHNICAL_GUEST_EXPERIENCE`
-- `SEO_AND_STRUCTURED_DATA_SUPPORTING_SIGNALS`
-
-Explicit limitation category/journey context may create limited scope. Unscoped acquisition limitations do not get arbitrary scope assigned.
-
-REQ-036 does not classify coverage, score hotels, create deficiencies, or infer absence from missing evidence.
-
-## Current Architectural Boundary
-
-The governed coverage sequence is now:
+The runtime coverage sequence is:
 
 ```text
 Governed observations/signals
         ↓
-REQ-036 derivation
+HospitalityCoverageAssessmentDerivationService
         ↓
 HospitalityCoverageAssessment
         ↓
@@ -163,15 +107,29 @@ HospitalityAnalysisCoverageClassifier
 HospitalityAnalysisCoverageState
         ↓
 HospitalityAnalysisService
-        ↓
-HospitalityAnalysisCoverage
 ```
 
-`HospitalityAnalysisCoverage` remains the final analysis coverage representation. It has not been replaced by the assessment.
+## REQ-032 — Current Implementation
 
-The assessment is the factual pre-classification boundary; the classifier remains the owner of REQ-033 calibration.
+**Status: IN PROGRESS.**
 
-## Coverage Classification Contract
+Branch: `feature/evaluation-execution-orchestration`
+
+Session 38 has added the explicit orchestration boundary:
+
+- `EvaluationExecutionOrchestrator`
+- `EvaluationExecutionResult`
+- focused orchestration contract tests
+
+The orchestrator accepts the canonical `CanonicalEvaluationRequest`, uses the existing acquisition integration exactly once, normalizes evidence, prepares governed observations/signals/findings, invokes REQ-036 derivation, invokes the classifier, passes the exact classifier state into deterministic analysis, then runs journey analysis, recommendations, and report assembly.
+
+The execution result preserves one evaluation/attempt identity across the pipeline.
+
+Successful analysis/report execution uses the existing lifecycle `INCOMPLETE` state because preview generation is outside REQ-032 and `COMPLETED` requires both report and preview outcomes.
+
+A mandatory downstream runtime failure is recorded as the existing `FAILED` lifecycle state and rethrown; later stages do not execute.
+
+## Coverage Classification
 
 REQ-033 remains authoritative:
 
@@ -179,35 +137,22 @@ REQ-033 remains authoritative:
 - `PARTIALLY_ASSESSED`: at least one intended journey stage or dimension is covered, but substantial criteria are not satisfied.
 - `INSUFFICIENT_COVERAGE`: zero intended journey stages and zero intended dimensions are covered.
 
-Covered means explicitly assessable or explicitly limited. Limited scope contributes to coverage but does not count toward the assessable-stage threshold.
-
-The classifier consumes `HospitalityCoverageAssessment` directly and does not inspect page counts, raw HTML, finding counts, recommendation counts, HTTP status counts, arbitrary percentages, AI output, or network results.
-
-## Current Blocker
-
-**REQ-032 — Evaluation Execution Orchestration Foundation — BLOCKED.**
-
-REQ-035 removed the representation/classification circular dependency. REQ-036 now defines the remaining factual derivation contract required before orchestration can construct the assessment without inventing product semantics.
-
-REQ-032 must not be started from this session. It remains a separate implementation requirement and must consume the governed derivation → assessment → classifier → state → analysis boundary.
+Covered means explicitly assessable or explicitly limited. Limited scope contributes to covered scope but does not count toward the assessable-stage threshold.
 
 ## Explicitly Not Implemented
 
 The following remain outside the completed foundation unless a merged requirement explicitly says otherwise:
 
-- REQ-036 runtime implementation
-- end-to-end evaluation execution/orchestration (REQ-032 is BLOCKED, not implemented)
-- complete nine-dimension analysis capability
-- customer-facing report API/rendering/UI
-- Google Business Profile / Search Console / GA4 connected performance integrations
-- AI/LLM analysis or recommendation generation
-- interactive Antena-hosted hotel preview integration
-- booking/OTA analysis beyond bounded observed entry-point signals
-- persistence for the evidence/analysis pipeline
-- unrestricted crawling/browser acquisition
-- generic SEO auditing as the product center
-- competitor analysis
-- Antena integration
+- customer-facing report API/rendering/UI;
+- Google Business Profile / Search Console / GA4 connected performance integrations;
+- AI/LLM analysis or recommendation generation;
+- interactive Antena-hosted hotel preview integration;
+- booking/OTA analysis beyond bounded observed entry-point signals;
+- persistence for the evidence/analysis pipeline;
+- unrestricted crawling/browser acquisition;
+- generic SEO auditing as the product center;
+- competitor analysis;
+- Antena integration.
 
 ## Operating Rule
 
