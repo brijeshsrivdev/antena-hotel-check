@@ -1,11 +1,9 @@
 package com.antenapro.hotelcheck.evaluation;
 
-import com.antenapro.hotelcheck.acquisition.AcquisitionResult;
 import com.antenapro.hotelcheck.analysis.GuestJourneyAnalysis;
 import com.antenapro.hotelcheck.analysis.GuestJourneyAnalysisService;
 import com.antenapro.hotelcheck.analysis.HospitalityAnalysisCoverageClassifier;
 import com.antenapro.hotelcheck.analysis.HospitalityAnalysisCoverageState;
-import com.antenapro.hotelcheck.analysis.HospitalityAnalysisLimitationService;
 import com.antenapro.hotelcheck.analysis.HospitalityAnalysisReport;
 import com.antenapro.hotelcheck.analysis.HospitalityAnalysisReportService;
 import com.antenapro.hotelcheck.analysis.HospitalityAnalysisResult;
