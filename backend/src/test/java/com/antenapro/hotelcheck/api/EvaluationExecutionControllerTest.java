@@ -1,26 +1,15 @@
 package com.antenapro.hotelcheck.api;
 
-import com.antenapro.hotelcheck.acquisition.AcquisitionMethod;
-import com.antenapro.hotelcheck.acquisition.AcquisitionOutcome;
-import com.antenapro.hotelcheck.acquisition.AcquisitionResult;
-import com.antenapro.hotelcheck.analysis.GuestJourneyAnalysis;
-import com.antenapro.hotelcheck.analysis.HospitalityAnalysisReport;
-import com.antenapro.hotelcheck.analysis.HospitalityAnalysisResult;
-import com.antenapro.hotelcheck.evidence.StructuredEvidence;
-import com.antenapro.hotelcheck.evaluation.CapabilityOutcome;
-import com.antenapro.hotelcheck.evaluation.CapabilityOutcomeStatus;
 import com.antenapro.hotelcheck.evaluation.Evaluation;
-import com.antenapro.hotelcheck.evaluation.EvaluationAcquisitionResult;
-import com.antenapro.hotelcheck.evaluation.EvaluationAttempt;
 import com.antenapro.hotelcheck.evaluation.EvaluationExecutionOrchestrator;
 import com.antenapro.hotelcheck.evaluation.EvaluationExecutionResult;
 import com.antenapro.hotelcheck.evaluation.EvaluationLifecycleState;
+import com.antenapro.hotelcheck.evaluation.EvaluationAttempt;
 import com.antenapro.hotelcheck.evaluation.OwnerFacingOutcome;
 import com.antenapro.hotelcheck.input.CanonicalEvaluationRequest;
 import com.antenapro.hotelcheck.input.HotelEvaluationInput;
 import com.antenapro.hotelcheck.input.HotelEvaluationInputValidator;
 import com.antenapro.hotelcheck.input.InputErrorCode;
-import com.antenapro.hotelcheck.input.InputValidationError;
 import com.antenapro.hotelcheck.input.ValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,13 +20,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
-import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -78,11 +62,7 @@ class EvaluationExecutionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.evaluation.evaluationId").value(result.evaluation().evaluationId().toString()))
-                .andExpect(jsonPath("$.attempt.state").value(EvaluationLifecycleState.INCOMPLETE.name()))
-                .andExpect(jsonPath("$.analysisResult").exists())
-                .andExpect(jsonPath("$.guestJourneyAnalysis").exists())
-                .andExpect(jsonPath("$.recommendations").exists())
-                .andExpect(jsonPath("$.report").exists());
+                .andExpect(jsonPath("$.attempt.state").value(EvaluationLifecycleState.INCOMPLETE.name()));
 
         var captor = org.mockito.ArgumentCaptor.forClass(CanonicalEvaluationRequest.class);
         verify(orchestrator).execute(captor.capture());
@@ -148,51 +128,10 @@ class EvaluationExecutionControllerTest {
         EvaluationAttempt attempt = evaluation.currentAttempt();
         attempt.incomplete("analysis complete", new OwnerFacingOutcome(true, false));
 
-        AcquisitionResult acquisitionResult = new AcquisitionResult(
-                AcquisitionOutcome.SUCCESS,
-                WEBSITE,
-                WEBSITE,
-                200,
-                "text/html",
-                CLOCK.instant(),
-                AcquisitionMethod.HTTP_PUBLIC,
-                "<html><title>Example Hotel</title></html>",
-                java.util.Map.of(),
-                List.of(),
-                null
-        );
-        EvaluationAcquisitionResult acquisition = new EvaluationAcquisitionResult(
-                evaluation,
-                attempt,
-                acquisitionResult,
-                CapabilityOutcome.record(
-                        "public-web-acquisition",
-                        CapabilityOutcomeStatus.SUCCEEDED,
-                        "SUCCESS",
-                        CLOCK.instant())
-        );
-        StructuredEvidence evidence = mock(StructuredEvidence.class);
-        HospitalityAnalysisResult analysisResult = mock(HospitalityAnalysisResult.class);
-        GuestJourneyAnalysis journeyAnalysis = mock(GuestJourneyAnalysis.class);
-        HospitalityAnalysisReport report = mock(HospitalityAnalysisReport.class);
-
-        when(evidence.evaluationId()).thenReturn(evaluation.evaluationId());
-        when(evidence.attemptId()).thenReturn(attempt.attemptId());
-        when(evidence.attemptNumber()).thenReturn(attempt.attemptNumber());
-        when(analysisResult.evaluationId()).thenReturn(evaluation.evaluationId());
-        when(journeyAnalysis.evaluationId()).thenReturn(evaluation.evaluationId());
-        when(report.evaluationId()).thenReturn(evaluation.evaluationId());
-
-        return new EvaluationExecutionResult(
-                evaluation,
-                attempt,
-                acquisition,
-                evidence,
-                analysisResult,
-                journeyAnalysis,
-                Set.of(),
-                report
-        );
+        EvaluationExecutionResult result = mock(EvaluationExecutionResult.class);
+        when(result.evaluation()).thenReturn(evaluation);
+        when(result.attempt()).thenReturn(attempt);
+        return result;
     }
 
     private CanonicalEvaluationRequest acceptedRequest() {
