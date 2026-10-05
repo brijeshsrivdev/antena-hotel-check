@@ -1,6 +1,7 @@
 package com.antenapro.hotelcheck.evaluation;
 
 import com.antenapro.hotelcheck.input.CanonicalEvaluationRequest;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.Clock;
 import java.time.Instant;
@@ -72,14 +73,31 @@ public final class EvaluationAttempt {
         return attempt;
     }
 
+    @JsonProperty("attemptId")
     public UUID attemptId() { return attemptId; }
+
+    @JsonProperty("attemptNumber")
     public int attemptNumber() { return attemptNumber; }
+
+    @JsonProperty("request")
     public CanonicalEvaluationRequest request() { return request; }
+
+    @JsonProperty("createdAt")
     public Instant createdAt() { return createdAt; }
+
+    @JsonProperty("state")
     public EvaluationLifecycleState state() { return state; }
+
+    @JsonProperty("startedAt")
     public Instant startedAt() { return startedAt; }
+
+    @JsonProperty("terminalOutcome")
     public TerminalOutcome terminalOutcome() { return terminalOutcome; }
+
+    @JsonProperty("ownerFacingOutcome")
     public OwnerFacingOutcome ownerFacingOutcome() { return ownerFacingOutcome; }
+
+    @JsonProperty("capabilityOutcomes")
     public Map<String, CapabilityOutcome> capabilityOutcomes() { return Map.copyOf(capabilityOutcomes); }
 
     public void start() {

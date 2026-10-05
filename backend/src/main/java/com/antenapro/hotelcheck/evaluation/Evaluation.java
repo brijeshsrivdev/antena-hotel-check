@@ -1,6 +1,7 @@
 package com.antenapro.hotelcheck.evaluation;
 
 import com.antenapro.hotelcheck.input.CanonicalEvaluationRequest;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.Clock;
 import java.util.ArrayList;
@@ -51,10 +52,19 @@ public final class Evaluation {
         return evaluation;
     }
 
+    @JsonProperty("evaluationId")
     public UUID evaluationId() { return evaluationId; }
+
+    @JsonProperty("request")
     public CanonicalEvaluationRequest request() { return request; }
+
+    @JsonProperty("state")
     public EvaluationLifecycleState state() { return currentAttempt().state(); }
+
+    @JsonProperty("currentAttempt")
     public EvaluationAttempt currentAttempt() { return attempts.get(attempts.size() - 1); }
+
+    @JsonProperty("attempts")
     public List<EvaluationAttempt> attempts() { return List.copyOf(attempts); }
 
     public void start() { currentAttempt().start(); }
