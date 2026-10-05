@@ -42,18 +42,8 @@ public final class EvaluationExecutionController {
             throw new InvalidEvaluationRequestException(rejected.errors());
         }
 
-        CanonicalRequestHolder accepted = accepted(validation);
+        ValidationResult.Accepted accepted = (ValidationResult.Accepted) validation;
         EvaluationExecutionResult result = orchestrator.execute(accepted.request());
         return ResponseEntity.ok(EvaluationExecutionResponse.from(result));
-    }
-
-    private CanonicalRequestHolder accepted(ValidationResult validation) {
-        if (validation instanceof ValidationResult.Accepted accepted) {
-            return new CanonicalRequestHolder(accepted.request());
-        }
-        throw new IllegalStateException("Validation result did not contain an accepted request");
-    }
-
-    private record CanonicalRequestHolder(com.antenapro.hotelcheck.input.CanonicalEvaluationRequest request) {
     }
 }
