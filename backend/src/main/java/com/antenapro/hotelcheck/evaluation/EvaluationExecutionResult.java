@@ -37,7 +37,7 @@ public record EvaluationExecutionResult(
         Objects.requireNonNull(report, "report must not be null");
 
         UUID evaluationId = evaluation.evaluationId();
-        if (!evaluationId.equals(attempt.request().equals(evaluation.request()) ? evaluationId : null)) {
+        if (!attempt.request().equals(evaluation.request())) {
             throw new IllegalArgumentException("attempt must belong to evaluation request");
         }
         if (acquisition.evaluation() != evaluation || acquisition.attempt() != attempt) {
