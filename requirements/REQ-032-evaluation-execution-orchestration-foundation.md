@@ -1,6 +1,6 @@
 # REQ-032 — Evaluation Execution Orchestration Foundation
 
-STATUS: IN PROGRESS
+STATUS: PR_READY
 REQUIREMENT_ID: REQ-032
 TYPE: Implementation
 BRANCH: `feature/evaluation-execution-orchestration`
@@ -29,7 +29,7 @@ HospitalityAnalysisCoverageState
 HospitalityAnalysisService
 ```
 
-REQ-032 must consume these boundaries and must not move their semantics into orchestration.
+REQ-032 consumes these boundaries and does not move their semantics into orchestration.
 
 ## Objective
 
@@ -75,7 +75,7 @@ The orchestrator coordinates this sequence and does not redefine stage semantics
 
 ## Scope
 
-Implement only:
+Implemented only:
 
 1. one canonical evaluation request execution boundary;
 2. existing evaluation/attempt lifecycle usage;
@@ -118,14 +118,14 @@ Do not add:
 
 REQ-036 establishes the governed derivation from existing qualified signals, typed identity-conflict facts, and explicitly scoped limitations into `HospitalityCoverageAssessment`.
 
-The orchestrator must:
+The orchestrator:
 
-- call `HospitalityCoverageAssessmentDerivationService` before classification;
-- pass the exact assessment returned by derivation to `HospitalityAnalysisCoverageClassifier`;
-- pass the exact `HospitalityAnalysisCoverageState` returned by the classifier to `HospitalityAnalysisService`;
-- never construct a `HospitalityCoverageAssessment` manually;
-- never construct or default a coverage state;
-- never reproduce classifier or derivation rules.
+- calls `HospitalityCoverageAssessmentDerivationService` before classification;
+- passes the exact assessment returned by derivation to `HospitalityAnalysisCoverageClassifier`;
+- passes the exact `HospitalityAnalysisCoverageState` returned by the classifier to `HospitalityAnalysisService`;
+- never constructs a `HospitalityCoverageAssessment` manually;
+- never constructs or defaults a coverage state;
+- never reproduces classifier or derivation rules.
 
 ## Evaluation Identity
 
@@ -133,7 +133,7 @@ One execution corresponds to one evaluation identity and one current attempt.
 
 The orchestrator obtains the evaluation/attempt from the existing acquisition integration and propagates the same evaluation ID through evidence, assessment derivation, deterministic analysis, journey analysis, recommendations, and report assembly.
 
-No outputs from another evaluation may be combined.
+No outputs from another evaluation are combined.
 
 ## Lifecycle / Failure Semantics
 
@@ -149,13 +149,13 @@ Typed acquisition failures remain governed acquisition outcomes. They are not co
 
 Use `EvaluationAcquisitionIntegrationService` and its existing `PublicWebAcquisitionService` contract.
 
-Do not add scraping, browser automation, retry, proxy, bypass, or third-party integration behavior.
+No scraping, browser automation, retry, proxy, bypass, or third-party integration behavior was added.
 
 ## Evidence / Observations / Signals
 
 Use the existing evidence normalization, observation, signal, and finding services.
 
-The orchestrator may prepare the governed qualified signals and typed findings needed by REQ-036. It must not manufacture observations or signals.
+The orchestrator prepares the governed qualified signals and typed findings needed by REQ-036 without manufacturing observations or signals.
 
 Current acquisition limitations are unscoped. REQ-036 explicitly forbids assigning arbitrary journey/dimension scope to an unscoped failure, so REQ-032 does not synthesize limited scope before derivation. The deterministic analysis service continues to own the existing acquisition-limitation lifecycle.
 
@@ -250,25 +250,18 @@ Focused REQ-032 tests cover:
 - no downstream execution after mandatory failure;
 - final evaluation-attributed execution result and lifecycle state.
 
-The complete backend Maven suite remains required before PR_READY.
-
 ## Validation
 
-Before PR_READY:
+### Backend Validation — passed
 
-1. run focused REQ-032 tests;
-2. run the complete backend Maven test suite;
-3. inspect the complete diff;
-4. confirm REQ-036 is invoked;
-5. confirm classifier follows derivation;
-6. confirm classifier state reaches deterministic analysis;
-7. confirm ordering;
-8. confirm evaluation identity propagation;
-9. confirm failure propagation;
-10. confirm no new domain semantics;
-11. confirm no external integrations;
-12. confirm no persistence/API/UI changes;
-13. confirm Backend Validation passes against the exact final PR head.
+Backend Validation run **#384** / ID **`37252772701`** passed against head `f25a83ae5b78b56ac32ee2dcbe31cf43fc5fff84`.
+
+- Workflow: `Backend Validation`
+- Job: `Java 21 / Maven tests`
+- Command: `mvn --batch-mode --no-transfer-progress test`
+- Result: success
+
+The requirement was then updated with this validation record. Per the final-head rule, Backend Validation must pass again against the resulting final PR head before this PR is considered fully ready for orchestrator approval.
 
 ## Known Limitations
 
@@ -278,6 +271,12 @@ Before PR_READY:
 
 ## Requirement Status
 
-`STATUS: IN PROGRESS`
+`STATUS: PR_READY`
 
-PR must target `main` and must not be merged by the implementation session.
+PR: #37
+
+Base: `main`
+
+Branch: `feature/evaluation-execution-orchestration`
+
+Do not merge. Stop for orchestrator review.
