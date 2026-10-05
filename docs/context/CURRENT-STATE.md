@@ -84,6 +84,36 @@ HTTP Evaluation Response [REQ-037 IN PROGRESS]
 - REQ-036 — Hospitality Coverage Assessment Derivation — IMPLEMENTED / MERGED as PR #36.
 - REQ-032 — Evaluation Execution Orchestration Foundation — IMPLEMENTED / MERGED as PR #37.
 
+## REQ-036 — Implemented Boundary
+
+`HospitalityCoverageAssessmentDerivationService` is the governed factual boundary between qualified hospitality signals/typed facts and the pre-classification assessment.
+
+It preserves:
+
+- the existing five journey stages;
+- the existing nine dimensions;
+- the existing six observation categories;
+- existing signal-to-journey mappings;
+- existing category-to-dimension mappings;
+- typed same-evaluation material identity-conflict semantics for trust assessability;
+- explicit limitation scope without inventing scope for unscoped acquisition failures.
+
+The runtime coverage sequence is:
+
+```text
+Governed observations/signals
+        ↓
+HospitalityCoverageAssessmentDerivationService
+        ↓
+HospitalityCoverageAssessment
+        ↓
+HospitalityAnalysisCoverageClassifier
+        ↓
+HospitalityAnalysisCoverageState
+        ↓
+HospitalityAnalysisService
+```
+
 ## REQ-032 — Implemented Boundary
 
 `EvaluationExecutionOrchestrator` is the governed synchronous execution boundary for one canonical evaluation.
