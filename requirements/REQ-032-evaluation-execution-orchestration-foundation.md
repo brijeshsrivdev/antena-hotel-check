@@ -7,60 +7,46 @@ BRANCH: `feature/evaluation-execution-orchestration-foundation`
 
 ## Dependency Resolution Status
 
-REQ-032 is currently blocked by a contract gap discovered while reconciling the intended execution sequence against the actual current `main`.
+REQ-032 remains blocked by the coverage-assessment contract chain discovered while reconciling the intended execution sequence against the actual repository.
 
-The existing deterministic analysis service requires:
+The deterministic analysis service requires a `HospitalityAnalysisCoverageState` before it creates final `HospitalityAnalysisCoverage`. The governed classifier now consumes the pre-classification `HospitalityCoverageAssessment` established by REQ-035, but a separate governed derivation contract is required to determine how upstream observations/signals populate that assessment.
 
-```text
-analyze(
-    evaluationId,
-    evidenceItems,
-    coverageState
-)
-```
-
-The governed `HospitalityAnalysisCoverageClassifier` exists, but its current input is `HospitalityAnalysisCoverage`. That final coverage object is created by `HospitalityAnalysisService` only after the caller has already supplied `coverageState`.
-
-This creates a circular dependency:
+The dependency chain is now explicit:
 
 ```text
-HospitalityAnalysisService
-        ↓ requires
+Governed hospitality observations / signals
+        ↓
+REQ-036 — Hospitality Coverage Assessment Derivation Contract
+        ↓
+HospitalityCoverageAssessment
+        ↓
+REQ-034 — HospitalityAnalysisCoverageClassifier
+        ↓
 HospitalityAnalysisCoverageState
-        ↑ produced by
-HospitalityAnalysisCoverageClassifier
-        ↑ currently consumes
-HospitalityAnalysisCoverage
-        ↑ currently created by
+        ↓
 HospitalityAnalysisService
 ```
 
-REQ-033 and REQ-034 correctly established and implemented coverage calibration, but they did not provide a pre-classification source for the coverage facts. Therefore REQ-032 must not invent a workaround.
+REQ-035 solved the representation/boundary problem. REQ-036 now defines the missing factual derivation semantics. REQ-032 must not invent those semantics inside orchestration.
 
-REQ-035 — Hospitality Coverage Assessment Contract — now defines the missing pre-classification contract.
-
-REQ-032 remains `BLOCKED` until the REQ-035 contract is implemented and the classifier boundary is updated accordingly.
+REQ-032 remains `BLOCKED` until REQ-036 is implemented and the complete assessment → classifier → analysis sequence is available for orchestration.
 
 ## Reconciliation Record
 
-Current `main` at session start:
-
-`8a9ade5700410776136a8ad7b94d8fd8272b58e6`
-
-Confirmed existing foundations include:
+Current `main` after REQ-035 implementation contains:
 
 - REQ-024 — Hospitality Analysis Coverage Foundation;
 - REQ-026 — Deterministic Hospitality Analysis Engine;
 - REQ-033 — Hospitality Analysis Coverage Classification Contract;
-- REQ-034 — Hospitality Analysis Coverage Classification Implementation.
+- REQ-034 — Hospitality Analysis Coverage Classification Implementation;
+- REQ-035 — Hospitality Coverage Assessment Contract and runtime implementation;
+- REQ-036 — Hospitality Coverage Assessment Derivation Contract (specification boundary).
 
-The repository implementation was inspected directly. `HospitalityAnalysisService` creates `HospitalityAnalysisCoverage` only after receiving a caller-supplied `HospitalityAnalysisCoverageState`; `HospitalityAnalysisCoverageClassifier` currently consumes that final coverage object and returns its state.
-
-No pre-analysis coverage assessment contract exists on `main`.
+The repository implementation was inspected directly. `HospitalityAnalysisService` still derives factual coverage scope internally while receiving the coverage state as caller-supplied input. `HospitalityCoverageAssessment` and the classifier boundary now exist, but the governed transformation from existing observations/signals into that assessment is the remaining contract/implementation gap.
 
 ## Objective
 
-Introduce the smallest explicit end-to-end orchestration boundary for executing one canonical hotel evaluation through the existing Antena Hotel Check analysis pipeline, once the pre-classification coverage contract is implemented.
+Introduce the smallest explicit end-to-end orchestration boundary for executing one canonical hotel evaluation through the existing Antena Hotel Check analysis pipeline, once the pre-classification coverage derivation contract is implemented.
 
 The product objective remains:
 
@@ -83,9 +69,13 @@ Acquisition Result
         ↓
 Structured Evidence
         ↓
-Governed Coverage Assessment
+Governed Hospitality Observations / Signals
         ↓
-HospitalityAnalysisCoverageClassifier
+REQ-036 Coverage Assessment Derivation
+        ↓
+HospitalityCoverageAssessment
+        ↓
+REQ-034 Coverage Classification
         ↓
 HospitalityAnalysisCoverageState
         ↓
@@ -109,7 +99,8 @@ At the higher-level product boundary this is:
 ```text
 acquisition
 → evidence
-→ governed coverage assessment
+→ governed observations/signals
+→ coverage assessment derivation
 → coverage classifier
 → deterministic analysis
 → journey
@@ -127,7 +118,7 @@ When unblocked, implement only:
 2. existing evaluation/attempt lifecycle usage;
 3. existing acquisition integration exactly once;
 4. existing evidence normalization;
-5. governed pre-classification coverage assessment;
+5. governed pre-classification coverage assessment using the REQ-036 contract;
 6. governed coverage classification using `HospitalityAnalysisCoverageClassifier`;
 7. existing deterministic hospitality analysis;
 8. existing guest-journey analysis;
@@ -147,6 +138,7 @@ Do not add:
 - raw evidence parsing;
 - analysis rules;
 - coverage classification rules inside orchestration;
+- coverage-assessment derivation rules inside orchestration;
 - duplicate coverage rules;
 - scoring;
 - prioritization;
@@ -161,11 +153,17 @@ Do not add:
 
 ## Coverage Contract Boundary
 
-REQ-035 establishes `HospitalityCoverageAssessment` as the pre-classification fact boundary.
+REQ-035 establishes `HospitalityCoverageAssessment` as the pre-classification fact representation.
+
+REQ-036 establishes the governed derivation semantics for populating that representation from existing observations/signals and explicitly scoped limitation/identity-conflict facts.
 
 The conceptual relationship is:
 
 ```text
+Governed observations/signals
+        ↓
+REQ-036 Coverage Assessment Derivation
+        ↓
 HospitalityCoverageAssessment
         ↓
 HospitalityAnalysisCoverageClassifier
@@ -183,24 +181,28 @@ The orchestrator must not default, guess, or derive a state independently.
 
 The classifier remains the sole owner of the REQ-033 coverage calibration.
 
+The assessment derivation remains the sole governed owner of the mapping from existing analysis facts to assessment scope.
+
 ## Governance
 
-REQ-032 is blocked by the REQ-035 contract and its subsequent implementation.
+REQ-032 is blocked by the REQ-036 derivation contract and its subsequent implementation, building on the REQ-035 representation/classifier boundary.
 
 Required sequence before REQ-032 implementation:
 
 ```text
-REQ-035 — Hospitality Coverage Assessment Contract — READY
+REQ-035 — Hospitality Coverage Assessment Contract — implemented
         ↓
-REQ-035 implementation / classifier-boundary integration
+REQ-036 — Hospitality Coverage Assessment Derivation Contract — READY
+        ↓
+REQ-036 implementation
         ↓
 REQ-032 — Evaluation Execution Orchestration
 ```
 
-The blocker is explicitly architectural/contractual, not an implementation invitation to move classification logic into the orchestrator.
+The blocker is explicitly architectural/contractual, not an implementation invitation to move classification or derivation logic into the orchestrator.
 
 ## Final-Head Validation Rule
 
 The requirement implementation record must reference validation performed against the exact final PR head. If the requirement file changes after a successful CI run, Backend Validation must be rerun against the resulting final head.
 
-**Blocked by REQ-035 contract and subsequent implementation.**
+**Blocked by REQ-036 derivation contract and subsequent implementation.**
