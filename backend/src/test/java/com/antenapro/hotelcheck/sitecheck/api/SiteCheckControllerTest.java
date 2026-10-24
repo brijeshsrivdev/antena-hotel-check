@@ -1,7 +1,10 @@
 package com.antenapro.hotelcheck.sitecheck.api;
 
 import com.antenapro.hotelcheck.sitecheck.HostLimitExceededException;
+import com.antenapro.hotelcheck.sitecheck.IpHasher;
 import com.antenapro.hotelcheck.sitecheck.SiteCheckService;
+import com.antenapro.hotelcheck.sitecheck.report.ReportRequestRejectedException;
+import com.antenapro.hotelcheck.sitecheck.report.ReportService;
 import com.antenapro.hotelcheck.sitecheck.fetch.InvalidUrlException;
 import com.antenapro.hotelcheck.sitecheck.model.SiteCheckRun;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,17 +30,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class SiteCheckControllerTest {
 
     private final SiteCheckService service = Mockito.mock(SiteCheckService.class);
+    private final ReportService reports = Mockito.mock(ReportService.class);
     private MockMvc mvc;
 
     @BeforeEach
     void setUp() {
-        mvc = MockMvcBuilders.standaloneSetup(new SiteCheckController(service)).build();
+        mvc = MockMvcBuilders.standaloneSetup(new SiteCheckController(service, reports, new IpHasher(java.time.Clock.systemUTC()))).build();
     }
 
     @Test
     void start_ShouldAnswer202WithTheRunId() throws Exception {
         SiteCheckRun run = new SiteCheckRun(UUID.randomUUID(), URI.create("https://hotel.example.com/"), Instant.now());
-        when(service.start("hotel.example.com")).thenReturn(run);
+        when(service.start(org.mockito.ArgumentMatchers.eq("hotel.example.com"), any())).thenReturn(run);
 
         mvc.perform(post("/api/site-checks").contentType(MediaType.APPLICATION_JSON).content("{\"url\":\"hotel.example.com\"}"))
                 .andExpect(status().isAccepted())
@@ -46,7 +50,7 @@ class SiteCheckControllerTest {
 
     @Test
     void start_ShouldAnswer400WithTheReason_ForAUrlThePolicyRejects() throws Exception {
-        when(service.start(any())).thenThrow(new InvalidUrlException("Local or internal addresses cannot be checked."));
+        when(service.start(any(), any())).thenThrow(new InvalidUrlException("Local or internal addresses cannot be checked."));
 
         mvc.perform(post("/api/site-checks").contentType(MediaType.APPLICATION_JSON).content("{\"url\":\"http://127.0.0.1:8080\"}"))
                 .andExpect(status().isBadRequest())
@@ -55,7 +59,7 @@ class SiteCheckControllerTest {
 
     @Test
     void start_ShouldAnswer429_WhenTheHostHitItsDailyLimit() throws Exception {
-        when(service.start(any())).thenThrow(new HostLimitExceededException("hotel.example.com", 3));
+        when(service.start(any(), any())).thenThrow(new HostLimitExceededException("hotel.example.com", 3));
 
         mvc.perform(post("/api/site-checks").contentType(MediaType.APPLICATION_JSON).content("{\"url\":\"hotel.example.com\"}"))
                 .andExpect(status().isTooManyRequests())
@@ -80,5 +84,39 @@ class SiteCheckControllerTest {
                 .andExpect(jsonPath("$.status").value("RUNNING"))
                 .andExpect(jsonPath("$.requestedUrl").value("https://hotel.example.com/"))
                 .andExpect(jsonPath("$.findings").isEmpty());
+    }
+
+    @Test
+    void report_ShouldAnswer202WithTheSendersNote_AndPassEmailAndConsentThrough() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(reports.email(id, "owner@example.com", true)).thenReturn("Report saved to /tmp/x.pdf");
+
+        mvc.perform(post("/api/site-checks/" + id + "/report").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"owner@example.com\",\"consent\":true}"))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$.status").value("queued"))
+                .andExpect(jsonPath("$.note").value("Report saved to /tmp/x.pdf"));
+    }
+
+    @Test
+    void report_ShouldMapRejectionsToTheirStatus() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(reports.email(any(), any(), any())).thenThrow(new ReportRequestRejectedException(400, "Tick the box to confirm."));
+
+        mvc.perform(post("/api/site-checks/" + id + "/report").contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"owner@example.com\",\"consent\":false}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Tick the box to confirm."));
+        mvc.perform(post("/api/site-checks/not-a-uuid/report").contentType(MediaType.APPLICATION_JSON).content("{}")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void pdf_ShouldStreamTheReportAsADownload() throws Exception {
+        UUID id = UUID.randomUUID();
+        when(reports.pdf(id)).thenReturn("%PDF-1.7 fake".getBytes());
+
+        mvc.perform(get("/api/site-checks/" + id + "/report.pdf"))
+                .andExpect(status().isOk())
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header().string("Content-Disposition", containsString("hotel-site-check-" + id + ".pdf")))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_PDF));
     }
 }

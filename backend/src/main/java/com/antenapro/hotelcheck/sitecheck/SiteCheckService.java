@@ -35,9 +35,15 @@ public class SiteCheckService {
     private final SiteCheckRunRegistry registry;
     private final ExecutorService executor;
     private final Clock clock;
+    private final SiteCheckRunStore store;
 
     public SiteCheckService(SiteCheckProperties properties, UrlPolicy policy, SiteSnapshotLoader loader, SiteAnalyzer analyzer,
                             SiteCheckRunRegistry registry, ExecutorService executor, Clock clock) {
+        this(properties, policy, loader, analyzer, registry, executor, clock, SiteCheckRunStore.NONE);
+    }
+
+    public SiteCheckService(SiteCheckProperties properties, UrlPolicy policy, SiteSnapshotLoader loader, SiteAnalyzer analyzer,
+                            SiteCheckRunRegistry registry, ExecutorService executor, Clock clock, SiteCheckRunStore store) {
         this.properties = properties;
         this.policy = policy;
         this.loader = loader;
@@ -45,6 +51,7 @@ public class SiteCheckService {
         this.registry = registry;
         this.executor = executor;
         this.clock = clock;
+        this.store = store;
     }
 
     /**
@@ -52,6 +59,13 @@ public class SiteCheckService {
      * @throws HostLimitExceededException                          when the host hit its daily limit
      */
     public SiteCheckRun start(String rawUrl) {
+        return start(rawUrl, "");
+    }
+
+    /**
+     * @param ipHash the caller's salted address hash ({@link IpHasher}); stored with the run, never the address
+     */
+    public SiteCheckRun start(String rawUrl, String ipHash) {
         URI url = policy.normalize(rawUrl);
         String host = SiteSnapshot.hostOf(url.toString());
         if (!registry.tryReserve(host, properties.maxRunsPerHostPerDay())) {
@@ -59,11 +73,15 @@ public class SiteCheckService {
         }
         SiteCheckRun run = registry.create(url);
         log.info("Site check started for {} (run {})", host, run.id());
-        executor.submit(() -> execute(run));
+        executor.submit(() -> execute(run, ipHash));
         return run;
     }
 
     void execute(SiteCheckRun run) {
+        execute(run, "");
+    }
+
+    void execute(SiteCheckRun run, String ipHash) {
         Instant fetchDeadline = run.startedAt().plusMillis(properties.runTimeoutMs() * 3L / 4);
         SiteSnapshot snapshot = null;
         try {
@@ -75,6 +93,18 @@ public class SiteCheckService {
         } catch (RuntimeException e) {
             log.error("Site check {} failed", run.id(), e);
             run.fail("The analysis hit an internal error.", clock.instant());
+        }
+        persist(run, ipHash);
+    }
+
+    private void persist(SiteCheckRun run, String ipHash) {
+        if (run.status() == RunStatus.RUNNING) {
+            return;
+        }
+        try {
+            store.save(run, ipHash == null ? "" : ipHash);
+        } catch (RuntimeException e) {
+            log.error("Site check run {} could not be stored", run.id(), e);
         }
     }
 
@@ -90,8 +120,10 @@ public class SiteCheckService {
         }
         Instant limit = run.startedAt().plusMillis(properties.runTimeoutMs()).plus(GRACE);
         if (clock.instant().isAfter(limit)) {
-            run.complete(analyzer.timedOut(null, "The site did not answer within " + properties.runTimeoutMs() / 1000
-                    + " seconds, so no check could be completed."), clock.instant());
+            if (run.complete(analyzer.timedOut(null, "The site did not answer within " + properties.runTimeoutMs() / 1000
+                    + " seconds, so no check could be completed."), clock.instant())) {
+                persist(run, "");
+            }
         }
     }
 }

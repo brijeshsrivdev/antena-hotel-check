@@ -97,3 +97,19 @@ export async function waitForSiteCheck(runId: string, onUpdate: (r: SiteCheckRes
 
 export const STATUS_ORDER: CheckStatus[] = ["FAIL", "PARTIAL", "UNKNOWN", "PASS"];
 export const STATUS_LABEL: Record<CheckStatus, string> = { PASS: "Pass", PARTIAL: "Partly", FAIL: "Fix this", UNKNOWN: "Unknown" };
+
+/** "Email me the PDF": consent must be literally true; the backend records it with source hotel_check_form. */
+export async function emailReport(runId: string, email: string, consent: boolean): Promise<string> {
+  const res = await fetch(`/api/site-checks/${encodeURIComponent(runId)}/report`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, consent }),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (res.status === 202) {
+    return typeof body.note === "string" ? body.note : "The report is on its way.";
+  }
+  throw new SiteCheckError(typeof body.error === "string" ? body.error : `The report could not be sent (HTTP ${res.status}).`, res.status);
+}
+
+export const reportPdfUrl = (runId: string): string => `/api/site-checks/${encodeURIComponent(runId)}/report.pdf`;

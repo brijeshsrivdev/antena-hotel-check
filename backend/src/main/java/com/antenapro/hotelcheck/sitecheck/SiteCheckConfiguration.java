@@ -6,6 +6,17 @@ import com.antenapro.hotelcheck.sitecheck.fetch.AcquisitionPageFetcher;
 import com.antenapro.hotelcheck.sitecheck.fetch.PageFetcher;
 import com.antenapro.hotelcheck.sitecheck.fetch.SiteSnapshotLoader;
 import com.antenapro.hotelcheck.sitecheck.fetch.UrlPolicy;
+import com.antenapro.hotelcheck.sitecheck.persistence.JpaSiteCheckRunStore;
+import com.antenapro.hotelcheck.sitecheck.persistence.SpringDataSiteCheckRunRepository;
+import com.antenapro.hotelcheck.sitecheck.report.FileReportSender;
+import com.antenapro.hotelcheck.sitecheck.report.PdfReportRenderer;
+import com.antenapro.hotelcheck.sitecheck.report.ReportSender;
+import com.antenapro.hotelcheck.sitecheck.report.ReportService;
+import com.antenapro.hotelcheck.sitecheck.report.SmtpReportSender;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.mail.javamail.JavaMailSender;
+import java.nio.file.Path;
 import com.antenapro.hotelcheck.sitecheck.psi.CachingPsiClient;
 import com.antenapro.hotelcheck.sitecheck.psi.HttpPsiClient;
 import com.antenapro.hotelcheck.sitecheck.psi.PsiClient;
@@ -86,10 +97,40 @@ public class SiteCheckConfiguration {
         };
     }
 
+    /** Persistence of finished runs; absent a Spring Data repository (no JPA in the context) nothing is stored. */
+    @Bean
+    SiteCheckRunStore siteCheckRunStore(ObjectProvider<SpringDataSiteCheckRunRepository> repository, ObjectProvider<ObjectMapper> objectMapper) {
+        SpringDataSiteCheckRunRepository repo = repository.getIfAvailable();
+        return repo == null ? SiteCheckRunStore.NONE : new JpaSiteCheckRunStore(repo, objectMapper.getIfAvailable(ObjectMapper::new));
+    }
+
+    @Bean
+    IpHasher siteCheckIpHasher() {
+        return new IpHasher(Clock.systemUTC());
+    }
+
     @Bean
     SiteCheckService siteCheckService(SiteCheckProperties properties, UrlPolicy policy, SiteSnapshotLoader loader,
                                       SiteAnalyzer analyzer, SiteCheckRunRegistry registry,
-                                      @Qualifier("siteCheckExecutor") ExecutorService siteCheckExecutor) {
-        return new SiteCheckService(properties, policy, loader, analyzer, registry, siteCheckExecutor, Clock.systemUTC());
+                                      @Qualifier("siteCheckExecutor") ExecutorService siteCheckExecutor, SiteCheckRunStore store) {
+        return new SiteCheckService(properties, policy, loader, analyzer, registry, siteCheckExecutor, Clock.systemUTC(), store);
+    }
+
+    /** {@code report-mode=smtp} needs a JavaMailSender (spring.mail.host set); otherwise the PDF is written to disk and logged. */
+    @Bean
+    ReportSender siteCheckReportSender(SiteCheckProperties properties, ObjectProvider<JavaMailSender> mailSender) {
+        if ("smtp".equalsIgnoreCase(properties.reportMode())) {
+            JavaMailSender sender = mailSender.getIfAvailable();
+            if (sender == null) {
+                throw new IllegalStateException("hotelcheck.sitecheck.report-mode=smtp needs spring.mail.* configured");
+            }
+            return new SmtpReportSender(sender, properties.reportFrom());
+        }
+        return new FileReportSender(Path.of(properties.reportOutputDir()));
+    }
+
+    @Bean
+    ReportService siteCheckReportService(SiteCheckService service, SiteCheckRunStore store, ReportSender sender) {
+        return new ReportService(service, store, new PdfReportRenderer(), sender, Clock.systemUTC());
     }
 }

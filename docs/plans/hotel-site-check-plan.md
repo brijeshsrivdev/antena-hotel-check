@@ -206,7 +206,7 @@ Kept by the development session; one entry per slice, updated as PRs land. The f
 | S1 Backend core | Done, awaiting orchestrator review | [PR #40](https://github.com/brijeshsrivdev/antena-hotel-check/pull/40) (`feature/site-check-ranking-signals` → `main`, REQ-038) | 21 page-derived checks (not 12 — see deviations), scoring, in-memory registry, flag, host limit, unit tests on three fixtures |
 | S2 Google signals | Done, awaiting orchestrator review | [PR #40](https://github.com/brijeshsrivdev/antena-hotel-check/pull/40) (same branch, REQ-039) | PSI client + 24 h cache, robots, sitemap, broken links; 27 checks total; without a PSI key the three PSI checks report UNKNOWN |
 | S3 Frontend page | Done, awaiting orchestrator review | [PR #40](https://github.com/brijeshsrivdev/antena-hotel-check/pull/40) (same branch, REQ-040) | `frontend/` Next.js app, `/tools/hotel-site-check`, local-only via `.env.local`; Frontend Validation workflow |
-| S4 PDF + consent | Not started | | Persistence needs its own requirement (PostgreSQL per ADR-001) |
+| S4 PDF + consent | Done, awaiting orchestrator review | [PR #40](https://github.com/brijeshsrivdev/antena-hotel-check/pull/40) (same branch, REQ-041) | `site_check_runs` JPA entity, ip_hash, PDF (openhtmltopdf), consent-gated email with a log-mode default; `consent.py` entry stays a monorepo follow-up |
 | S5 Tenant guard | Not started | | |
 
 ### S1 — what landed (24 Oct 2026)
@@ -228,6 +228,12 @@ Kept by the development session; one entry per slice, updated as PRs land. The f
 - `/api/site-checks` is a Next.js rewrite to the backend (`HOTEL_CHECK_API_URL`, default `http://localhost:8080`): no CORS change.
 - `SiteCheckFlagLeakTest` guards the frontend's `package.json`, `next.config.*` and tracked `.env*` files; `.github/workflows/frontend-validation.yml` runs typecheck + build without the flag.
 
+### S4 — what landed (24 Oct 2026, same PR, requirement REQ-041)
+- `site_check_runs` as a JPA entity (this repository manages schema through JPA `ddl-auto=update`, not Flyway) with the plan's columns plus `status`, `limitations_json` and `consent_source='hotel_check_form'`; written when a run finishes, never with page HTML; `ip_hash = sha256(ip + UTC date + per-process secret)`.
+- PDF report (`ReportHtml` → openhtmltopdf) with the same content as the page; `POST /api/site-checks/{runId}/report {email, consent}` (400 unless consent is literally true, 404/409 as appropriate) records consent then sends; `GET …/report.pdf` downloads it. Delivery: `report-mode=log` (default; PDF written to `${java.io.tmpdir}/hotelcheck-reports`, path logged, nothing leaves the machine) or `report-mode=smtp` with `spring.mail.*`, from `info@antenapro.com`.
+- Page: "Keep this report" card with the consent checkbox (label states what is sent and that Antena may follow up) and a download link.
+- Tests: 357 tests, 0 failures, 0 errors locally (Docker-only test excluded).
+
 ### Deviations from the plan (S1)
 1. **21 checks in S1, not 12** — everything page-derived; S2 keeps robots, sitemap, mobile-friendly, Core Web Vitals, page weight, broken-link sampling and the sitemap-`lastmod` half of `last-updated`.
 2. **API path is `/api/site-checks`**, this repository's convention, instead of the monorepo's `/api/v1/public/site-check`.
@@ -245,6 +251,12 @@ Kept by the development session; one entry per slice, updated as PRs land. The f
 1. **The page lives in this repository's new `frontend/` app**, not the antena console's `/tools` hub; the hub here is the app's home page.
 2. **No Playwright test**: the slice validates typecheck, build and a served smoke run (flag on/off); a browser test belongs with an end-to-end guest journey per ADR-001.
 3. **"Email me the PDF" is not on the page yet**; it arrives with S4.
+
+### Deviations from the plan (S4)
+1. **No Flyway migration**: this repository has no Flyway; the entity creates the table through the existing `ddl-auto=update` policy (ADR-001 leaves schema management open).
+2. **Email delivery defaults to a local file** (`report-mode=log`) because no mailer exists here; SMTP is one property switch away.
+3. **A direct PDF download was added** beside the email form, for use on the developer's machine.
+4. **`antena-sales-agent/consent.py` is not touched** (monorepo); the `hotel_check_form` source is recorded in `site_check_runs.consent_source` here and the one-line `OPT_IN_SOURCES` addition stays a monorepo follow-up for whoever next works there.
 
 ### Decisions needed from Brijesh (S1)
 - None blocking. For S2 the PageSpeed Insights key is read from `HOTELCHECK_SITECHECK_PSI_KEY` in the local profile; without it S2 degrades to UNKNOWN with a limitation line.

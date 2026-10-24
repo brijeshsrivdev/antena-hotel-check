@@ -34,6 +34,10 @@ class SiteCheckFlagGateTest {
         runner.withPropertyValues("hotelcheck.sitecheck.enabled=true", "hotelcheck.sitecheck.max-pages=4").run(ctx -> {
             assertThat(ctx).hasSingleBean(SiteCheckController.class);
             assertThat(ctx).hasSingleBean(SiteCheckService.class);
+            assertThat(ctx).hasSingleBean(com.antenapro.hotelcheck.sitecheck.report.ReportService.class);
+            assertThat(ctx.getBean(SiteCheckRunStore.class)).isSameAs(SiteCheckRunStore.NONE); // no JPA in this context
+            assertThat(ctx.getBean(com.antenapro.hotelcheck.sitecheck.report.ReportSender.class))
+                    .isInstanceOf(com.antenapro.hotelcheck.sitecheck.report.FileReportSender.class);
             assertThat(ctx.getBean(SiteCheckProperties.class).maxPages()).isEqualTo(4);
             assertThat(ctx.getBean(SiteCheckProperties.class).userAgent()).startsWith("AntenaSiteCheck/1.0");
         });

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { FindingItem } from "@/components/FindingItem";
 import { ScoreDial } from "@/components/ScoreDial";
 import { StageRows } from "@/components/StageRows";
+import { ReportForm } from "@/components/ReportForm";
 import { SiteCheckError, STATUS_ORDER, startSiteCheck, waitForSiteCheck, type SiteCheckResponse } from "@/lib/siteCheck";
 
 type Phase = { kind: "idle" } | { kind: "starting" } | { kind: "running"; run: SiteCheckResponse | null; since: number } | { kind: "done"; run: SiteCheckResponse } | { kind: "error"; message: string };
@@ -78,6 +79,8 @@ export function SiteCheckTool() {
           <ul className="findings">
             {STATUS_ORDER.flatMap((s) => run.findings.filter((f) => f.status === s)).map((f) => <FindingItem key={f.check} finding={f} />)}
           </ul>
+
+          <ReportForm runId={run.runId} />
 
           <h2>Pages read</h2>
           <table className="fetched">

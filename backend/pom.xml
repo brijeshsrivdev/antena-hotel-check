@@ -42,6 +42,17 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+        <!-- Hotel Site Check report PDF (REQ-041): HTML rendered with openhtmltopdf. -->
+        <dependency>
+            <groupId>com.openhtmltopdf</groupId>
+            <artifactId>openhtmltopdf-pdfbox</artifactId>
+            <version>1.0.10</version>
+        </dependency>
+        <!-- Hotel Site Check report email (REQ-041); a JavaMailSender exists only when spring.mail.host is set. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
         <!-- Hotel Site Check parses fetched pages with jsoup, never regex (REQ-038). -->
         <dependency>
             <groupId>org.jsoup</groupId>

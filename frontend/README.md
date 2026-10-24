@@ -23,6 +23,12 @@ npm install && npm run dev                  # http://localhost:3000/tools/hotel-
 `/api/site-checks` is proxied to the backend (`HOTEL_CHECK_API_URL`, default `http://localhost:8080`), so no CORS
 configuration is needed.
 
+## Report
+
+The result page has "Email me the PDF" (consent required; the backend records it with source `hotel_check_form`) and a
+direct download link. On a developer machine the backend's default `hotelcheck.sitecheck.report-mode=log` writes the
+PDF under `${java.io.tmpdir}/hotelcheck-reports` and logs the path instead of sending email.
+
 ## Checks
 
 ```
