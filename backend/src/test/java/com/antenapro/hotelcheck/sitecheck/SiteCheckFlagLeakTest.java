@@ -19,8 +19,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * The Hotel Site Check is local-only (REQ-038, docs/plans/hotel-site-check-plan.md). This test fails the build if
  * the flag names reach anything that builds, deploys or configures a shared environment: a GitHub workflow, a
- * Dockerfile, a compose/stack file, or a Spring properties file other than {@code application-local.properties}
- * setting the flag to true.
+ * Dockerfile, a compose/stack file, the frontend's package.json / next.config / tracked env files, or a Spring
+ * properties file other than {@code application-local.properties} setting the flag to true.
  */
 class SiteCheckFlagLeakTest {
 
@@ -35,8 +35,9 @@ class SiteCheckFlagLeakTest {
         try (Stream<Path> walk = Files.walk(root)) {
             walk.filter(p -> !isSkipped(root, p)).filter(Files::isRegularFile).filter(p -> isGuarded(root, p)).forEach(files::add);
         }
-        assertTrue(files.stream().map(root::relativize).map(Path::toString).anyMatch(p -> p.equals(".github/workflows/backend-validation.yml")),
-                "guarded files found under " + root + ": " + files);
+        List<String> names = files.stream().map(root::relativize).map(Path::toString).map(n -> n.replace('\\', '/')).toList();
+        assertTrue(names.contains(".github/workflows/backend-validation.yml"), "guarded files found under " + root + ": " + names);
+        assertTrue(names.contains("frontend/package.json"), "frontend/package.json must be guarded: " + names);
 
         List<String> leaks = new ArrayList<>();
         for (Path file : files) {
@@ -83,7 +84,18 @@ class SiteCheckFlagLeakTest {
         if (name.startsWith("Dockerfile") || name.startsWith("docker-compose") || name.startsWith("docker-stack") || name.startsWith("compose.")) {
             return true;
         }
-        return rel.startsWith(".github/workflows/") && (name.endsWith(".yml") || name.endsWith(".yaml"));
+        if (rel.startsWith(".github/workflows/") && (name.endsWith(".yml") || name.endsWith(".yaml"))) {
+            return true;
+        }
+        // The frontend inlines NEXT_PUBLIC_* at build time: only the gitignored .env.local may set the flag;
+        // .env.example documents the variable name and is the one file allowed to mention it.
+        if (rel.startsWith("frontend/") && !rel.startsWith("frontend/node_modules/")) {
+            if (name.equals("package.json") || name.startsWith("next.config")) {
+                return true;
+            }
+            return name.startsWith(".env") && !name.equals(".env.local") && !name.equals(".env.example");
+        }
+        return false;
     }
 
     private static boolean isSkipped(Path root, Path p) {

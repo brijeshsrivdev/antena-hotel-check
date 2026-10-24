@@ -205,7 +205,7 @@ Kept by the development session; one entry per slice, updated as PRs land. The f
 |---|---|---|---|
 | S1 Backend core | Done, awaiting orchestrator review | [PR #40](https://github.com/brijeshsrivdev/antena-hotel-check/pull/40) (`feature/site-check-ranking-signals` → `main`, REQ-038) | 21 page-derived checks (not 12 — see deviations), scoring, in-memory registry, flag, host limit, unit tests on three fixtures |
 | S2 Google signals | Done, awaiting orchestrator review | [PR #40](https://github.com/brijeshsrivdev/antena-hotel-check/pull/40) (same branch, REQ-039) | PSI client + 24 h cache, robots, sitemap, broken links; 27 checks total; without a PSI key the three PSI checks report UNKNOWN |
-| S3 Frontend page | Not started | | Owner-facing app per ADR-001 (Next.js) |
+| S3 Frontend page | Done, awaiting orchestrator review | [PR #40](https://github.com/brijeshsrivdev/antena-hotel-check/pull/40) (same branch, REQ-040) | `frontend/` Next.js app, `/tools/hotel-site-check`, local-only via `.env.local`; Frontend Validation workflow |
 | S4 PDF + consent | Not started | | Persistence needs its own requirement (PostgreSQL per ADR-001) |
 | S5 Tenant guard | Not started | | |
 
@@ -223,6 +223,11 @@ Kept by the development session; one entry per slice, updated as PRs land. The f
 - Checks `robots`, `sitemap`, `mobile-friendly`, `core-web-vitals`, `page-weight`, `broken-links`; `last-updated` now reads the sitemap `lastmod` when there is no copyright year. The catalogue is the plan's full 27.
 - Tests: 344 tests, 0 failures, 0 errors (the Docker-only JpaEvaluationRepositoryTest excluded) locally; the storefront fixture scores 100 with 27 PASS when robots, sitemap and a good PSI response are served.
 
+### S3 — what landed (24 Oct 2026, same PR, requirement REQ-040)
+- `frontend/`: the repository's first owner-facing app (Next.js 15 + TypeScript, no UI library). `/tools/hotel-site-check` = URL form → 2 s polling → score dial, stage rows, findings FAIL-first with evidence toggles and the Antena badge where the backend set it, limitations verbatim, fetch log. `/` is the hub; its card and the route exist only when `NEXT_PUBLIC_SITECHECK_ENABLED=true` was in `frontend/.env.local` at build time; both pages are `noindex`.
+- `/api/site-checks` is a Next.js rewrite to the backend (`HOTEL_CHECK_API_URL`, default `http://localhost:8080`): no CORS change.
+- `SiteCheckFlagLeakTest` guards the frontend's `package.json`, `next.config.*` and tracked `.env*` files; `.github/workflows/frontend-validation.yml` runs typecheck + build without the flag.
+
 ### Deviations from the plan (S1)
 1. **21 checks in S1, not 12** — everything page-derived; S2 keeps robots, sitemap, mobile-friendly, Core Web Vitals, page weight, broken-link sampling and the sitemap-`lastmod` half of `last-updated`.
 2. **API path is `/api/site-checks`**, this repository's convention, instead of the monorepo's `/api/v1/public/site-check`.
@@ -235,6 +240,11 @@ Kept by the development session; one entry per slice, updated as PRs land. The f
 1. **Broken-link sampling is six probes plus the fetched pages**, sequential and deadline-bound, not a crawl.
 2. **Page weight is PSI-only**: without PSI the check is UNKNOWN (the HTML size alone would understate it and is only mentioned in the evidence).
 3. **Mobile-friendliness degrades to the viewport tag** without PSI (PARTIAL/FAIL), so a site with no viewport tag is still flagged.
+
+### Deviations from the plan (S3)
+1. **The page lives in this repository's new `frontend/` app**, not the antena console's `/tools` hub; the hub here is the app's home page.
+2. **No Playwright test**: the slice validates typecheck, build and a served smoke run (flag on/off); a browser test belongs with an end-to-end guest journey per ADR-001.
+3. **"Email me the PDF" is not on the page yet**; it arrives with S4.
 
 ### Decisions needed from Brijesh (S1)
 - None blocking. For S2 the PageSpeed Insights key is read from `HOTELCHECK_SITECHECK_PSI_KEY` in the local profile; without it S2 degrades to UNKNOWN with a limitation line.
