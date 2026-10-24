@@ -9,7 +9,10 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * only by {@code application-local.properties}: the tool runs on a developer machine. {@code SiteCheckFlagLeakTest}
  * fails the build if the flag name reaches a workflow, Dockerfile or compose file.</p>
  *
- * @param runTimeoutMs the run is reported DONE after this long, with UNKNOWN for whatever did not finish
+ * @param runTimeoutMs  the run is reported DONE after this long, with UNKNOWN for whatever did not finish
+ * @param psiKey        Google PageSpeed Insights key; empty means mobile-friendliness, Core Web Vitals and page weight report UNKNOWN
+ * @param psiTimeoutMs  a Lighthouse run takes 10–40 s; past this the run reports the PSI checks UNKNOWN and the result is cached when it lands
+ * @param maxLinkProbes internal links sampled from the home page for the broken-links check (0 disables sampling)
  */
 @ConfigurationProperties(prefix = "hotelcheck.sitecheck")
 public record SiteCheckProperties(
@@ -22,7 +25,9 @@ public record SiteCheckProperties(
         int maxRedirects,
         int runTimeoutMs,
         int maxRunsPerHostPerDay,
-        String psiKey
+        String psiKey,
+        int psiTimeoutMs,
+        int maxLinkProbes
 ) {
     public static final String DEFAULT_USER_AGENT = "AntenaSiteCheck/1.0 (+https://antenapro.com/tools/hotel-site-check)";
 
@@ -36,14 +41,21 @@ public record SiteCheckProperties(
         if (runTimeoutMs <= 0) runTimeoutMs = 25_000;
         if (maxRunsPerHostPerDay <= 0) maxRunsPerHostPerDay = 3;
         if (psiKey == null) psiKey = "";
+        if (psiTimeoutMs <= 0) psiTimeoutMs = 40_000;
+        if (maxLinkProbes < 0) maxLinkProbes = 6;
     }
 
     public static SiteCheckProperties defaults() {
-        return new SiteCheckProperties(false, null, 0, 0, 0, 0, -1, 0, 0, null);
+        return new SiteCheckProperties(false, null, 0, 0, 0, 0, -1, 0, 0, null, 0, -1);
     }
 
     public SiteCheckProperties withMaxPages(int pages) {
         return new SiteCheckProperties(enabled, userAgent, connectTimeoutMs, readTimeoutMs, maxPageBytes, pages, maxRedirects,
-                runTimeoutMs, maxRunsPerHostPerDay, psiKey);
+                runTimeoutMs, maxRunsPerHostPerDay, psiKey, psiTimeoutMs, maxLinkProbes);
+    }
+
+    public SiteCheckProperties withPsiKey(String key) {
+        return new SiteCheckProperties(enabled, userAgent, connectTimeoutMs, readTimeoutMs, maxPageBytes, maxPages, maxRedirects,
+                runTimeoutMs, maxRunsPerHostPerDay, key, psiTimeoutMs, maxLinkProbes);
     }
 }

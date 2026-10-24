@@ -17,12 +17,14 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Fetches pages through the existing {@link PublicWebAcquisitionService} (REQ-015: SSRF-safe DNS resolution on
- * every hop, bounded redirects, response-size cap, timeouts) and parses the body with jsoup. The service rejects
+ * Fetches through the existing {@link PublicWebAcquisitionService} (REQ-015: SSRF-safe DNS resolution on
+ * every hop, bounded redirects, response-size cap, timeouts) and parses HTML with jsoup. The service rejects
  * a body over the cap outright rather than truncating it, which is the right outcome for a 2.5 GB page: the
  * finding says the page could not be read.
  */
 public class AcquisitionPageFetcher implements PageFetcher {
+
+    private enum Mode { HTML, TEXT, PROBE }
 
     private final PublicWebAcquisitionService acquisition;
     private final AcquisitionConfig config;
@@ -45,6 +47,20 @@ public class AcquisitionPageFetcher implements PageFetcher {
 
     @Override
     public FetchedPage fetch(URI url, PageRole role) {
+        return fetch(url, role, Mode.HTML);
+    }
+
+    @Override
+    public FetchedPage fetchText(URI url, PageRole role) {
+        return fetch(url, role, Mode.TEXT);
+    }
+
+    @Override
+    public FetchedPage probe(URI url) {
+        return fetch(url, PageRole.LINK, Mode.PROBE);
+    }
+
+    private FetchedPage fetch(URI url, PageRole role, Mode mode) {
         long started = System.nanoTime();
         AcquisitionResult result = acquisition.acquire(new AcquisitionRequest(url.toString(), config));
         long ms = (System.nanoTime() - started) / 1_000_000;
@@ -62,11 +78,14 @@ public class AcquisitionPageFetcher implements PageFetcher {
         }
         String body = result.body() == null ? "" : result.body();
         Document document = null;
-        if (result.isSuccess() && isHtml(result.contentType(), body)) {
+        String text = null;
+        if (mode == Mode.HTML && result.isSuccess() && isHtml(result.contentType(), body)) {
             document = Jsoup.parse(body, result.finalUrl());
+        } else if (mode == Mode.TEXT && result.isSuccess() && body.indexOf('\0') < 0) {
+            text = body;
         }
         return new FetchedPage(role, url.toString(), result.finalUrl(), result.statusCode(), ms, body.length(), false,
-                headers, document, null);
+                headers, document, text, null);
     }
 
     private static boolean isHtml(String contentType, String body) {

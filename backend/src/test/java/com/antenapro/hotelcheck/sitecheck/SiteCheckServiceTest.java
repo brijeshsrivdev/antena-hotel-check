@@ -101,7 +101,9 @@ class SiteCheckServiceTest {
     private final SiteCheckRunRegistry registry = new SiteCheckRunRegistry(clock);
 
     private SiteCheckService service(ExecutorService executor) {
-        SiteSnapshotLoader loader = new SiteSnapshotLoader(properties, fetcher, policy, clock);
+        SiteSnapshotLoader loader = new SiteSnapshotLoader(properties, fetcher, policy,
+                new Snapshots.FakePsiClient(com.antenapro.hotelcheck.sitecheck.model.PsiResult.unavailable("no key")),
+                java.util.concurrent.Executors.newCachedThreadPool(), clock);
         return new SiteCheckService(properties, policy, loader, new SiteAnalyzer(SiteChecks.all()), registry, executor, clock);
     }
 
@@ -114,7 +116,7 @@ class SiteCheckServiceTest {
         assertThat(run.requestedUrl().toString()).isEqualTo(HOME);
         SiteCheckRun found = service.get(run.id()).orElseThrow();
         assertThat(found.status()).isEqualTo(RunStatus.DONE);
-        assertThat(found.result().findings()).hasSize(21);
+        assertThat(found.result().findings()).hasSize(27);
         assertThat(found.result().finalUrl()).isEqualTo(HOME);
         assertThat(service.get(UUID.randomUUID())).isEmpty();
     }

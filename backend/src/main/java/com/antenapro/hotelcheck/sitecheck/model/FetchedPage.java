@@ -6,16 +6,17 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * One HTTP fetch. {@code document} is present only for a 2xx HTML response; {@code error} explains a
- * fetch that produced no response (timeout, refused connection, policy rejection on a redirect).
+ * One HTTP fetch. {@code document} is present only for a 2xx HTML response; {@code text} only for a non-HTML
+ * text response read as text (robots.txt, a sitemap); {@code error} explains a fetch that produced no response
+ * (timeout, refused connection, policy rejection on a redirect).
  *
  * @param headers response headers the checks read, keys lower-cased (content-type, x-robots-tag, last-modified)
  */
 public record FetchedPage(PageRole role, String requestedUrl, String finalUrl, int status, long ms, long bytes,
-                          boolean truncated, Map<String, String> headers, Document document, String error) {
+                          boolean truncated, Map<String, String> headers, Document document, String text, String error) {
 
     public static FetchedPage failed(PageRole role, String requestedUrl, long ms, String error) {
-        return new FetchedPage(role, requestedUrl, requestedUrl, 0, ms, 0, false, Map.of(), null, error);
+        return new FetchedPage(role, requestedUrl, requestedUrl, 0, ms, 0, false, Map.of(), null, null, error);
     }
 
     public boolean ok() {
@@ -40,6 +41,6 @@ public record FetchedPage(PageRole role, String requestedUrl, String finalUrl, i
     }
 
     public FetchedPage as(PageRole newRole) {
-        return new FetchedPage(newRole, requestedUrl, finalUrl, status, ms, bytes, truncated, headers, document, error);
+        return new FetchedPage(newRole, requestedUrl, finalUrl, status, ms, bytes, truncated, headers, document, text, error);
     }
 }

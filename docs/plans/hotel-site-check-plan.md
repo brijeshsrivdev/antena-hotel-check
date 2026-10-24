@@ -204,7 +204,7 @@ Kept by the development session; one entry per slice, updated as PRs land. The f
 | Slice | Status | PR | Notes |
 |---|---|---|---|
 | S1 Backend core | Done, awaiting orchestrator review | [PR #40](https://github.com/brijeshsrivdev/antena-hotel-check/pull/40) (`feature/site-check-ranking-signals` → `main`, REQ-038) | 21 page-derived checks (not 12 — see deviations), scoring, in-memory registry, flag, host limit, unit tests on three fixtures |
-| S2 Google signals | Not started | | PSI key from Brijesh; until then CWV/mobile report UNKNOWN |
+| S2 Google signals | Done, awaiting orchestrator review | [PR #40](https://github.com/brijeshsrivdev/antena-hotel-check/pull/40) (same branch, REQ-039) | PSI client + 24 h cache, robots, sitemap, broken links; 27 checks total; without a PSI key the three PSI checks report UNKNOWN |
 | S3 Frontend page | Not started | | Owner-facing app per ADR-001 (Next.js) |
 | S4 PDF + consent | Not started | | Persistence needs its own requirement (PostgreSQL per ADR-001) |
 | S5 Tenant guard | Not started | | |
@@ -217,6 +217,12 @@ Kept by the development session; one entry per slice, updated as PRs land. The f
 - Checks: the 21 that need only the fetched pages — Discover `https`, `title`, `meta-description`, `canonical`, `indexable`; Understand `single-h1`, `hotel-name-consistency`, `rooms-page`, `content-depth`, `language`; Explore `internal-links`, `image-alt`; Trust `structured-data`, `rating-honesty`, `address-phone`, `gbp-link`, `last-updated`; Book `booking-cta`, `own-booking-engine`, `tap-targets`, `booking-page-reachable`. Findings are worded as observations of the pages read ("no element on the 5 pages read says book…"), never as claims about booking success, in line with REQ-027's truth boundary. "Antena does this for you" is set only on `https`, `canonical`, `structured-data`, `rating-honesty`, `booking-cta`, `own-booking-engine`, `booking-page-reachable`.
 - Fixtures (`backend/src/test/resources/sitecheck/`): an Antena storefront → 21 PASS, score 100 (the `<button>Check Availability</button>` and JSON-LD rating the regex scanner missed are now evidence); a Wix site linking only to Booking.com; a WordPress site with a booking plugin.
 
+### S2 — what landed (24 Oct 2026, same PR, requirement REQ-039)
+- `PsiClient` → `HttpPsiClient` (PageSpeed Insights v5, mobile strategy, key `hotelcheck.sitecheck.psi-key` from `HOTELCHECK_SITECHECK_PSI_KEY` in the local profile) wrapped in `CachingPsiClient` (24 h per host, failures not cached). Keyless calls are not made: Google's keyless quota is zero (observed 24 Oct 2026, the error response is the `psi/quota-exceeded.json` fixture).
+- `RobotsTxt` and `SitemapXml` parsers; `fetchText` and `probe` modes on the acquisition-backed fetcher; the loader runs PSI and robots/sitemap in parallel with the page fetches and probes up to six other internal links, all bounded by the fetch deadline.
+- Checks `robots`, `sitemap`, `mobile-friendly`, `core-web-vitals`, `page-weight`, `broken-links`; `last-updated` now reads the sitemap `lastmod` when there is no copyright year. The catalogue is the plan's full 27.
+- Tests: 345 tests, 0 failures, 1 errors locally; the storefront fixture scores 100 with 27 PASS when robots, sitemap and a good PSI response are served.
+
 ### Deviations from the plan (S1)
 1. **21 checks in S1, not 12** — everything page-derived; S2 keeps robots, sitemap, mobile-friendly, Core Web Vitals, page weight, broken-link sampling and the sitemap-`lastmod` half of `last-updated`.
 2. **API path is `/api/site-checks`**, this repository's convention, instead of the monorepo's `/api/v1/public/site-check`.
@@ -224,6 +230,11 @@ Kept by the development session; one entry per slice, updated as PRs land. The f
 4. **`last-updated` is UNKNOWN without a copyright year** until S2; **`gbp-link` has no PARTIAL state**.
 5. **No persistence in S1**: runs live in memory for two hours; the `site_check_runs` table (plan §4) needs its own requirement because ADR-001 makes PostgreSQL the datastore and this repository's persistence is JPA, not Flyway.
 6. **Per-IP limit is not implemented here** (the monorepo's `RateLimitingFilter` does not exist in this repository); the per-host limit is. A per-IP limit belongs with the deploy decision.
+
+### Deviations from the plan (S2)
+1. **Broken-link sampling is six probes plus the fetched pages**, sequential and deadline-bound, not a crawl.
+2. **Page weight is PSI-only**: without PSI the check is UNKNOWN (the HTML size alone would understate it and is only mentioned in the evidence).
+3. **Mobile-friendliness degrades to the viewport tag** without PSI (PARTIAL/FAIL), so a site with no viewport tag is still flagged.
 
 ### Decisions needed from Brijesh (S1)
 - None blocking. For S2 the PageSpeed Insights key is read from `HOTELCHECK_SITECHECK_PSI_KEY` in the local profile; without it S2 degrades to UNKNOWN with a limitation line.

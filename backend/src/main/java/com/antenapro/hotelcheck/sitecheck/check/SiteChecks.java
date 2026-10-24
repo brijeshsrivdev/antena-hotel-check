@@ -2,10 +2,7 @@ package com.antenapro.hotelcheck.sitecheck.check;
 
 import java.util.List;
 
-/**
- * The catalogue in report order. Robots, sitemap, mobile-friendliness, Core Web Vitals, page weight and
- * broken-link sampling arrive with slice S2 (Google signals); everything here reads the fetched pages only.
- */
+/** The catalogue in report order: 27 checks, docs/plans/hotel-site-check-plan.md §3. */
 public final class SiteChecks {
 
     private SiteChecks() {
@@ -14,16 +11,22 @@ public final class SiteChecks {
     public static List<SiteCheck> all() {
         return List.of(
                 new HttpsCheck(),
+                new RobotsCheck(),
+                new SitemapCheck(),
                 new TitleTagCheck(),
                 new MetaDescriptionCheck(),
                 new CanonicalCheck(),
                 new IndexableCheck(),
+                new MobileFriendlyCheck(),
+                new CoreWebVitalsCheck(),
+                new PageWeightCheck(),
                 new SingleH1Check(),
                 new HotelNameConsistencyCheck(),
                 new RoomsPageCheck(),
                 new ContentDepthCheck(),
                 new LanguageCheck(),
                 new InternalLinksCheck(),
+                new BrokenLinksCheck(),
                 new ImageAltCheck(),
                 new StructuredDataCheck(),
                 new RatingHonestyCheck(),

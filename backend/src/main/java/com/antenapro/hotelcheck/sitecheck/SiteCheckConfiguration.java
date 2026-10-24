@@ -6,6 +6,10 @@ import com.antenapro.hotelcheck.sitecheck.fetch.AcquisitionPageFetcher;
 import com.antenapro.hotelcheck.sitecheck.fetch.PageFetcher;
 import com.antenapro.hotelcheck.sitecheck.fetch.SiteSnapshotLoader;
 import com.antenapro.hotelcheck.sitecheck.fetch.UrlPolicy;
+import com.antenapro.hotelcheck.sitecheck.psi.CachingPsiClient;
+import com.antenapro.hotelcheck.sitecheck.psi.HttpPsiClient;
+import com.antenapro.hotelcheck.sitecheck.psi.PsiClient;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +18,7 @@ import org.springframework.context.annotation.Configuration;
 import java.time.Clock;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -37,8 +42,23 @@ public class SiteCheckConfiguration {
     }
 
     @Bean
-    SiteSnapshotLoader siteSnapshotLoader(SiteCheckProperties properties, PageFetcher fetcher, UrlPolicy policy) {
-        return new SiteSnapshotLoader(properties, fetcher, policy, Clock.systemUTC());
+    PsiClient siteCheckPsiClient(SiteCheckProperties properties) {
+        return new CachingPsiClient(new HttpPsiClient(properties), Clock.systemUTC());
+    }
+
+    /**
+     * Side tasks of a run (PageSpeed Insights, robots/sitemap): a separate, unbounded pool so a run can never
+     * wait on a thread its own executor is holding.
+     */
+    @Bean(destroyMethod = "shutdownNow")
+    ExecutorService siteCheckSideExecutor() {
+        return Executors.newCachedThreadPool(daemon("sitecheck-io-"));
+    }
+
+    @Bean
+    SiteSnapshotLoader siteSnapshotLoader(SiteCheckProperties properties, PageFetcher fetcher, UrlPolicy policy, PsiClient psiClient,
+                                          @Qualifier("siteCheckSideExecutor") ExecutorService sideExecutor) {
+        return new SiteSnapshotLoader(properties, fetcher, policy, psiClient, sideExecutor, Clock.systemUTC());
     }
 
     @Bean
@@ -51,19 +71,25 @@ public class SiteCheckConfiguration {
         return new SiteCheckRunRegistry(Clock.systemUTC());
     }
 
+    /** Runs: two at most; the tool is used by one person on one machine. */
     @Bean(destroyMethod = "shutdownNow")
     ExecutorService siteCheckExecutor() {
+        return Executors.newFixedThreadPool(2, daemon("sitecheck-run-"));
+    }
+
+    private static ThreadFactory daemon(String prefix) {
         AtomicInteger n = new AtomicInteger();
-        return Executors.newFixedThreadPool(2, r -> {
-            Thread t = new Thread(r, "sitecheck-" + n.incrementAndGet());
+        return r -> {
+            Thread t = new Thread(r, prefix + n.incrementAndGet());
             t.setDaemon(true);
             return t;
-        });
+        };
     }
 
     @Bean
     SiteCheckService siteCheckService(SiteCheckProperties properties, UrlPolicy policy, SiteSnapshotLoader loader,
-                                      SiteAnalyzer analyzer, SiteCheckRunRegistry registry, ExecutorService siteCheckExecutor) {
+                                      SiteAnalyzer analyzer, SiteCheckRunRegistry registry,
+                                      @Qualifier("siteCheckExecutor") ExecutorService siteCheckExecutor) {
         return new SiteCheckService(properties, policy, loader, analyzer, registry, siteCheckExecutor, Clock.systemUTC());
     }
 }

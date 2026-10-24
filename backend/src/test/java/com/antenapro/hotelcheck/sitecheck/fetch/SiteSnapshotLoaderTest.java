@@ -6,11 +6,18 @@ import com.antenapro.hotelcheck.sitecheck.model.PageRole;
 import com.antenapro.hotelcheck.sitecheck.model.SiteSnapshot;
 import org.junit.jupiter.api.Test;
 
+import com.antenapro.hotelcheck.sitecheck.model.PsiResult;
+import com.antenapro.hotelcheck.sitecheck.psi.PsiClient;
+import org.junit.jupiter.api.AfterEach;
+
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.time.Clock;
 import java.time.Instant;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -20,6 +27,13 @@ class SiteSnapshotLoaderTest {
     private static final String HOME_HTML = "<html><head><title>Hotel Example</title></head><body>"
             + "<header><a href=\"/\">Home</a><a href=\"/rooms\">Rooms</a><a href=\"/contact\">Contact</a><a href=\"/about\">About</a>"
             + "<a class=\"btn\" href=\"/book\">Book Now</a></header></body></html>";
+
+    private final ExecutorService side = Executors.newCachedThreadPool();
+
+    @AfterEach
+    void tearDown() {
+        side.shutdownNow();
+    }
 
     private final UrlPolicy policy = new UrlPolicy(host -> {
         if (host.equals("private.example.com")) {
@@ -32,7 +46,11 @@ class SiteSnapshotLoaderTest {
     });
 
     private SiteSnapshotLoader loader(Snapshots.FakeFetcher fetcher, int maxPages) {
-        return new SiteSnapshotLoader(SiteCheckProperties.defaults().withMaxPages(maxPages), fetcher, policy, Clock.systemUTC());
+        return loader(fetcher, maxPages, new Snapshots.FakePsiClient(PsiResult.unavailable("no key")));
+    }
+
+    private SiteSnapshotLoader loader(Snapshots.FakeFetcher fetcher, int maxPages, PsiClient psi) {
+        return new SiteSnapshotLoader(SiteCheckProperties.defaults().withMaxPages(maxPages), fetcher, policy, psi, side, Clock.systemUTC());
     }
 
     private static Instant later() {
@@ -47,10 +65,15 @@ class SiteSnapshotLoaderTest {
 
         SiteSnapshot s = loader(fetcher, 5).load(URI.create(HOME), later());
 
-        assertThat(fetcher.requested).containsExactly(HOME, HOME + "rooms", HOME + "contact", HOME + "book", HOME + "about");
+        assertThat(fetcher.requested).containsSubsequence(HOME, HOME + "rooms", HOME + "contact", HOME + "book", HOME + "about");
         assertThat(s.pages()).containsKeys(PageRole.HOME, PageRole.ROOMS, PageRole.CONTACT, PageRole.BOOKING, PageRole.ABOUT);
-        assertThat(s.fetched()).hasSize(5);
-        assertThat(s.limitations()).isEmpty();
+        assertThat(s.fetched()).hasSize(7); // 5 pages + robots.txt + sitemap.xml (both 404 here)
+        assertThat(s.limitations()).singleElement().asString().contains("no key");
+        assertThat(s.robotsResult()).isPresent();
+        assertThat(s.robotsResult().get().present()).isFalse();
+        assertThat(s.sitemapResult()).isPresent();
+        assertThat(s.psiResult()).isPresent();
+        assertThat(s.linkProbes()).isEmpty();
     }
 
     @Test
@@ -60,9 +83,9 @@ class SiteSnapshotLoaderTest {
 
         SiteSnapshot s = loader(fetcher, 3).load(URI.create(HOME), later());
 
-        assertThat(fetcher.requested).containsExactly(HOME, HOME + "rooms", HOME + "contact");
+        assertThat(fetcher.requested).containsSubsequence(HOME, HOME + "rooms", HOME + "contact").doesNotContain(HOME + "book", HOME + "about");
         assertThat(s.pages()).doesNotContainKeys(PageRole.BOOKING, PageRole.ABOUT);
-        assertThat(s.limitations()).hasSize(2).allSatisfy(l -> assertThat(l).contains("at most 3 pages"));
+        assertThat(s.limitations()).filteredOn(l -> l.contains("at most 3 pages")).hasSize(2);
     }
 
     @Test
@@ -71,8 +94,9 @@ class SiteSnapshotLoaderTest {
 
         SiteSnapshot s = loader(fetcher, 5).load(URI.create(HOME), Instant.now().minusSeconds(1));
 
-        assertThat(fetcher.requested).containsExactly(HOME);
-        assertThat(s.limitations()).hasSize(4).allSatisfy(l -> assertThat(l).contains("time limit"));
+        assertThat(fetcher.requested).filteredOn(u -> !u.endsWith("robots.txt") && !u.endsWith("sitemap.xml")).containsExactly(HOME);
+        assertThat(s.limitations()).filteredOn(l -> l.contains("time limit")).hasSizeGreaterThanOrEqualTo(5); // 4 pages + link sampling
+        assertThat(s.linkProbes()).isNull();
     }
 
     @Test
@@ -110,8 +134,60 @@ class SiteSnapshotLoaderTest {
 
         SiteSnapshot s = loader(fetcher, 5).load(URI.create(HOME), later());
 
-        assertThat(fetcher.requested).containsExactly(HOME);
+        assertThat(fetcher.requested).filteredOn(u -> !u.endsWith("robots.txt") && !u.endsWith("sitemap.xml")).containsExactly(HOME);
         assertThat(s.home().ok()).isFalse();
         assertThat(s.limitations()).singleElement().asString().contains("could not be fetched");
+        assertThat(s.robotsResult()).isEmpty();
+        assertThat(s.psiResult()).isEmpty();
+    }
+
+    @Test
+    void load_ShouldReadRobotsAndTheSitemapItNames_AndFollowAnIndexToItsFirstChild() {
+        Snapshots.FakeFetcher fetcher = new Snapshots.FakeFetcher().serve(HOME, HOME_HTML)
+                .serveText(HOME + "robots.txt", "User-agent: *\nAllow: /\nSitemap: https://hotel.example.com/sitemap_index.xml\n")
+                .serveText(HOME + "sitemap_index.xml", "<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><sitemap><loc>https://hotel.example.com/page-sitemap.xml</loc></sitemap></sitemapindex>")
+                .serveText(HOME + "page-sitemap.xml", "<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\"><url><loc>https://hotel.example.com/</loc><lastmod>2026-10-01</lastmod></url><url><loc>https://hotel.example.com/rooms</loc></url></urlset>");
+
+        SiteSnapshot s = loader(fetcher, 5).load(URI.create(HOME), later());
+
+        assertThat(s.robotsResult().get().sitemapUrls()).containsExactly("https://hotel.example.com/sitemap_index.xml");
+        assertThat(s.sitemapResult().get().isIndex()).isTrue();
+        assertThat(s.sitemapResult().get().urlCount()).isEqualTo(2);
+        assertThat(s.sitemapResult().get().latestLastmod()).isEqualTo(java.time.LocalDate.of(2026, 10, 1));
+        assertThat(fetcher.requested).contains(HOME + "robots.txt", HOME + "sitemap_index.xml", HOME + "page-sitemap.xml");
+    }
+
+    @Test
+    void load_ShouldProbeOtherInternalLinks_UpToTheLimit_SkippingPagesAlreadyFetched() {
+        String html = HOME_HTML.replace("</header>", "<a href=\"/gallery\">Gallery</a><a href=\"/rooms\">Rooms again</a><a href=\"/offers\">Offers</a>"
+                + "<a href=\"/blog/1\">1</a><a href=\"/blog/2\">2</a><a href=\"/blog/3\">3</a><a href=\"/blog/4\">4</a><a href=\"/blog/5\">5</a><a href=\"/blog/6\">6</a><a href=\"mailto:x@y\">mail</a></header>");
+        Snapshots.FakeFetcher fetcher = new Snapshots.FakeFetcher().serve(HOME, html).serve(HOME + "gallery", "<html></html>").status(HOME + "offers", 410);
+
+        SiteSnapshot s = loader(fetcher, 5).load(URI.create(HOME), later());
+
+        assertThat(s.linkProbes()).hasSize(6);
+        assertThat(fetcher.probed).doesNotContain(HOME + "rooms").contains(HOME + "gallery", HOME + "offers");
+        assertThat(s.linkProbes().stream().filter(p -> p.status() == 410)).hasSize(1);
+    }
+
+    @Test
+    void load_ShouldReportPsiAsALimitation_WhenItDoesNotAnswerBeforeTheDeadline_AndNotCancelIt() throws Exception {
+        CountDownLatch release = new CountDownLatch(1);
+        PsiClient slow = url -> {
+            try {
+                release.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return PsiResult.unavailable("late");
+        };
+        Snapshots.FakeFetcher fetcher = new Snapshots.FakeFetcher().serve(HOME, HOME_HTML);
+
+        SiteSnapshot s = loader(fetcher, 5, slow).load(URI.create(HOME), Instant.now().plusMillis(300));
+        release.countDown();
+
+        assertThat(s.psiResult()).isEmpty();
+        assertThat(s.limitations()).anySatisfy(l -> assertThat(l).contains("PageSpeed Insights did not answer within the time limit"));
+        assertThat(s.robotsResult()).isPresent();
     }
 }

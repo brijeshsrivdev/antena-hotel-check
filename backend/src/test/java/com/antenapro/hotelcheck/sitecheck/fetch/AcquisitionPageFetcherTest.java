@@ -110,13 +110,29 @@ class AcquisitionPageFetcherTest {
     }
 
     @Test
-    void fetch_ShouldNotParseNonHtml() {
+    void fetch_ShouldNotParseNonHtml_ButFetchTextKeepsIt() {
         serve("/robots.txt", 200, "text/plain", "User-agent: *\nDisallow:");
 
         FetchedPage page = fetcher.fetch(URI.create(baseUrl + "/robots.txt"), PageRole.HOME);
-
         assertEquals(200, page.status());
         assertFalse(page.ok());
         assertNull(page.document());
+        assertNull(page.text());
+
+        FetchedPage text = fetcher.fetchText(URI.create(baseUrl + "/robots.txt"), PageRole.ROBOTS);
+        assertEquals("User-agent: *\nDisallow:", text.text());
+        assertNull(text.document());
+    }
+
+    @Test
+    void probe_ShouldReportStatusAndTiming_WithoutABody() {
+        serve("/old", 410, "text/html", "<html>gone</html>");
+
+        FetchedPage probe = fetcher.probe(URI.create(baseUrl + "/old"));
+
+        assertEquals(PageRole.LINK, probe.role());
+        assertEquals(410, probe.status());
+        assertNull(probe.document());
+        assertNull(probe.text());
     }
 }
