@@ -203,7 +203,7 @@ Kept by the development session; one entry per slice, updated as PRs land. The f
 
 | Slice | Status | PR | Notes |
 |---|---|---|---|
-| S1 Backend core | Done, awaiting orchestrator review | `feature/site-check-ranking-signals` → `main` (REQ-038) | 21 page-derived checks (not 12 — see deviations), scoring, in-memory registry, flag, host limit, unit tests on three fixtures |
+| S1 Backend core | Done, awaiting orchestrator review | [PR #40](https://github.com/brijeshsrivdev/antena-hotel-check/pull/40) (`feature/site-check-ranking-signals` → `main`, REQ-038) | 21 page-derived checks (not 12 — see deviations), scoring, in-memory registry, flag, host limit, unit tests on three fixtures |
 | S2 Google signals | Not started | | PSI key from Brijesh; until then CWV/mobile report UNKNOWN |
 | S3 Frontend page | Not started | | Owner-facing app per ADR-001 (Next.js) |
 | S4 PDF + consent | Not started | | Persistence needs its own requirement (PostgreSQL per ADR-001) |

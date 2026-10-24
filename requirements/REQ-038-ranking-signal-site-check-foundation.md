@@ -69,6 +69,12 @@ Deterministic unit tests only (no live site): fixture-driven analyzer tests on t
 
 PR_READY — implementation committed and pushed on `feature/site-check-ranking-signals`; awaiting orchestrator review. Nothing is merged.
 
+### PR
+
+- **PR URL:** https://github.com/brijeshsrivdev/antena-hotel-check/pull/40
+- **Base:** `main`
+- **Merged:** No (awaiting orchestrator review)
+
 ### Files changed
 
 - `backend/pom.xml` (jsoup 1.17.2)
