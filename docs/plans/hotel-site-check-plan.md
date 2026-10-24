@@ -4,7 +4,7 @@
 - [x] Draft
 - [x] Approved — Brijesh, 24 Oct 2026 (master sheet PG-06)
 - [x] In Implementation — S1 ported into this repository (see Implementation record)
-- [ ] Verified & Completed
+- [ ] Verified & Completed — pending: Brijesh runs the live guard and the six-site comparison against the SEO agent's audits (§6)
 
 **Author:** campaign-lead session, 24 Oct 2026 · **Owner:** a development session; cite this plan in commit messages.
 **Build location (Brijesh, 24 Oct 2026):** this repository, `brijeshsrivdev/antena-hotel-check` — the monorepo copy of this plan (`antena` repo, `docs/plans/active/hotel-site-check-plan.md`) is the spec only; the module paths it names there (`antena-domain-growth`, `antena-console` `/tools`, `antena-sales-agent`) are patterns to copy, not places to change. Execution contract here: [requirements/REQ-038-ranking-signal-site-check-foundation.md](../../requirements/REQ-038-ranking-signal-site-check-foundation.md).
@@ -207,7 +207,7 @@ Kept by the development session; one entry per slice, updated as PRs land. The f
 | S2 Google signals | Done, awaiting orchestrator review | [PR #40](https://github.com/brijeshsrivdev/antena-hotel-check/pull/40) (same branch, REQ-039) | PSI client + 24 h cache, robots, sitemap, broken links; 27 checks total; without a PSI key the three PSI checks report UNKNOWN |
 | S3 Frontend page | Done, awaiting orchestrator review | [PR #40](https://github.com/brijeshsrivdev/antena-hotel-check/pull/40) (same branch, REQ-040) | `frontend/` Next.js app, `/tools/hotel-site-check`, local-only via `.env.local`; Frontend Validation workflow |
 | S4 PDF + consent | Done, awaiting orchestrator review | [PR #40](https://github.com/brijeshsrivdev/antena-hotel-check/pull/40) (same branch, REQ-041) | `site_check_runs` JPA entity, ip_hash, PDF (openhtmltopdf), consent-gated email with a log-mode default; `consent.py` entry stays a monorepo follow-up |
-| S5 Tenant guard | Not started | | |
+| S5 Tenant guard | Done (opt-in test), awaiting orchestrator review and a live run by Brijesh | [PR #40](https://github.com/brijeshsrivdev/antena-hotel-check/pull/40) (same branch, REQ-042) | `LiveTenantGuardTest`, enabled by `HOTELCHECK_TENANT_URL`; the offline storefront fixture already scores 100 |
 
 ### S1 — what landed (24 Oct 2026)
 - Package `com.antenapro.hotelcheck.sitecheck` (`fetch`, `html`, `check`, `model`, `api`); jsoup 1.17.2 added to `backend/pom.xml`.
@@ -234,6 +234,10 @@ Kept by the development session; one entry per slice, updated as PRs land. The f
 - Page: "Keep this report" card with the consent checkbox (label states what is sent and that Antena may follow up) and a download link.
 - Tests: 357 tests, 0 failures, 0 errors locally (Docker-only test excluded).
 
+### S5 — what landed (24 Oct 2026, same PR, requirement REQ-042)
+- `LiveTenantGuardTest` (opt-in via `HOTELCHECK_TENANT_URL`): runs the real fetcher and all 27 checks against a tenant storefront and fails if `robots`, `sitemap`, `structured-data`, `booking-cta`, `https`, `indexable`, `canonical` or `own-booking-engine` is FAIL, or the booking control is not found. Local renderer URLs (`*.localhost:3000`) are allowed in this test only. Skipped in CI.
+- Brijesh runs it with: `HOTELCHECK_TENANT_URL=https://lexisinnbeachresort.com mvn -f backend/pom.xml test -Dtest=LiveTenantGuardTest -Dsurefire.failIfNoSpecifiedTests=false` (optionally `HOTELCHECK_SITECHECK_PSI_KEY=…`).
+
 ### Deviations from the plan (S1)
 1. **21 checks in S1, not 12** — everything page-derived; S2 keeps robots, sitemap, mobile-friendly, Core Web Vitals, page weight, broken-link sampling and the sitemap-`lastmod` half of `last-updated`.
 2. **API path is `/api/site-checks`**, this repository's convention, instead of the monorepo's `/api/v1/public/site-check`.
@@ -257,6 +261,9 @@ Kept by the development session; one entry per slice, updated as PRs land. The f
 2. **Email delivery defaults to a local file** (`report-mode=log`) because no mailer exists here; SMTP is one property switch away.
 3. **A direct PDF download was added** beside the email form, for use on the developer's machine.
 4. **`antena-sales-agent/consent.py` is not touched** (monorepo); the `hotel_check_form` source is recorded in `site_check_runs.consent_source` here and the one-line `OPT_IN_SOURCES` addition stays a monorepo follow-up for whoever next works there.
+
+### Deviations from the plan (S5)
+1. **The guard is opt-in, not part of CI**: this repository cannot start the antena renderer (it lives in the monorepo), so the test takes any storefront URL from an environment variable; the committed, always-on equivalent is the storefront fixture test.
 
 ### Decisions needed from Brijesh (S1)
 - None blocking. For S2 the PageSpeed Insights key is read from `HOTELCHECK_SITECHECK_PSI_KEY` in the local profile; without it S2 degrades to UNKNOWN with a limitation line.
