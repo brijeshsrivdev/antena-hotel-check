@@ -1,0 +1,7 @@
+# Antena storefront
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /_next/
+
+Sitemap: https://lexisinnbeachresort.com/sitemap.xml

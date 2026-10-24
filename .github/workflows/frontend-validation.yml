@@ -1,0 +1,48 @@
+name: Frontend Validation
+
+# Type-checks and builds the owner-facing Next.js app (ADR-001 static quality baseline). The build never sets
+# the Hotel Site Check flag: the page is a 404 in any built image, by design (docs/plans/hotel-site-check-plan.md).
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-validation.yml'
+  push:
+    branches:
+      - main
+      - 'feature/**'
+      - 'ci/**'
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-validation.yml'
+
+jobs:
+  frontend-check:
+    name: Node 22 / typecheck and build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci --no-audit --no-fund
+
+      - name: Type-check
+        working-directory: frontend
+        run: npm run typecheck
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build

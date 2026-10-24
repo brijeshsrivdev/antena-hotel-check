@@ -1,0 +1,15 @@
+{
+ "loadingExperience": {"id": "https://www.seashellresortdiveagar.com/", "metrics": {}, "overall_category": "NONE"},
+ "lighthouseResult": {
+  "configSettings": {"formFactor": "mobile"},
+  "audits": {
+   "viewport": {"id": "viewport", "score": 0, "scoreDisplayMode": "binary"},
+   "content-width": {"id": "content-width", "score": 0, "scoreDisplayMode": "binary"},
+   "largest-contentful-paint": {"id": "largest-contentful-paint", "score": 0.1, "numericValue": 6800, "numericUnit": "millisecond"},
+   "cumulative-layout-shift": {"id": "cumulative-layout-shift", "score": 0.3, "numericValue": 0.42, "numericUnit": "unitless"},
+   "total-byte-weight": {"id": "total-byte-weight", "score": 0, "numericValue": 9100000, "numericUnit": "byte"},
+   "network-requests": {"id": "network-requests", "details": {"type": "table", "items": [{"url": "a"}, {"url": "b"}, {"url": "c"}]}}
+  },
+  "categories": {"performance": {"score": 0.23}}
+ }
+}

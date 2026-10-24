@@ -1,0 +1,38 @@
+{
+ "captchaResult": "CAPTCHA_NOT_NEEDED",
+ "kind": "pagespeedonline#result",
+ "id": "https://lexisinnbeachresort.com/",
+ "loadingExperience": {
+  "id": "https://lexisinnbeachresort.com/",
+  "metrics": {
+   "CUMULATIVE_LAYOUT_SHIFT_SCORE": {"percentile": 3, "distributions": [{"min": 0, "max": 10, "proportion": 0.95}, {"min": 10, "max": 25, "proportion": 0.04}, {"min": 25, "proportion": 0.01}], "category": "FAST"},
+   "FIRST_CONTENTFUL_PAINT_MS": {"percentile": 1400, "distributions": [], "category": "FAST"},
+   "INTERACTION_TO_NEXT_PAINT": {"percentile": 120, "distributions": [], "category": "FAST"},
+   "LARGEST_CONTENTFUL_PAINT_MS": {"percentile": 1900, "distributions": [], "category": "FAST"}
+  },
+  "overall_category": "FAST",
+  "initial_url": "https://lexisinnbeachresort.com/"
+ },
+ "lighthouseResult": {
+  "requestedUrl": "https://lexisinnbeachresort.com/",
+  "finalUrl": "https://lexisinnbeachresort.com/",
+  "lighthouseVersion": "12.2.1",
+  "configSettings": {"emulatedFormFactor": "mobile", "formFactor": "mobile", "locale": "en-US", "onlyCategories": ["performance"]},
+  "audits": {
+   "viewport": {"id": "viewport", "title": "Has a `<meta name=\"viewport\">` tag with `width` or `initial-scale`", "score": 1, "scoreDisplayMode": "binary"},
+   "content-width": {"id": "content-width", "title": "Content is sized correctly for the viewport", "score": 1, "scoreDisplayMode": "binary"},
+   "largest-contentful-paint": {"id": "largest-contentful-paint", "title": "Largest Contentful Paint", "score": 0.92, "scoreDisplayMode": "numeric", "numericValue": 2210.5, "numericUnit": "millisecond", "displayValue": "2.2 s"},
+   "cumulative-layout-shift": {"id": "cumulative-layout-shift", "title": "Cumulative Layout Shift", "score": 1, "scoreDisplayMode": "numeric", "numericValue": 0.004, "numericUnit": "unitless", "displayValue": "0.004"},
+   "total-byte-weight": {"id": "total-byte-weight", "title": "Avoids enormous network payloads", "score": 1, "scoreDisplayMode": "numeric", "numericValue": 1468006, "numericUnit": "byte", "displayValue": "Total size was 1,434 KiB"},
+   "network-requests": {"id": "network-requests", "title": "Network Requests", "score": null, "scoreDisplayMode": "informative", "details": {"type": "table", "items": [
+     {"url": "https://lexisinnbeachresort.com/", "transferSize": 14212}, {"url": "https://lexisinnbeachresort.com/_next/static/css/app.css", "transferSize": 21000},
+     {"url": "https://lexisinnbeachresort.com/_next/static/chunks/main.js", "transferSize": 90000}, {"url": "https://lexisinnbeachresort.com/media/hero.jpg", "transferSize": 420000},
+     {"url": "https://lexisinnbeachresort.com/media/deluxe.jpg", "transferSize": 180000}, {"url": "https://lexisinnbeachresort.com/media/suite.jpg", "transferSize": 170000},
+     {"url": "https://lexisinnbeachresort.com/media/garden.jpg", "transferSize": 160000}, {"url": "https://lexisinnbeachresort.com/media/beach.jpg", "transferSize": 150000},
+     {"url": "https://lexisinnbeachresort.com/media/thali.jpg", "transferSize": 140000}, {"url": "https://lexisinnbeachresort.com/favicon.ico", "transferSize": 1200}
+   ]}}
+  },
+  "categories": {"performance": {"id": "performance", "title": "Performance", "score": 0.91}}
+ },
+ "analysisUTCTimestamp": "2026-10-24T07:10:00.000Z"
+}

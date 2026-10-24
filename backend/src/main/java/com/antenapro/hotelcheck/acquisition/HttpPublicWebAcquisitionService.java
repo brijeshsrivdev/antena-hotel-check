@@ -339,6 +339,8 @@ public class HttpPublicWebAcquisitionService implements PublicWebAcquisitionServ
 
         Header cacheHeader = response.getFirstHeader("Cache-Control");
         if (cacheHeader != null) metadata.put("header.cache-control", cacheHeader.getValue());
+        Header robotsHeader = response.getFirstHeader("X-Robots-Tag");
+        if (robotsHeader != null) metadata.put("header.x-robots-tag", robotsHeader.getValue());
 
         return Collections.unmodifiableMap(metadata);
     }
