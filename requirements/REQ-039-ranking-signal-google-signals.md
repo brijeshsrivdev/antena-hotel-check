@@ -61,7 +61,7 @@ PR_READY — committed and pushed on `feature/site-check-ranking-signals` (PR #4
 
 ### Validation performed
 
-- Local, 24 Oct 2026, OpenJDK 21 / Maven 3.9: `cd backend && mvn --batch-mode test -Dsurefire.failIfNoSpecifiedTests=false -Dtest='!JpaEvaluationRepositoryTest'` → 345 tests, 0 failures, 1 errors.
+- Local, 24 Oct 2026, OpenJDK 21 / Maven 3.9: `cd backend && mvn --batch-mode test -Dsurefire.failIfNoSpecifiedTests=false -Dtest='!JpaEvaluationRepositoryTest'` → 344 tests, 0 failures, 0 errors (the Docker-only JpaEvaluationRepositoryTest excluded).
 - CI: Backend Validation on the PR head (recorded by the orchestrator at review).
 
 ### Open questions for the orchestrator

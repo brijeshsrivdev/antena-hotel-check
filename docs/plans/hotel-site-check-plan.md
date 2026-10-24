@@ -221,7 +221,7 @@ Kept by the development session; one entry per slice, updated as PRs land. The f
 - `PsiClient` → `HttpPsiClient` (PageSpeed Insights v5, mobile strategy, key `hotelcheck.sitecheck.psi-key` from `HOTELCHECK_SITECHECK_PSI_KEY` in the local profile) wrapped in `CachingPsiClient` (24 h per host, failures not cached). Keyless calls are not made: Google's keyless quota is zero (observed 24 Oct 2026, the error response is the `psi/quota-exceeded.json` fixture).
 - `RobotsTxt` and `SitemapXml` parsers; `fetchText` and `probe` modes on the acquisition-backed fetcher; the loader runs PSI and robots/sitemap in parallel with the page fetches and probes up to six other internal links, all bounded by the fetch deadline.
 - Checks `robots`, `sitemap`, `mobile-friendly`, `core-web-vitals`, `page-weight`, `broken-links`; `last-updated` now reads the sitemap `lastmod` when there is no copyright year. The catalogue is the plan's full 27.
-- Tests: 345 tests, 0 failures, 1 errors locally; the storefront fixture scores 100 with 27 PASS when robots, sitemap and a good PSI response are served.
+- Tests: 344 tests, 0 failures, 0 errors (the Docker-only JpaEvaluationRepositoryTest excluded) locally; the storefront fixture scores 100 with 27 PASS when robots, sitemap and a good PSI response are served.
 
 ### Deviations from the plan (S1)
 1. **21 checks in S1, not 12** — everything page-derived; S2 keeps robots, sitemap, mobile-friendly, Core Web Vitals, page weight, broken-link sampling and the sitemap-`lastmod` half of `last-updated`.
