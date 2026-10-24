@@ -26,3 +26,4 @@ See:
 - `docs/architecture/architecture-concerns.md`
 - `docs/decisions/README.md`
 - `docs/workflows/development-lifecycle.md`
+- `docs/plans/hotel-site-check-plan.md` — the ranking-signal site check (local-only, REQ-038) and its implementation record
